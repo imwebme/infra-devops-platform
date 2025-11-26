@@ -4,7 +4,7 @@
 # 기본 설정 (모든 환경 공통)
 tolerations:
 - effect: NoSchedule
-  key: AlwayzServicesOnly  # 서비스별로 변경: AlwayzBackOnly, AlwayzJobsOnly 등
+  key: DemoServicesOnly  # 서비스별로 변경: DemoBackOnly, DemoJobsOnly 등
   value: "true"
   operator: Equal
 

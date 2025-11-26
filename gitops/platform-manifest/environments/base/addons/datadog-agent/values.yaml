@@ -2088,7 +2088,7 @@ agents:
   # agents.tolerations -- Allow the DaemonSet to schedule on tainted nodes (requires Kubernetes >= 1.6)
   tolerations:
     - operator: Equal
-      key: AlwayzServicesOnly
+      key: DemoServicesOnly
       value: "true"
       effect: NoSchedule
 

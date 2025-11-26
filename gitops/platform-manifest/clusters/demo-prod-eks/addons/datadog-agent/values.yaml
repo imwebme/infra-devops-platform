@@ -1163,7 +1163,7 @@ agents:
 
   tolerations:
     - operator: Equal
-      key: AlwayzServicesOnly
+      key: DemoServicesOnly
       value: "true"
       effect: NoSchedule
     - operator: Equal
@@ -1171,59 +1171,59 @@ agents:
       value: "true"
       effect: NoSchedule
     - operator: Equal
-      key: AlwayzAdsOnly
+      key: DemoAdsOnly
       value: "true"
       effect: NoSchedule
     - operator: Equal
-      key: AlwayzFarmV1Only
+      key: DemoFarmV1Only
       value: "true"
       effect: NoSchedule
     - operator: Equal
-      key: AlwayzFarmV2Only
+      key: DemoFarmV2Only
       value: "true"
       effect: NoSchedule
     - operator: Equal
-      key: AlwayzAltoonOnly
+      key: DemoAltoonOnly
       value: "true"
       effect: NoSchedule
     - operator: Equal
-      key: AlwayzAlwalkOnly
+      key: DemoAlwalkOnly
       value: "true"
       effect: NoSchedule
     - operator: Equal
-      key: AlwayzBackOnly
+      key: DemoBackOnly
       value: "true"
       effect: NoSchedule
     - operator: Equal
-      key: AlwayzBffOnly
+      key: DemoBffOnly
       value: "true"
       effect: NoSchedule
     - operator: Equal
-      key: AlwayzCoreOnly
+      key: DemoCoreOnly
       value: "true"
       effect: NoSchedule
     - operator: Equal
-      key: AlwayzShortDramaOnly
+      key: DemoShortDramaOnly
       value: "true"
       effect: NoSchedule
     - operator: Equal
-      key: AlwayzJobsOnly
+      key: DemoJobsOnly
       value: "true"
       effect: NoSchedule
     - operator: Equal
-      key: AlwayzQualityOnly
+      key: DemoQualityOnly
       value: "true"
       effect: NoSchedule
     - operator: Equal
-      key: AlwayzRecoOnly
+      key: DemoRecoOnly
       value: "true"
       effect: NoSchedule
     - operator: Equal
-      key: AlwayzScrapersOnly
+      key: DemoScrapersOnly
       value: "true"
       effect: NoSchedule
     - operator: Equal
-      key: AlwayzSellerOnly
+      key: DemoSellerOnly
       value: "true"
       effect: NoSchedule
     - operator: Equal
@@ -1231,11 +1231,11 @@ agents:
       value: "true"
       effect: NoSchedule
     - operator: Equal
-      key: AlwayzCoreOnly
+      key: DemoCoreOnly
       value: "true"
       effect: NoSchedule
     - operator: Equal
-      key: AlwayzPriceOnly
+      key: DemoPriceOnly
       value: "true"
       effect: NoSchedule
     - operator: Equal
@@ -1243,7 +1243,7 @@ agents:
       value: "true"
       effect: NoSchedule
     - operator: Equal
-      key: AlwayzShortsOnly
+      key: DemoShortsOnly
       value: "true"
       effect: NoSchedule
     # - operator: Equal

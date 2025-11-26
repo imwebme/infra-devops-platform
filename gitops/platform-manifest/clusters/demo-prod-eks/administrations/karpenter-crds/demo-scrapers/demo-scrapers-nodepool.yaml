@@ -59,7 +59,7 @@ spec:
             - on-demand
       taints:
         - effect: NoSchedule
-          key: AlwayzScrapersOnly
+          key: DemoScrapersOnly
           value: "true"
   disruption:
     consolidationPolicy: WhenUnderutilized
