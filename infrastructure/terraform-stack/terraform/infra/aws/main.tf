@@ -4,11 +4,11 @@
 terraform {
 
   cloud {
-    organization = "example-org"
+    organization = "imwebme"
 
     hostname = "app.terraform.io"
     workspaces {
-      tags = ["alwayz", "aws", "devops"]
+      tags = ["imweb", "aws", "security"]
     }
   }
 
