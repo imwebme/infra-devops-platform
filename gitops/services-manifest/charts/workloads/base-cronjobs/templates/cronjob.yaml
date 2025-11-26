@@ -1,0 +1,134 @@
+{{- $labels := include "base-cronjobs.labels" . }}
+{{- $fullName := include "base-cronjobs.fullname" . }}
+{{- $datadogLabels := include "base-cronjobs.datadog.labels" . }}
+{{- range .Values.cronJobs }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ replace "." "-" (lower (trunc 48 .name)) }}
+  namespace: {{ $.Values.namespace }}
+  labels: {{ $labels | nindent 4 }}
+    app.kubernetes.io/instance: {{ $fullName }}
+    app.kubernetes.io/name: {{ replace "." "-" (lower (trunc 48 .name)) }}
+    {{- if $.Values.datadog.enabled -}}
+    {{ $datadogLabels | nindent 4 }}
+    {{- end}}
+  annotations:
+    {{- with $.Values.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  timeZone: {{ .timeZone | default $.Values.cronJobDefault.timeZone }}
+  failedJobsHistoryLimit: {{ .failedJobsHistoryLimit | default $.Values.cronJobDefault.failedJobsHistoryLimit }}
+  successfulJobsHistoryLimit: {{ .successfulJobsHistoryLimit | default $.Values.cronJobDefault.successfulJobsHistoryLimit }}
+  concurrencyPolicy: {{ .concurrencyPolicy | default $.Values.cronJobDefault.concurrencyPolicy }}
+  schedule: {{ .cronTimeExpression | quote }}
+  jobTemplate:
+    spec:
+      backoffLimit: {{ .backoffLimit | default $.Values.cronJobDefault.backoffLimit }}
+      template:
+        metadata:
+          labels: {{ $labels | nindent 12 }}
+            {{- with ( .labels | default $.Values.cronJobDefault.labels ) }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            app.example-org.io/service: {{ replace "." "-" (lower (trunc 48 .name)) }}
+            {{- with ( .annotations | default  $.Values.cronJobDefault.annotations ) }}
+            {{- if $.Values.datadog.enabled -}}
+            {{ $datadogLabels | nindent 12 }}
+            admission.datadoghq.com/enabled: "true"
+            {{- end}}
+          annotations:
+            {{- toYaml . | nindent 12 }}
+            {{- if $.Values.datadog.enabled }}
+            {{- if eq "js" $.Values.datadog.type }}
+            admission.datadoghq.com/js-lib.version: {{ $.Values.datadog.libVersion | default "v4.22.0" }}
+            {{- else if eq "python" $.Values.datadog.type }}
+            admission.datadoghq.com/python-lib.version: {{ $.Values.datadog.libVersion | default "v2.4.2" }}
+            {{- end}}
+            {{- end}}
+          {{- end }}
+        spec:
+          containers:
+          - name: {{ replace "." "-" (lower (trunc 48 .name)) }}
+            {{- with .image }}
+            image: "{{ .repository }}/{{ .name }}:{{ .tag }}"
+            imagePullPolicy: "{{ .pullPolicy }}"
+            {{- else }}
+            image: "{{ $.Values.cronJobDefault.image.repository }}:{{ $.Values.cronJobDefault.image.tag }}"
+            imagePullPolicy: "{{ $.Values.cronJobDefault.image.pullPolicy }}"
+            {{- end }}
+            {{- with .securityContext | default $.Values.cronJobDefault.securityContext }}
+            securityContext:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+            env:
+              {{- if $.Values.cronJobDefault.env }}
+              {{- toYaml $.Values.cronJobDefault.env | nindent 14 }}
+              {{- end }}
+              {{- if .env }}
+              {{- toYaml .env | nindent 14 }}
+              {{- end }}
+              {{- if $.Values.datadog.enabled }}
+              {{- include "base-cronjobs.datadog.envs" . | nindent 14 }}
+              {{- if $.Values.datadog.profile.enabled }}
+              - name: DD_PROFILING_ENABLED
+                value: "true"
+              {{- end }}
+              {{- end }}
+              {{- if and .externalSecrets $.Values.cronJobDefault.externalSecrets.enabled }}
+              {{- $secrets := default $.Values.cronJobDefault.externalSecrets .externalSecrets }}
+              {{- range $index, $value := $secrets.env }}
+              - name: {{ default $value.key $value.alias }}
+                valueFrom:
+                  secretKeyRef:
+                    name: {{ $fullName }}
+                    key: {{ $value.key }}
+              {{- end }}
+              {{- end }}
+
+            envFrom:
+              {{- if $.Values.cronJobDefault.extraEnvFrom }}
+              {{- toYaml $.Values.cronJobDefault.extraEnvFrom | nindent 14 }}
+              {{- end }}
+              {{- if .extraEnvFrom }}
+              {{- toYaml .extraEnvFrom | nindent 14 }}
+              {{- end }}
+            command:
+              {{- with .command }}
+              {{- toYaml . | nindent 14 }}
+              {{- end }}
+            args:
+              {{- toYaml .arg | nindent 14 }}
+            {{- with .resources | default $.Values.cronJobDefault.resources }}  
+            resources:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+            {{- with .volumeMounts | default $.Values.cronJobDefault.volumeMounts }}
+            volumeMounts:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+          restartPolicy: Never
+          {{- if and $.Values.sa.enabled $.Values.sa.shared }}
+          serviceAccountName: {{ $.Values.sa.name }}
+          {{- else if $.Values.sa.enabled }}
+          serviceAccountName: {{ replace "." "-" (lower (trunc 48 .name)) }}
+          {{- end }}
+          {{- with .nodeSelector | default $.Values.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .affinity | default $.Values.affinity }}
+          affinity:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .tolerations | default $.Values.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .volumes | default $.Values.cronJobDefault.volumes }}
+          volumes:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+---
+{{- end }}

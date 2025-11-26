@@ -1,0 +1,10 @@
+application_name: demo-cronjobs-nodejs
+chart:
+  name: demo-cronjobs-nodejs
+  version: 0.0.20
+  values: .helm/demo-cronjobs-dev-values.yaml
+slack_channel: C082JSFBL7L
+source: nodejs
+repo:
+  helm_values: https://github.com/wetripod/demo-cron
+  ecr: 123456789012.dkr.ecr.ap-northeast-2.amazonaws.com/demo-dev-ecr_demo-cron

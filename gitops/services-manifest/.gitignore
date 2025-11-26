@@ -1,0 +1,6 @@
+local/
+*.tgz
+Chart.lock
+.DS_Store
+argocd.rb
+.idea/

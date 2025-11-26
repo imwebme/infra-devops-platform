@@ -1,0 +1,9 @@
+key:
+  components:
+    - manifest:
+        name: kube-schedule-scaler
+        repo: https://github.com/wetripod/devops-gitops-manifest
+        path: kube-schedule-scaler
+        version: main
+        namespace: kube-schedule-scaler
+        auto_sync: true

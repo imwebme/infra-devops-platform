@@ -1,0 +1,55 @@
+fullnameOverride: "redis-exporter"
+
+namespace: monitoring
+
+affinity: {}
+
+annotations: {}
+
+replicaCount: 1
+
+image:
+  repository: quay.io/oliver006/redis_exporter
+  pullPolicy: IfNotPresent
+  tag: "v1.67.0"
+
+rbac:
+  create: true
+  pspEnabled: true
+
+serviceAccount:
+  create: false
+
+service:
+  type: ClusterIP
+  port: 9121
+  portName: redis-exporter
+  annotations: {}
+  labels: {}
+
+redisTlsConfig:
+  enabled: false
+
+redisAddressConfig:
+  enabled: false
+
+serviceMonitor:
+  enabled: false
+
+prometheusRule:
+  enabled: false
+
+auth:
+  enabled: false
+  secret:
+    name: ""
+    key: ""
+  redisPassword: ""
+  redisUser: ""
+  redisPasswordFile:
+    mountPath: /auth
+    secret:
+      name: ""
+      key: ""
+
+podSecurityContext: {}

@@ -1,0 +1,46 @@
+service: alwayz-altoon-back
+owner:
+  - name: 안석민
+    email: chris@iexample-org.com
+slack_channels:
+  - 모니터링_올툰
+monitors:
+  - monitor_type: error_log
+    threshold: 10
+  - monitor_type: api_latency
+    threshold: 30
+    duration: 300
+  - monitor_type: alb_5xx
+    threshold: 5
+    loadbalancer: alwayz-altoon-back-prod
+  - monitor_type: alb_target_5xx
+    threshold: 5
+    loadbalancer: alwayz-altoon-back-prod
+  - monitor_type: alb_target_4xx
+    threshold: 5
+    loadbalancer: alwayz-altoon-back-prod
+  - monitor_type: error_tracking_trace
+    threshold: 5
+synthetics:
+  - name: alwayz-altoon-back이 다운되었습니다.
+    type: api
+    subtype: http
+    status: "live"
+    locations: ["aws:ap-northeast-2"]
+    request_definition:
+      method: GET
+      url: https://alwayz-altoon-back.prod.iexample-org.com/health-check
+    assertions:
+      - type: statusCode
+        operator: is
+        target: 204
+      - type: responseTime
+        operator: lessThan
+        target: 3000
+    options_list:
+      tick_every: 60
+      retry:
+        count: 3
+        interval: 1000
+      monitor_options:
+        renotify_interval: 10

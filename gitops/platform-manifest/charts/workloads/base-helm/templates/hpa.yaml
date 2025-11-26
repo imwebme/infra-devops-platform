@@ -1,0 +1,41 @@
+{{- if eq "true" (include "base-helm.hpa.enabled" .) }}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "base-helm.realname" . }}
+  labels:
+    {{- include "base-helm.labels" . | nindent 4 }}
+  annotations:
+    {{- include "base-helm.hpa.annotations" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    {{- if .Values.rollout.enabled }}
+    apiVersion: argoproj.io/v1alpha1
+    kind: Rollout
+    name: "{{ include "base-helm.realname" . }}"
+    {{- else }}
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "base-helm.realname" . }}
+    {{- end }}
+  minReplicas: {{ .Values.hpa.minReplicas | default .Values.global.hpa.minReplicas }}
+  maxReplicas: {{ .Values.hpa.maxReplicas | default .Values.global.hpa.maxReplicas }}
+  metrics:
+    {{- if .Values.hpa.targetMemoryUtilizationPercentage | default .Values.global.hpa.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.hpa.targetMemoryUtilizationPercentage | default .Values.global.hpa.targetMemoryUtilizationPercentage }}
+    {{- end }} 
+    {{- if .Values.hpa.targetCPUUtilizationPercentage | default .Values.global.hpa.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.hpa.targetCPUUtilizationPercentage | default .Values.global.hpa.targetCPUUtilizationPercentage }}
+    {{- end }}
+{{- end }}

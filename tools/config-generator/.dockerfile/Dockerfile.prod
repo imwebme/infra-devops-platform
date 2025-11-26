@@ -1,0 +1,25 @@
+# syntax=docker/dockerfile:1.7-labs
+FROM node:18.16.0-alpine AS base-builder
+RUN apk --no-cache add curl && npm install -g npm@9.3.1 && npm install -g pm2 && apk add git
+
+ARG AWS_ACCESS_KEY_ID
+ARG AWS_SECRET_ACCESS_KEY
+ARG IMAGE_TAG
+ARG ENCRYPT_KEY
+ARG NODE_ENV
+ARG GIT_PERSONAL_ACCESS_TOKEN
+ARG DD_GIT_REPOSITORY_URL
+ARG DD_GIT_COMMIT_SHA
+ENV DD_VERSION=${IMAGE_TAG}
+ENV DD_GIT_REPOSITORY_URL=${DD_GIT_REPOSITORY_URL} 
+ENV DD_GIT_COMMIT_SHA=${DD_GIT_COMMIT_SHA}
+
+WORKDIR /home/alwayz-config
+RUN git config --global credential.helper store
+RUN git config --global user.name "levit-dev" 
+ARG CACHEBUST=0
+RUN git clone https://levit-dev:${GIT_PERSONAL_ACCESS_TOKEN}@github.com/wetripod/alwayz-config.git .
+RUN echo -e "ENCRYPT_KEY=${ENCRYPT_KEY}\nNODE_ENV=${NODE_ENV}" > .env
+RUN npm pkg delete scripts.prepare && npm ci --omit=dev
+
+CMD ["node", "src/index.js"]

@@ -1,0 +1,69 @@
+---
+org: ""
+categorie: ""
+env: ""
+vpc_endpoints:
+  enabled: false
+
+datadog_private_link:
+  enabled: false
+
+vpc_peering:
+  enabled: false
+  connections: []
+
+secondary_level_domain: "iexample-org.com"
+github_org: "https://github.com/wetripod"
+cloudfront:
+  origin_access_controls: "sign requests"
+ecr:
+  - "alwayz-back"
+  - "alwayz-alwalk-back"
+  - "alwayz-seller-back"
+  - "alwayz-admin-back"
+  - "alwayz-shorts-back"
+  - "alfarm-back"
+  - "alwayz-games-back"
+  - "alwayz-square-back"
+  - "alwayz-shorts-reco-back"
+  - "alwayz-reco-back"
+  - "alwayz-drama-back"
+  - "alwayz-altoon-back"
+  - "alwayz-almart-back"
+  - "alwayz-garden-back"
+  - "alwayz-pollcom-back"
+  - "alwayz-cron"
+  - "alwayz-cron-pay"
+  - "alwayz-cron-python"
+  - "alwayz-assignment-front"
+  - "alwayz-config"
+  - "alwayz-ml-business-back"
+  - "alwayz-algarden-back"
+  - "db-dbm"
+  - "alwayz-node-scraper"
+  - "alwayz-search-back"
+  - "alwayz-front-code-push-console"
+  - "alwayz-strategy-back"
+  - "abwayz"
+  - "alwayz-lowest-crawler-realtime"
+
+frontend:
+  [
+    "alwayz-shop-front",
+    "alwayz-altto-front",
+    "alwayz-brainteaser-front",
+    "alwayz-storybook",
+    "alwayz-admin-front",
+    "alwayz-ads-front",
+    "alwayz-price-front",
+    "alwayz-altoon-web-front",
+    "alwayz-alfarm-v2-front",
+    "shopin-front",
+    "shopin-partners-front",
+    "price-csx-front",
+    "alwayz-events-front",
+    "alwayz-grocery-assitant-front",
+  ]
+
+loki:
+  enabled: false

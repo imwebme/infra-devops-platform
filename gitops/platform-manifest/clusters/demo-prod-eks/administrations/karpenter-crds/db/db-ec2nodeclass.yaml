@@ -1,0 +1,28 @@
+apiVersion: karpenter.k8s.aws/v1beta1
+kind: EC2NodeClass
+metadata:
+  name: db
+spec:
+  amiFamily: Bottlerocket
+  blockDeviceMappings:
+    - deviceName: /dev/xvdb
+      ebs:
+        volumeSize: 50Gi
+        volumeType: gp3
+        encrypted: true
+  role: karpenter-demo-prod-eks
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: demo-prod-eks
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: demo-prod-eks
+  tags:
+    Env: demo-prod
+    KarpenterNodePoolName: db
+    Group: db
+    NodeType: ops_db_prod_ec2
+    Team: ops
+    csmSecurity: "true"
+    intent: apps
+    karpenter.sh/discovery: demo-prod-eks

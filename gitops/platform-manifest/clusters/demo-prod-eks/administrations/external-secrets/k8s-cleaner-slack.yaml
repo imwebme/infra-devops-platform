@@ -1,0 +1,19 @@
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: slack
+  namespace: k8s-cleaner
+spec:
+  data:
+    - secretKey: SLACK_TOKEN
+      remoteRef:
+        key: demo/prod/devops
+        property: SLACK_TOKEN
+    - secretKey: SLACK_CHANNEL_ID
+      remoteRef:
+        key: demo/prod/devops
+        property: SLACK_CHANNEL_ID
+  refreshInterval: 60s
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: aws-cluster-secret-store

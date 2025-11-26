@@ -1,0 +1,38 @@
+{{- range .Values.mongodbPod }}
+{{- $cluster := .cluster }}
+{{- range .instance }}
+{{- $instance := . }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ printf "%s-exporter" $instance }}
+  labels:
+    mongodb.exporter: mongod
+    {{- include "prometheus-mongodb-exporter.labels" $ | nindent 4 }}
+    app.kubernetes.io/name: {{ $instance }}
+    {{- range $key, $value := $.Values.serviceMonitor.additionalLabels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- if $.Values.serviceMonitor.namespace }}
+  namespace: {{ $.Values.serviceMonitor.namespace }}
+  {{- end }}
+  annotations:
+    {{- if $.Values.service.annotations }}
+    {{- toYaml $.Values.service.annotations | indent 4 }}
+    {{- end }}
+    mongodb.exporter: mongod
+    mongodb.cluster: {{ $cluster }}
+    mongodb.instance: {{ $instance }}
+spec:
+  ports:
+    - port: {{ $.Values.service.port }}
+      targetPort: {{ $.Values.port }}
+      protocol: TCP
+      name: {{ $.Values.service.portName }}
+  selector:
+    app.kubernetes.io/instance: {{ $cluster }}
+    statefulset.kubernetes.io/pod-name: {{ $instance }}
+  type: {{ $.Values.service.type }}
+---
+{{- end }}
+{{- end }}

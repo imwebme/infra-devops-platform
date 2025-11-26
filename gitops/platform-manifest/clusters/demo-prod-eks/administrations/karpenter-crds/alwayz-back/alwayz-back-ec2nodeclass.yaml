@@ -1,0 +1,22 @@
+apiVersion: karpenter.k8s.aws/v1beta1
+kind: EC2NodeClass
+metadata:
+  name: demo-back
+spec:
+  amiFamily: Bottlerocket
+  blockDeviceMappings: []
+  role: karpenter-demo-prod-eks
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: demo-prod-eks
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: demo-prod-eks
+  tags:
+    Env: demo-prod
+    Group: demo-back
+    KarpenterNodePoolName: demo-back
+    NodeType: ops_demo-back_prod_ec2
+    Team: ops
+    csmSecurity: "true"
+    karpenter.sh/discovery: demo-prod-eks

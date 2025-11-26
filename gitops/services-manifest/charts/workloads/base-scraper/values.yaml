@@ -1,0 +1,102 @@
+# Default values for base-scraper.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+appName: base-scraper
+
+rollout:
+  enabled: false
+  blue_green:
+    enabled: false
+    options: {}
+    #  https://argoproj.github.io/argo-rollouts/features/bluegreen/
+    #  autoPromotionEnabled: false
+  canary:
+    enabled: false
+    options: {}
+    #  https://argoproj.github.io/argo-rollouts/features/canary/
+
+pdb:
+  enabled: false
+  # @default -- `""` (default: 1)
+  maxUnavailable: 1
+
+env:
+
+rbac:
+  rules: []
+  # - apiGroups: ["argoproj.io"]
+  #   resources: ["applications"]
+  #   verbs: ["get","list","watch"]
+  # - apiGroups: [""]
+  #   resources: ["configmaps"]
+  #   verbs: ["get","list","watch"]
+  # clusterRole: view
+
+secrets:
+  vaultPath: "k8s_kv/demo-devops/common"
+  useEnv: true
+  data:
+    []
+    # - secretKey: test
+    #   vaultKey: boo
+
+global:
+  hpa:
+    enabled: false
+  statefulSet:
+    image:
+      repository: ""
+      tag: ""
+    revisionHistoryLimit: ""
+    labels: {}
+    annotations: {}
+
+replicas: {}
+
+service:
+  type: ClusterIP
+  port: 80
+  portName: ""
+  annotations: {}
+
+statefulSets:
+  {}
+  # deployments
+nodeSelector:
+  {}
+  # service: infra
+
+tolerations:
+  []
+  # - effect: NoSchedule
+  #   key: CriticalAddonsOnly
+  #   operator: Equal
+  #   value: 'true'
+
+sa:
+  enabled: false
+  shared: false
+  name: ""
+
+configMap:
+  json:
+    {}
+    # protectedEnvs:
+    #   {
+    #     dev: "",
+    #     qa: "",
+    #     stage: ""
+    #   }
+  string:
+    {}
+    # PROFILE: dev
+
+externalSecrets:
+  enabled: true
+  extractKey: ""
+  decodingStrategy: ""
+
+datadog:
+  enabled: true
+  profile:
+    enabled: false

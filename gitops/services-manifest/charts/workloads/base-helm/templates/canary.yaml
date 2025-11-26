@@ -1,0 +1,171 @@
+{{- if .Values.rollout.enabled }}
+{{- if .Values.rollout.canary.enabled }}
+{{- $appName := include "base-helm.realname" . -}}
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: '{{ include "base-helm.realname" . }}'
+  labels:
+    {{- include "base-helm.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "base-helm.selectorLabels" . | nindent 6 }}
+  {{- if not (eq "true" (include "base-helm.hpa.enabled" .)) }}
+  replicas: {{ .Values.deployment.replicas }}
+  {{- end }}
+  revisionHistoryLimit: {{ .Values.deployment.revisionHistoryLimit | default 4 }}
+  workloadRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "base-helm.realname" . }}
+  strategy:
+    {{- if .Values.rollout.canary.enabled }}
+    canary:
+      canaryService: '{{ include "base-helm.realname" . }}-preview'
+      {{- with .Values.rollout.canary.options }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
+    {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: '{{ include "base-helm.realname" . }}'
+  labels:
+    {{- include "base-helm.labels" . | nindent 4 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{ . | toYaml | trim | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort | default "http" }}
+      protocol: TCP
+      name: {{ .Values.service.portName | default "http" }}
+  selector:
+    {{- include "base-helm.selectorLabels" . | nindent 4 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: '{{ include "base-helm.realname" . }}-preview'
+  labels:
+    {{- include "base-helm.labels" . | nindent 4 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{ . | toYaml | trim | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort | default "http" }}
+      protocol: TCP
+      name: {{ .Values.service.portName | default "http" }}
+  selector:
+    {{- include "base-helm.selectorLabels" . | nindent 4 }}
+{{- if eq (include "base-helm.additionalPort.enabled" .) "true" }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: '{{ include "base-helm.realname" . }}-{{ .Values.additionalPort.portName }}'
+  labels:
+    {{- include "base-helm.labels" . | nindent 4 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{ . | toYaml | trim | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.additionalPort.servicePort }}
+      targetPort: {{ .Values.additionalPort.targetPort }}
+      protocol: TCP
+      name: {{ .Values.additionalPort.portName }}
+  selector:
+    {{- include "base-helm.selectorLabels" . | nindent 4 }}
+{{- end }}
+{{- if .Values.ingress.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: "{{ $appName }}"
+  labels:
+    {{- include "base-helm.labels" . | nindent 4 }}
+  annotations:
+    {{- include "base-helm.alb.annotations" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  {{- end }}
+spec:
+  ingressClassName: alb
+  rules:  
+    {{- range $rule := .Values.ingress.rules }}
+    - host: {{ $rule.host | quote }}
+      http:
+        paths:
+          {{- range $path := $rule.paths }}
+          - path: {{ $path.path | default "/" }}
+            pathType: {{ $path.pathType | default "Prefix" }}
+            backend:
+              service:
+                name: {{ $path.serviceName | default $appName }}
+                port:
+                  name: {{ $path.portName | default "http" }}
+          {{- end }}
+    {{- end }}
+  {{- if .Values.ingress.tls }}
+  tls:
+  {{- range .Values.ingress.tls }}
+    - hosts:
+    {{- range .hosts }}
+        - {{ quote . }}
+    {{- end }}
+      secretName: {{ .secretName }}
+  {{- end }}
+  {{- end }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: "{{ $appName }}-preview"
+  labels:
+    {{- include "base-helm.labels" . | nindent 4 }}
+  annotations:
+    {{- include "base-helm.alb.annotations" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  {{- end }}
+spec:
+  ingressClassName: alb
+  rules:  
+    {{- range $rule := .Values.ingress.rules }}
+    - host: {{ $rule.host | quote }}
+      http:
+        paths:
+          {{- range $path := $rule.paths }}
+          - path: {{ $path.path | default "/" }}
+            pathType: {{ $path.pathType | default "Prefix" }}
+            backend:
+              service:
+                name: {{ $path.serviceName | default $appName }}
+                port:
+                  name: {{ $path.portName | default "http" }}
+          {{- end }}
+    {{- end }}
+  {{- if .Values.ingress.tls }}
+  tls:
+  {{- range .Values.ingress.tls }}
+    - hosts:
+    {{- range .hosts }}
+        - {{ quote . }}
+    {{- end }}
+      secretName: {{ .secretName }}
+  {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

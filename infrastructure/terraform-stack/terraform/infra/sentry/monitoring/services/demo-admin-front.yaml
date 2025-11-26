@@ -1,0 +1,49 @@
+project:
+  name: alwayz-admin
+  slug: alwayz-admin
+  teams: ["example-org"]
+  platform: javascript-react
+  resolve_age: 720
+  default_rules: false
+  filters:
+    blacklisted_ips: ["127.0.0.1", "0.0.0.0/8"]
+    error_messages: ["test"]
+  fingerprinting_rules: ""
+  grouping_enhancements: ""
+owner:
+  - name: 안석민
+    email: chris@iexample-org.com
+  - name: 이상민
+    email: sangmin.lee@iexample-org.com
+alerts:
+  - type: issue
+    name: "alwayz-admin CriticalAlert"
+    action_match: "all"
+    filter_match: "all"
+    frequency: 5
+    conditions_json:
+      - id: "sentry.rules.conditions.event_frequency.EventFrequencyCondition"
+        value: 50
+        interval: "5m"
+        comparison_type: "count"
+    filters_json: []
+    actions_json:
+      - id: "sentry.integrations.slack.notify_action.SlackNotifyServiceAction"
+        channel_id: "CXXXXXXXXX6"
+        tags: ""
+      - id: "sentry.integrations.slack.notify_action.SlackNotifyServiceAction"
+        channel_id: "CXXXXXXXXX2"
+        tags: ""
+  - type: issue
+    name: "alwayz-admin FirstSeenEvent"
+    action_match: "all"
+    filter_match: "all"
+    frequency: 5
+    mention: false
+    conditions_json:
+      - id: "sentry.rules.conditions.first_seen_event.FirstSeenEventCondition"
+    filters_json: []
+    actions_json:
+      - id: "sentry.integrations.slack.notify_action.SlackNotifyServiceAction"
+        channel_id: "CXXXXXXXXX6"
+        tags: ""

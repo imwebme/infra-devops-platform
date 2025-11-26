@@ -1,0 +1,107 @@
+mongodb:
+- cluster: prod-alfarm
+  uri: "mongodb://example-org_bak:k73gmbaKNEFaGRFy@prod-alfarm-shard01-09.db.prod.iexample-org.com:27017,prod-alfarm-shard01-10.db.prod.iexample-org.com:27017,prod-alfarm-shard01-06.db.prod.iexample-org.com:27017/admin?replicaSet=shard01"
+  schedule: "40 17 * * *"
+  keep: 3d
+  type: physical
+- cluster: prod-alfarm-log
+  uri: "mongodb://example-org_bak:k73gmbaKNEFaGRFy@prod-alfarm-log-shard01-06.db.prod.iexample-org.com:27017,prod-alfarm-log-shard01-04.db.prod.iexample-org.com:27017,prod-alfarm-log-shard01-05.db.prod.iexample-org.com:27017/admin?replicaSet=shard01"
+  schedule: "40 17 * * *"
+  keep: 3d
+  type: physical
+- cluster: prod-alfarm-micro
+  uri: "mongodb://example-org_bak:k73gmbaKNEFaGRFy@prod-alfarm-micro-shard01-07.db.prod.iexample-org.com:27017,prod-alfarm-micro-shard01-08.db.prod.iexample-org.com:27017,prod-alfarm-micro-shard01-09.db.prod.iexample-org.com:27017/admin?replicaSet=shard01"
+  schedule: "40 17 * * *"
+  keep: 3d
+  type: physical
+- cluster: prod-alfarm-v2
+  uri: "mongodb://example-org_bak:k73gmbaKNEFaGRFy@prod-alfarm-v2-shard01-04.db.prod.iexample-org.com:27017,prod-alfarm-v2-shard01-05.db.prod.iexample-org.com:27017,prod-alfarm-v2-shard01-06.db.prod.iexample-org.com:27017/admin?replicaSet=shard01"
+  schedule: "40 17 * * *"
+  keep: 3d
+  type: physical
+- cluster: prod-allulu
+  uri: "mongodb://example-org_bak:k73gmbaKNEFaGRFy@prod-allulu-shard01-03.db.prod.iexample-org.com:27017,prod-allulu-shard01-04.db.prod.iexample-org.com:27017,prod-allulu-shard01-05.db.prod.iexample-org.com:27017/admin?replicaSet=shard01"
+  schedule: "40 17 * * *"
+  keep: 3d
+  type: physical
+- cluster: prod-allulu-log
+  uri: "mongodb://example-org_bak:k73gmbaKNEFaGRFy@prod-allulu-log-shard01-03.db.prod.iexample-org.com:27017,prod-allulu-log-shard01-04.db.prod.iexample-org.com:27017,prod-allulu-log-shard01-05.db.prod.iexample-org.com:27017/admin?replicaSet=shard01"
+  schedule: "40 17 * * *"
+  keep: 3d
+  type: physical
+- cluster: prod-almart
+  uri: "mongodb://example-org_bak:k73gmbaKNEFaGRFy@prod-almart-shard01-06.db.prod.iexample-org.com:27017,prod-almart-shard01-04.db.prod.iexample-org.com:27017,prod-almart-shard01-05.db.prod.iexample-org.com:27017/admin?replicaSet=shard01"
+  schedule: "40 17 * * *"
+  keep: 3d
+  type: physical
+
+- cluster: prod-altoon
+  uri: "mongodb://example-org_bak:k73gmbaKNEFaGRFy@prod-altoon-shard01-06.db.prod.iexample-org.com:27017,prod-altoon-shard01-04.db.prod.iexample-org.com:27017,prod-altoon-shard01-05.db.prod.iexample-org.com:27017/admin?replicaSet=shard01"
+  schedule: "30 17 * * *"
+  keep: 3d
+  type: physical
+- cluster: prod-checkin
+  uri: "mongodb://example-org_bak:k73gmbaKNEFaGRFy@prod-checkin-shard01-06.db.prod.iexample-org.com:27017,prod-checkin-shard01-04.db.prod.iexample-org.com:27017,prod-checkin-shard01-05.db.prod.iexample-org.com:27017/admin?replicaSet=shard01"
+  schedule: "30 17 * * *"
+  keep: 3d
+  type: physical
+- cluster: prod-cluster0
+  uri: "mongodb://example-org_bak:k73gmbaKNEFaGRFy@prod-cluster0-shard01-07.db.prod.iexample-org.com:27017,prod-cluster0-shard01-08.db.prod.iexample-org.com:27017,prod-cluster0-shard01-09.db.prod.iexample-org.com:27017/admin?replicaSet=shard01"
+  schedule: "30 17 * * *"
+  keep: 3d
+  type: physical
+- cluster: prod-crm
+  uri: "mongodb://example-org_bak:k73gmbaKNEFaGRFy@prod-crm-shard01-06.db.prod.iexample-org.com:27017,prod-crm-shard01-04.db.prod.iexample-org.com:27017,prod-crm-shard01-05.db.prod.iexample-org.com:27017/admin?replicaSet=shard01"
+  schedule: "30 17 * * *"
+  keep: 3d
+  type: physical
+- cluster: prod-external
+  uri: "mongodb://example-org_bak:k73gmbaKNEFaGRFy@prod-external-shard01-03.db.prod.iexample-org.com:27017,prod-external-shard01-04.db.prod.iexample-org.com:27017,prod-external-shard01-05.db.prod.iexample-org.com:27017/admin?replicaSet=shard01"
+  schedule: "30 17 * * *"
+  keep: 3d
+  type: physical
+- cluster: prod-incubator
+  uri: "mongodb://example-org_bak:k73gmbaKNEFaGRFy@prod-incubator-shard01-05.db.prod.iexample-org.com:27017,prod-incubator-shard01-06.db.prod.iexample-org.com:27017,prod-incubator-shard01-04.db.prod.iexample-org.com:27017/admin?replicaSet=shard01"
+  schedule: "30 17 * * *"
+  keep: 3d
+  type: physical
+- cluster: prod-item
+  uri: "mongodb://example-org_bak:k73gmbaKNEFaGRFy@prod-item-shard01-05.db.prod.iexample-org.com:27017,prod-item-shard01-06.db.prod.iexample-org.com:27017,prod-item-shard01-04.db.prod.iexample-org.com:27017/admin?replicaSet=shard01"
+  schedule: "30 17 * * *"
+  keep: 3d
+  type: physical
+- cluster: prod-log
+  uri: "mongodb://example-org_bak:k73gmbaKNEFaGRFy@prod-log-shard01-05.db.prod.iexample-org.com:27017,prod-log-shard01-03.db.prod.iexample-org.com:27017,prod-log-shard01-04.db.prod.iexample-org.com:27017/admin?replicaSet=shard01"
+  schedule: "30 17 * * *"
+  keep: 3d
+  type: physical
+- cluster: prod-pay
+  uri: "mongodb://example-org_bak:k73gmbaKNEFaGRFy@prod-pay-shard01-05.db.prod.iexample-org.com:27017,prod-pay-shard01-06.db.prod.iexample-org.com:27017,prod-pay-shard01-04.db.prod.iexample-org.com:27017/admin?replicaSet=shard01"
+  schedule: "30 17 * * *"
+  keep: 3d
+  type: physical
+- cluster: prod-recommendation
+  uri: "mongodb://example-org_bak:k73gmbaKNEFaGRFy@prod-recommendation-shard01-06.db.prod.iexample-org.com:27017,prod-recommendation-shard01-04.db.prod.iexample-org.com:27017,prod-recommendation-shard01-05.db.prod.iexample-org.com:27017/admin?replicaSet=shard01"
+  schedule: "30 17 * * *"
+  keep: 3d
+  type: physical
+- cluster: prod-seller
+  uri: "mongodb://example-org_bak:k73gmbaKNEFaGRFy@prod-seller-shard01-04.db.prod.iexample-org.com:27017,prod-seller-shard01-07.db.prod.iexample-org.com:27017,prod-seller-shard01-06.db.prod.iexample-org.com:27017/admin?replicaSet=shard01"
+  schedule: "30 16 * * *"
+  keep: 3d
+  type: physical
+- cluster: prod-shorts
+  uri: "mongodb://example-org_bak:k73gmbaKNEFaGRFy@prod-shorts-shard01-04.db.prod.iexample-org.com:27017,prod-shorts-shard01-05.db.prod.iexample-org.com:27017,prod-shorts-shard01-06.db.prod.iexample-org.com:27017/admin?replicaSet=shard01"
+  schedule: "30 17 * * *"
+  keep: 3d
+  type: physical
+- cluster: prod-sku-catalog
+  uri: "mongodb://example-org_bak:k73gmbaKNEFaGRFy@prod-sku-catalog-shard01-04.db.prod.iexample-org.com:27017,prod-sku-catalog-shard01-05.db.prod.iexample-org.com:27017,prod-sku-catalog-shard01-03.db.prod.iexample-org.com:27017/admin?replicaSet=shard01"
+  schedule: "30 17 * * *"
+  keep: 3d
+  type: physical
+- cluster: prod-user
+  uri: "mongodb://example-org_bak:k73gmbaKNEFaGRFy@prod-user-shard01-05.db.prod.iexample-org.com:27017,prod-user-shard01-03.db.prod.iexample-org.com:27017,prod-user-shard01-04.db.prod.iexample-org.com:27017/admin?replicaSet=shard01"  
+  schedule: "30 17 * * *"
+  keep: 3d
+  type: physical

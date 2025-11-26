@@ -1,0 +1,20 @@
+controller:
+  nodeSelector:
+    service: common-addons
+  tolerations:
+    - effect: NoSchedule
+      key: CommonAddonsOnly
+      value: "true"
+      operator: Equal
+
+node:
+  nodeSelector: {}
+  tolerations:
+    - effect: NoSchedule
+      key: mlops-milvus
+      value: "true"
+      operator: Equal
+    - effect: NoSchedule
+      key: mlops-milvus-querynode
+      value: "true"
+      operator: Equal

@@ -1,0 +1,50 @@
+service: alwayz-gateway
+owner:
+  - name: 이상민
+    email: sangmin.lee@iexample-org.com
+  - name: 이영훈
+    email: younghoon.lee@iexample-org.com
+slack_channels:
+  - 모니터링_커머스플랫폼
+monitors:
+  - monitor_type: error_log
+    threshold: 10
+  - monitor_type: api_latency
+    threshold: 30
+    duration: 1000
+  - monitor_type: alb_5xx
+    threshold: 50
+    loadbalancer: alwayz-gateway-prod
+  - monitor_type: alb_target_5xx
+    threshold: 50
+    loadbalancer: alwayz-gateway-prod
+  - monitor_type: error_tracking_trace
+    threshold: 50
+  - monitor_type: custom_alert
+    name: alwayz-gateway alb_target_4xx
+    type: trace-analytics alert
+    query: trace-analytics("service:alwayz-gateway* env:prod @http.status_code:4**").rollup("count").by("@http.url,@http.method").last("1m") > 1000
+    message_template: monitor_alb_target_4xx.tpl
+synthetics:
+  - name: alwayz-gateway가 다운되었습니다.
+    type: api
+    subtype: http
+    status: "live"
+    locations: ["pl:devops-private-location-dc242ec68f6544a123e787d5345b2e06"]
+    request_definition:
+      method: GET
+      url: https://internal-gw.prod.iexample-org.com/actuator/health/readiness
+    assertions:
+      - type: statusCode
+        operator: is
+        target: 200
+      - type: responseTime
+        operator: lessThan
+        target: 3000
+    options_list:
+      tick_every: 60
+      retry:
+        count: 3
+        interval: 1000
+      monitor_options:
+        renotify_interval: 10

@@ -1,0 +1,54 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: demo-addons-raw-internal-appset
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=invalid"]
+  syncPolicy:
+    preserveResourcesOnDeletion: true
+  generators:
+    - matrix:
+        generators:
+          - matrix:
+              generators:
+                - git:
+                    repoURL: https://github.com/wetripod/demo-gitops-manifest.git
+                    revision: main
+                    files:
+                      - path: configs/**/addons/raw-internal-elements.yaml
+                - list:
+                    elementsYaml: "{{ .key.components | toJson }}"
+          - clusters:
+              selector:
+                matchLabels:
+                  environment: "{{ index .path.segments 1 }}"
+  template:
+    metadata:
+      name: "example-org-{{ .metadata.labels.aws_cluster_name }}-addon-{{ .manifest.name }}"
+    spec:
+      project: example-org-app-workspaces
+      source:
+        repoURL: "{{ .manifest.repo }}"
+        path: "environments/{{ index .path.segments 1 }}/addons/{{ .manifest.path }}"
+        targetRevision: "{{ .manifest.version }}"
+      destination:
+        namespace: "{{ .manifest.namespace }}"
+        name: "{{ .name }}"
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true
+          - Validate=false
+          - PrunePropagationPolicy=foreground
+          - PruneLast=false
+          - ApplyOutOfSyncOnly=true
+          - ServerSideApply=true
+  templatePatch: |
+    {{- if .manifest.auto_sync }}
+    spec:
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+    {{- end }}

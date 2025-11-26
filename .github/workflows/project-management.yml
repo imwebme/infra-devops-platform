@@ -1,0 +1,120 @@
+name: Complete Workflow Management
+
+on:
+  issues:
+    types: [opened, reopened, closed, labeled]
+  pull_request:
+    types: [opened, reopened, closed, labeled]
+  push:
+    branches: [main, develop]
+  schedule:
+    - cron: "0 9 * * MON"
+  workflow_dispatch:
+
+jobs:
+  yaml-lint:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+      - name: Lint YAML files
+        run: |
+          pip install PyYAML
+          find . -name "*.yml" -o -name "*.yaml" | grep -v -E "(templates|cloudformation)" | while read file; do
+            python3 -c "
+          import yaml
+          try:
+              with open('$file', 'r') as f:
+                  list(yaml.safe_load_all(f))
+              print('✅ $file')
+          except Exception as e:
+              print(f'❌ YAML error in $file: {e}')
+              exit(1)
+          " || exit 1
+          done
+
+  project-sync:
+    runs-on: ubuntu-latest
+    if: github.event.issue.number || github.event.pull_request.number
+    steps:
+      - uses: actions/add-to-project@v0.5.0
+        with:
+          project-url: https://github.com/users/Hulkong/projects/2
+          github-token: ${{ secrets.PROJECT_TOKEN }}
+
+  auto-label:
+    runs-on: ubuntu-latest
+    if: github.event.action == 'opened'
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.PROJECT_TOKEN }}
+          script: |
+            const title = context.payload.issue?.title || context.payload.pull_request?.title;
+            const labels = [];
+
+            if (title.toLowerCase().includes('bug') || title.toLowerCase().includes('fix')) labels.push('bug');
+            if (title.toLowerCase().includes('feature') || title.toLowerCase().includes('add')) labels.push('feature');
+            if (title.toLowerCase().includes('security')) labels.push('security');
+            if (title.toLowerCase().includes('enhance')) labels.push('enhancement');
+
+            if (title.toLowerCase().includes('urgent')) labels.push('priority: high');
+            else if (title.toLowerCase().includes('minor')) labels.push('priority: low');
+            else labels.push('priority: medium');
+
+            if (labels.length > 0) {
+              const issueNumber = context.payload.issue?.number || context.payload.pull_request?.number;
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                labels: labels
+              });
+            }
+
+  auto-assign:
+    runs-on: ubuntu-latest
+    if: github.event.action == 'opened'
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.PROJECT_TOKEN }}
+          script: |
+            if (context.eventName === 'issues') {
+              await github.rest.issues.addAssignees({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                assignees: [context.actor]
+              });
+            }
+
+  security-scan:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: GitGuardian Scan
+        uses: GitGuardian/ggshield-action@v1.25.0
+        env:
+          GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}
+
+  local-workflows:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    needs: yaml-lint
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run local custom actions
+        run: |
+          echo "🏠 Running local workflows for $(basename $GITHUB_REPOSITORY)"
+          if [ -f .github/scripts/local-actions.sh ]; then
+            chmod +x .github/scripts/local-actions.sh
+            ./.github/scripts/local-actions.sh
+          fi

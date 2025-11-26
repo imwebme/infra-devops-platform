@@ -1,0 +1,12 @@
+fullnameOverride: "db-go-chive"
+
+image:  
+  registry: 123456789012.dkr.ecr.ap-northeast-2.amazonaws.com
+  repository: db/go-chive
+  tag: "1.5-go-chive"
+  pullPolicy: IfNotPresent
+
+config:
+  existingSecret:
+    enabled: true
+    name: "demo-prod-db-admin-secret"

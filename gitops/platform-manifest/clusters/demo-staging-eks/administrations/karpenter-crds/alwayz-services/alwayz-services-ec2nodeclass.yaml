@@ -1,0 +1,29 @@
+apiVersion: karpenter.k8s.aws/v1beta1
+kind: EC2NodeClass
+metadata:
+  name: demo-services
+spec:
+  amiFamily: Bottlerocket
+  blockDeviceMappings:
+    - deviceName: /dev/xvdb
+      ebs:
+        volumeSize: 50Gi
+        volumeType: gp3
+        deleteOnTermination: true
+        encrypted: true
+        kmsKeyID: 82199d79-c2a8-450b-8f8b-a3176eb738b9
+  role: karpenter-demo-staging-eks
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: demo-staging-eks
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: demo-staging-eks
+  tags:
+    Env: demo-staging
+    Group: demo-services
+    KarpenterNodePoolName: demo-services
+    NodeType: ops_demo-services_staging_ec2
+    Team: ops
+    csmSecurity: "false"
+    karpenter.sh/discovery: demo-staging-eks

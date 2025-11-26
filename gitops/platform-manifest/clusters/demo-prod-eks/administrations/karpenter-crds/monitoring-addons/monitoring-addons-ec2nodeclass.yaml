@@ -1,0 +1,26 @@
+apiVersion: karpenter.k8s.aws/v1beta1
+kind: EC2NodeClass
+metadata:
+  name: monitoring-addons
+spec:
+  amiFamily: Bottlerocket
+  blockDeviceMappings:
+    - deviceName: /dev/xvdb
+      ebs:
+        volumeSize: 50Gi
+        volumeType: gp3
+        encrypted: true
+  role: karpenter-demo-prod-eks
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: demo-prod-eks
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: demo-prod-eks
+  tags:
+    Env: demo-prod
+    KarpenterNodePoolName: monitoring-addons
+    NodeType: ops_monitoring-addons_prod_ec2
+    csmSecurity: "true"
+    intent: apps
+    karpenter.sh/discovery: demo-prod-eks

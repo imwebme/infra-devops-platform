@@ -1,0 +1,55 @@
+nameOverride: ""
+fullnameOverride: "db-go-chive"
+
+serviceAccountName: ""
+
+image: 
+  repository: 123456789012.dkr.ecr.ap-northeast-2.amazonaws.com/db/go-chive
+  tag: 2.0.6
+
+
+data: 
+  - name: test
+    hostAddress: "test"
+    ageLimit: 1d
+    archiveCheckInterval: 60
+    collection: test
+    database: test
+    archiveField: createdAt
+    s3:
+      bucket: example-org-database-backup-prod/test
+      uploadInterval: 180
+  - name: test2
+    hostAddress: "test"
+    ageLimit: 1d
+    archiveCheckInterval: 60
+    collection: test
+    database: test
+    archiveField: createdAt
+    s3:
+      bucket: example-org-database-backup-prod/test
+      uploadInterval: 180
+
+existingSecret:
+  name:
+  
+secret:
+  create: true
+  name: "demo-prod-db-admin-secret"
+  secretKey: "demo/prod/db/admin"
+
+livenessProbe: {}
+
+readinessProbe: {}
+
+resources: {}
+
+securityContext: {}
+
+affinity: {}
+
+nodeSelector: {}
+
+priorityClassName: {}
+
+tolerations: []

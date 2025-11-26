@@ -1,0 +1,42 @@
+# Helm chart values
+global:
+  priorityClassName: common-addons
+
+tolerations:
+  - effect: NoSchedule
+    key: CommonAddonsOnly
+    value: "true"
+    operator: Equal
+
+nodeSelector:
+  service: common-addons
+
+webhook:
+  tolerations:
+    - effect: NoSchedule
+      key: CommonAddonsOnly
+      value: "true"
+      operator: Equal
+
+  nodeSelector:
+    service: common-addons
+
+cainjector:
+  tolerations:
+    - effect: NoSchedule
+      key: CommonAddonsOnly
+      value: "true"
+      operator: Equal
+
+  nodeSelector:
+    service: common-addons
+
+startupapicheck:
+  tolerations:
+    - effect: NoSchedule
+      key: CommonAddonsOnly
+      value: "true"
+      operator: Equal
+
+  nodeSelector:
+    service: common-addons

@@ -1,0 +1,80 @@
+{{- $name := (printf "cw-summary-%s" .Values.summary) }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ $name }}
+type: Opaque
+data:
+  config.yaml: {{ required "required config" .Values.config | b64enc }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels: 
+    {{- include "cw-summary.labels" . | nindent 4 }}
+    app.kubernetes.io/instance: {{ $name }}
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 4
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ $name }}
+      {{- include "cw-summary.labels" . | nindent 6 }}
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels: 
+        {{- include "cw-summary.labels" . | nindent 8 }}
+        app.kubernetes.io/instance: {{ $name }}
+    spec:
+      {{- if .Values.serviceAccountName }}
+      serviceAccountName: {{ .Values.serviceAccountName }}
+      {{- end }}
+      containers:
+        - name: cw-summary
+          image: {{ .Values.image }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          env:
+            - name: CWS_CONFIG_FILE
+              value: "/etc/cw-summary/config.yaml"
+          volumeMounts:
+            - name: config-file
+              mountPath: /etc/cw-summary
+              readOnly: true
+          {{- with .Values.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+      volumes:
+        - name: config-file
+          secret:
+            secretName: {{ $name }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 10 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 10 }}
+      {{- end }}
+      terminationGracePeriodSeconds: 30
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 10 }}
+      {{- end }}
+      {{- if .Values.priorityClassName }}
+      priorityClassName: {{ .Values.priorityClassName }}
+      {{ end -}}

@@ -1,0 +1,19 @@
+# Helm chart values
+policy: "sync" # Allows to delete DNS records
+
+tolerations:
+  - effect: NoSchedule
+    key: CommonAddonsOnly
+    value: "true"
+    operator: Equal
+
+nodeSelector:
+  service: common-addons
+
+priorityClassName: common-addons
+
+# ECR Pull Through Cache for Bitnami images
+image:
+  registry: 123456789012.dkr.ecr.ap-northeast-2.amazonaws.com
+  repository: docker-hub/bitnami/external-dns
+  tag: 0.15.0-debian-12-r2

@@ -1,0 +1,38 @@
+# Kubecost 기본 설정
+prometheus:
+  enabled: false # 기존 kube-prometheus-stack 사용
+  fqdn: "http://prometheus-operated.monitoring.svc.cluster.local:9090"
+
+# dev 환경 특화 설정
+clusterName: demo-dev-eks
+
+# Service Account 설정
+serviceAccount:
+  create: false
+  name: kubecost
+  annotations:
+    eks.amazonaws.com/role-arn: "{{ kubecost_iam_role_arn }}"
+
+# Ingress 설정
+ingress:
+  enabled: true
+  ingressClassName: alb
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internal
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/success-codes: 200-399
+    alb.ingress.kubernetes.io/manage-backend-security-group-rules: "true"
+    alb.ingress.kubernetes.io/security-groups: sg-04cba89f30303e9b6
+    external-dns.alpha.kubernetes.io/hostname: kubecost.dev.iexample-org.com
+    external-dns.alpha.kubernetes.io/set-identifier: kubecost-dev-private
+    external-dns.alpha.kubernetes.io/aws-weight: "100"
+    external-dns.alpha.kubernetes.io/ingress-hostname-source: annotation-only
+  hosts:
+    - host: kubecost.dev.iexample-org.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - hosts:
+        - kubecost.dev.iexample-org.com

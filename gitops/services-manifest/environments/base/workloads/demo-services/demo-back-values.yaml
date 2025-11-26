@@ -1,0 +1,8 @@
+tolerations:
+  - effect: NoSchedule
+    key: AlwayzBackOnly
+    value: "true"
+    operator: Equal
+
+nodeSelector:
+  service: demo-back

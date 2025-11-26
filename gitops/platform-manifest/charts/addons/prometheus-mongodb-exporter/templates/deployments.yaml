@@ -1,0 +1,165 @@
+{{- range .Values.mongodb }}
+{{- $cl_name := .cluster }}
+{{- $tls := (hasKey . "tls" | ternary .tls true) }}
+{{- $mongodb := list }}
+{{- range $i, $v := .mongod }}
+  {{- $mongodb = append $mongodb ( dict "no" $i "type" "mongod" "instance" $v ) }}
+{{- end }}
+{{- range $i, $v := .mongos }}
+  {{- $mongodb = append $mongodb ( dict "no" $i "type" "mongos" "instance" $v ) }}
+{{- end }}
+{{- range $mongodb }}
+{{- $name := (printf "%s-%s-%s-%s" ( $cl_name | trunc 45 | trimSuffix "-" | trimSuffix "." ) ( .no | toString ) .type "exporter") }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "prometheus-mongodb-exporter.labels" $ | nindent 4 }}
+    app.kubernetes.io/name: {{ $name }}
+  annotations:    
+    {{- if $.Values.service.annotations }}
+    {{- toYaml $.Values.service.annotations | indent 4 }}
+    {{- end }}
+    mongodb.exporter: {{ .type }}
+    mongodb.cluster: {{ $cl_name }}
+    mongodb.instance: {{ .instance }}
+spec:
+  replicas: {{ $.Values.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ $name }}
+      app.kubernetes.io/instance: {{ $.Release.Name }}
+  template:
+    metadata:
+      annotations:
+        {{- if $.Values.podAnnotations }}
+          {{- toYaml $.Values.podAnnotations | nindent 8 }}
+        {{- end }}
+        mongodb.exporter: {{ .type }}
+        mongodb.cluster: {{ $cl_name }}
+        mongodb.instance: {{ .instance }}
+      labels:
+        {{- include "prometheus-mongodb-exporter.selectorLabels" $ | nindent 8 }}
+        app.kubernetes.io/name: {{ $name }}
+        {{- if $.Values.podLabels }}
+          {{- toYaml $.Values.podLabels | nindent 8 }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ template "prometheus-mongodb-exporter.serviceAccountName" $ }}
+      containers:
+        - name: mongodb-exporter
+          env:
+            - name: MONGODB_URI
+              {{- if $tls }}
+              value: mongodb://{{- .instance -}}/admin?tls=true&tlsInsecure=true
+              {{- else }}
+              value: mongodb://{{- .instance -}}/admin?tls=false
+              {{- end }}
+            - name: MONGODB_USER
+              {{- if $.Values.secretManager }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "prometheus-mongodb-exporter.secretName" $ }}
+                  key: username
+              {{- else }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "prometheus-mongodb-exporter.secretName" $ }}
+                  key: username
+              {{- end }}
+            - name: MONGODB_PASSWORD
+              {{- if $.Values.secretManager }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "prometheus-mongodb-exporter.secretName" $ }}
+                  key: password
+              {{- else }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "prometheus-mongodb-exporter.secretName" $ }}
+                  key: password
+              {{- end }}
+          {{- if $.Values.env }}
+          {{- range $key, $value := $.Values.env }}
+            - name: "{{ $key }}"
+              value: "{{ $value }}"
+          {{- end }}
+          {{- end }}
+          image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag | default $.Chart.AppVersion }}"
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          args:
+            - --web.listen-address={{ printf ":%s" $.Values.port }}
+            {{- if eq .type "mongod" }}
+            {{- toYaml $.Values.mongodArgs | nindent 12 }}
+            {{- else if eq .type "mongos" }}
+            {{- toYaml $.Values.mongosArgs | nindent 12 }}
+            {{- if eq .no 0 }}
+            - --compatible-mode
+            {{- end }}
+            {{- end }}
+          ports:
+            - name: metrics
+              containerPort: {{ $.Values.port }}
+              protocol: TCP
+          livenessProbe:
+            {{- toYaml $.Values.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml $.Values.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml $.Values.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml $.Values.securityContext | nindent 12 }}
+          volumeMounts:
+            {{- toYaml $.Values.volumeMounts | nindent 12 }}
+      affinity:
+        {{- toYaml $.Values.affinity | nindent 8 }}
+      {{- with $.Values.dnsConfig }}
+      dnsConfig:
+        {{- toYaml $ | nindent 8 }}
+      {{- end }}
+      imagePullSecrets:
+        {{- toYaml $.Values.imagePullSecrets | nindent 8 }}
+      nodeSelector:
+        {{- toYaml $.Values.nodeSelector | nindent 8 }}
+      {{- if $.Values.priorityClassName }}
+      priorityClassName: {{ $.Values.priorityClassName }}
+      {{- end }}
+      terminationGracePeriodSeconds: 30
+      tolerations:
+        {{- toYaml $.Values.tolerations | nindent 8 }}
+      volumes:
+        {{- toYaml $.Values.volumes | nindent 8 }}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "prometheus-mongodb-exporter.labels" $ | nindent 4 }}
+    app.kubernetes.io/name: {{ $name }}
+    {{- with $.Values.service.labels }}
+    {{ toYaml . }}
+    {{- end }}
+  annotations:
+    {{- with $.Values.service.annotations }}
+    {{- toYaml . }}
+    {{- end }}
+    mongodb.exporter: {{ .type }}
+    mongodb.cluster: {{ $cl_name }}
+    mongodb.instance: {{ .instance }}
+spec:
+  ports:
+    - port: {{ $.Values.service.port }}
+      targetPort: metrics
+      protocol: TCP
+      name: {{ $.Values.service.portName }}
+  selector:
+    {{- include "prometheus-mongodb-exporter.selectorLabels" $ | nindent 4 }}
+    app.kubernetes.io/name: {{ $name }}
+  type: {{ $.Values.service.type }}
+
+{{- end }}
+{{- end }}

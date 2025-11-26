@@ -1,0 +1,147 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: demo-workloads-scrapers-helm-appset
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=invalid"]
+  syncPolicy:
+    preserveResourcesOnDeletion: true
+  generators:
+    - matrix:
+        generators:
+          - git:
+              repoURL: https://github.com/wetripod/demo-gitops-manifest.git
+              revision: main
+              files:
+                - path: configs/**/workloads/demo-scrapers/*.yaml
+          - clusters:
+              selector:
+                matchLabels:
+                  argocd.argoproj.io/secret-type: cluster
+                  environment: "{{ index .path.segments 1 }}"
+              values:
+                chartRepo: https://wetripod.github.io/devops-gitops-manifest
+
+  template:
+    metadata:
+      name: "example-org-{{ .metadata.labels.aws_cluster_name }}-workload-{{ .application_name }}"
+      labels:
+        workload: "true"
+        app_name: "{{.application_name}}"
+      annotations:
+        notifications.argoproj.io/subscribe.on-deploy-start.slack: "{{.slack_channel}}"
+        notifications.argoproj.io/subscribe.on-deployed.slack: "{{.slack_channel}}"
+        notifications.argoproj.io/subscribe.on-deployed-failed.slack: "{{.slack_channel}}"
+        notifications.argoproj.io/subscribe.on-deploy-timeout.slack: "{{.slack_channel}}"
+        source_repo: '{{ default "" .source_repo }}'
+    spec:
+      project: example-org-app-workspaces
+      sources:
+        - chart: base-scraper
+          repoURL: "{{.values.chartRepo}}"
+          targetRevision: "{{.chart_version}}"
+          helm:
+            releaseName: "{{.chart_name}}"
+            ignoreMissingValueFiles: true
+            values: |-
+              appName: {{.application_name}}
+              affinity:
+                nodeAffinity:
+                  requiredDuringSchedulingIgnoredDuringExecution:
+                    nodeSelectorTerms:
+                      - matchExpressions:
+                          - key: topology.kubernetes.io/zone
+                            operator: NotIn
+                            values:
+                              - ap-northeast-2d
+              env: {{.metadata.labels.environment}}
+              global:
+                statefulSet:
+                  annotations: 
+                    ad.datadoghq.com/{{.application_name}}.logs: |-
+                      [{
+                        "source": "{{.source}}",
+                        "service": "{{.application_name}}",
+                        "log_processing_rules": [
+                          {
+                            "type": "exclude_at_match",
+                            "name": "exclude_health_check",
+                            "pattern" : "health-check"
+                          },
+                          {
+                            "type": "include_at_match",
+                            "name": "error_logs",
+                            "pattern" : "((?i)ERROR)|LOGGER"
+                          }
+                        ]
+                      }]
+            valueFiles:
+              - $values/environments/base/workloads/demo-scrapers/{{.chart_name}}-values.yaml
+              - $values/environments/{{.metadata.labels.environment}}/workloads/demo-scrapers/{{.chart_name}}-values.yaml
+              - $values/clusters/{{.name}}/workloads/demo-scrapers/{{.type}}/{{.chart_name}}-values.yaml
+              - $demo-scraper-values/.helm/demo-node-scraper-{{ .metadata.labels.environment }}-values.yaml
+        - repoURL: https://github.com/wetripod/demo-gitops-manifest
+          targetRevision: '{{ default "main" .branch_name }}'
+          ref: values
+        - repoURL: "https://github.com/wetripod/demo-scraper"
+          targetRevision: "main"
+          ref: demo-scraper-values
+      destination:
+        namespace: demo-scrapers
+        name: "{{.name}}"
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true
+          - Validate=false
+          - PrunePropagationPolicy=foreground
+          - PruneLast=false
+          - ApplyOutOfSyncOnly=true
+
+      ignoreDifferences:
+        - group: external-secrets.io
+          jqPathExpressions:
+            - ".spec.dataFrom[]?.extract.conversionStrategy"
+            - ".spec.dataFrom[]?.extract.decodingStrategy"
+          kind: ExternalSecret
+        - group: autoscaling
+          jqPathExpressions:
+            - .spec.minReplicas
+          kind: HorizontalPodAutoscaler
+  templatePatch: |
+    {{- if .disableAutoSync }}
+    spec:
+      ignoreDifferences:
+        - group: external-secrets.io
+          jqPathExpressions:
+            - ".spec.dataFrom[]?.extract.conversionStrategy"
+            - ".spec.dataFrom[]?.extract.decodingStrategy"
+          kind: ExternalSecret
+        - group: autoscaling
+          jqPathExpressions:
+            - .spec.minReplicas
+          kind: HorizontalPodAutoscaler
+    {{- else }}
+    spec:
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+    {{- end }}
+
+    metadata:
+      annotations:
+        argocd-image-updater.argoproj.io/image-list: {{ .application_name }}=123456789012.dkr.ecr.ap-northeast-2.amazonaws.com/demo-{{.metadata.labels.environment}}-ecr_{{ .application_name }}
+        argocd-image-updater.argoproj.io/{{ .application_name }}.pull-secret: secret:argocd/ecr-secret#creds
+        argocd-image-updater.argoproj.io/{{ .application_name }}.update-strategy: newest-build
+        argocd-image-updater.argoproj.io/{{ .application_name }}.platforms: linux/arm64,linux/amd64
+        argocd-image-updater.argoproj.io/write-back-target: helmvalues:.helm/demo-node-scraper-{{ .metadata.labels.environment }}-values.yaml
+        argocd-image-updater.argoproj.io/pull-policy: Always
+        argocd-image-updater.argoproj.io/write-back-method: git:secret:argocd/git-creds
+        argocd-image-updater.argoproj.io/git-repository: https://github.com/wetripod/demo-scraper
+        argocd-image-updater.argoproj.io/git-branch: main
+        argocd-image-updater.argoproj.io/{{ .application_name }}.allow-tags: regexp:^\d+.*-.*$
+        argocd-image-updater.argoproj.io/{{ .application_name }}.force-update: "true"
+        argocd-image-updater.argoproj.io/{{ .application_name }}.helm.image-name: global.statefulSet.image.repository
+        argocd-image-updater.argoproj.io/{{ .application_name }}.helm.image-tag: global.statefulSet.image.tag

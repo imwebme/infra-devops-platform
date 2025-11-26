@@ -1,0 +1,126 @@
+# Snyk Monitor configuration for security-prod-eks cluster
+clusterName: "security-prod-eks"
+
+# Use external secrets for sensitive data
+monitorSecrets: snyk-monitor-secrets
+
+# Scope configuration - use Cluster for full cluster monitoring
+scope: Cluster
+
+# Image configuration
+image:
+  repository: snyk/kubernetes-monitor
+  tag: 2.21.0
+  pullPolicy: Always
+
+# Storage configuration - use emptyDir to avoid EBS CSI issues
+temporaryStorageSize: 50Gi
+pvc:
+  enabled: false
+
+# Resource configuration optimized for production
+requests:
+  cpu: "250m"
+  memory: "400Mi"
+
+limits:
+  cpu: "1"
+  memory: "2Gi"
+
+# Node.js optimization
+nodeEnvVars:
+  - name: V8_MAX_OLD_SPACE_SIZE
+    value: "2048"
+  - name: UV_THREADPOOL_SIZE
+    value: "24"
+  - name: NODE_OPTIONS
+    value: --max_old_space_size=2048
+
+# Security context configuration
+snykMonitorSecurityContext:
+  privileged: false
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65534
+  fsGroup: 65534
+
+# Network policy configuration
+networkPolicy:
+  enabled: true
+  egress:
+    - {}
+
+# Tolerations for common addons nodes
+tolerations:
+  - operator: Equal
+    key: CommonAddonsOnly
+    value: "true"
+    effect: NoSchedule
+
+# Node selector for common addons (amd64 architecture)
+nodeSelector:
+  kubernetes.io/arch: amd64
+  service: common-addons
+
+# Workers configuration
+workers:
+  count: 5
+
+# Skopeo compression settings
+skopeo:
+  compression:
+    level: 6
+
+# Deployment strategy
+strategy:
+  type: RollingUpdate
+
+# Additional labels for deployment
+deployment:
+  labels:
+    app.kubernetes.io/name: snyk-monitor
+    app.kubernetes.io/instance: snyk-monitor
+    app.kubernetes.io/component: security-scanner
+
+# Pod metadata
+metadata:
+  labels:
+    app.kubernetes.io/name: snyk-monitor
+    app.kubernetes.io/instance: snyk-monitor
+    app.kubernetes.io/component: security-scanner
+  annotations:
+    prometheus.io/scrape: "false"
+
+# RBAC configuration
+rbac:
+  serviceAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: "arn:aws:iam::123456789012:role/security-prod-eks-snyk-monitor"
+    labels:
+      app.kubernetes.io/name: snyk-monitor
+      app.kubernetes.io/instance: snyk-monitor
+
+# Log level configuration
+log_level: "INFO"
+
+# Excluded namespaces (system namespaces that don't need scanning)
+excludedNamespaces:
+  - kube-system
+  - kube-public
+  - kube-node-lease
+  - local-path-storage
+
+# Init containers configuration
+initContainers:
+  enabled: true
+
+initContainerImage:
+  repository: busybox
+  tag: "1.36"

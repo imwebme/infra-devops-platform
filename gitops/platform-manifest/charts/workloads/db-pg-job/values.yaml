@@ -1,0 +1,55 @@
+job: test
+
+# require cluster, endpoint, port, database, schedule
+# db: 
+# - cluster: dev-price
+#   endpoint: dev-pg.cluster-c3epvhkyjnng.ap-northeast-2.rds.amazonaws.com
+#   port: 5432
+#   database: test
+#   schedule: "0 17 * * *"
+  
+# user:
+#   secretName: pg-partition-user
+#   name: "example-org_admin"
+#   password: 
+#     secretManager: 
+#       key: "demo/dev/db/admin"
+#       property: example-org_admin
+
+image: alpine/psql:16.3
+imagePullPolicy: IfNotPresent
+
+labels: {}
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccountName:
+
+podAnnotations: {}
+
+podLabels: {}
+
+resources: {}
+
+# livenessProbe:
+#   exec:
+#     command:
+#     - /usr/bin/psql
+#     - --version
+#   initialDelaySeconds: 5
+#   periodSeconds: 5
+ 
+priorityClassName: db
+
+nodeSelector: 
+  service: db
+
+tolerations: 
+  - effect: NoSchedule
+    key: DbOnly
+    value: "true"
+    operator: Equal
+
+affinity: {}
+

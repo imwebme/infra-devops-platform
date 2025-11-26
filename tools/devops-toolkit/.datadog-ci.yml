@@ -1,0 +1,142 @@
+# Datadog CI Configuration
+# https://docs.datadoghq.com/continuous_integration/setup_pipelines/custom_commands/
+
+version: 1
+
+# Global settings
+global:
+  # Datadog API key (set via environment variable)
+  api_key: $DATADOG_API_KEY
+
+  # Datadog site (default: datadoghq.com)
+  site: datadoghq.com
+
+  # Log level (debug, info, warn, error)
+  log_level: info
+
+# Static analysis configuration
+static_analysis:
+  # Enable static analysis
+  enabled: true
+
+  # Analysis tools to run
+  tools:
+    - name: "gosec"
+      enabled: true
+      args: ["-fmt=json", "-out=security-report.json"]
+
+    - name: "staticcheck"
+      enabled: true
+      args: ["-f=json", "./..."]
+
+    - name: "golangci-lint"
+      enabled: true
+      args: ["run", "--out-format=json", "--out=lint-report.json"]
+
+    - name: "govulncheck"
+      enabled: true
+      args: ["-json", "./..."]
+
+# Security scanning
+security:
+  # Enable security scanning
+  enabled: true
+
+  # Vulnerability scanning
+  vulnerability_scanning:
+    enabled: true
+    severity_threshold: "HIGH"
+
+  # Dependency scanning
+  dependency_scanning:
+    enabled: true
+    include_dev_dependencies: false
+
+# Code coverage
+coverage:
+  # Enable coverage reporting
+  enabled: true
+
+  # Coverage threshold (percentage)
+  threshold: 80
+
+  # Coverage file path
+  file: "coverage.out"
+
+# Performance testing
+performance:
+  # Enable performance testing
+  enabled: false
+
+  # Performance test files
+  test_files:
+    - "**/*_perf_test.go"
+    - "**/*_benchmark_test.go"
+
+# Custom rules
+rules:
+  # Custom security rules
+  security:
+    - name: "no-hardcoded-secrets"
+      pattern: "(?i)(password|secret|token|key)\\s*=\\s*['\"][^'\"]+['\"]"
+      severity: "HIGH"
+      message: "Hardcoded secrets detected"
+
+    - name: "no-http-urls"
+      pattern: "http://[^\\s]+"
+      severity: "MEDIUM"
+      message: "HTTP URLs should use HTTPS"
+
+  # Custom code quality rules
+  quality:
+    - name: "no-print-statements"
+      pattern: "fmt\\.Print"
+      severity: "LOW"
+      message: "Use structured logging instead of print statements"
+
+# Reporting
+reporting:
+  # Generate HTML report
+  html_report: true
+
+  # Generate JSON report
+  json_report: true
+
+  # Report output directory
+  output_dir: "reports"
+
+  # Send results to Datadog
+  send_to_datadog: true
+
+  # Custom metrics
+  metrics:
+    - name: "code_quality_score"
+      type: "gauge"
+      value: "calculated_score"
+
+    - name: "security_issues_count"
+      type: "count"
+      value: "security_issues_total"
+
+    - name: "test_coverage_percentage"
+      type: "gauge"
+      value: "coverage_percentage"
+
+# Notifications
+notifications:
+  # Slack notifications
+  slack:
+    enabled: true
+    channel: "#devops"
+    webhook_url: $SLACK_WEBHOOK_URL
+
+  # Email notifications
+  email:
+    enabled: false
+    recipients: []
+
+  # GitHub PR comments
+  github:
+    enabled: true
+    comment_on_pr: true
+    comment_on_issues: true

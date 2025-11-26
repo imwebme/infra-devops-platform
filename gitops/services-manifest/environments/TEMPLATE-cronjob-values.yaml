@@ -1,0 +1,72 @@
+# 보일러플레이트 템플릿 - CronJob 서비스용 values 파일
+# 사용법: 이 파일을 복사하여 각 환경(dev/prod/staging)에 맞게 수정
+
+appName: demo-cronjobs
+env: prod  # dev/prod/staging으로 변경
+nodeSelector:
+  service: demo-jobs
+tolerations:
+- effect: NoSchedule
+  key: AlwayzJobsOnly
+  value: "true"
+  operator: Equal
+
+datadog:
+  enabled: true
+  profile:
+    enabled: false
+
+sa:
+  enabled: true
+  shared: true
+  name: demo-cronjobs
+
+cronJobDefault:
+  failedJobsHistoryLimit: 1
+  successfulJobsHistoryLimit: 3
+  backoffLimit: 0
+  concurrencyPolicy: Forbid
+  labels: {}
+  annotations:
+    ad.datadoghq.com/demo-cronjobs.logs: |-
+      [{
+        "source": "nodejs",
+        "service": "demo-cronjobs",
+        "log_processing_rules": [
+          {
+            "type": "exclude_at_match",
+            "name": "exclude_health_check",
+            "pattern" : "health-check"
+          }
+        ]
+      }]
+  timeZone: Asia/Seoul
+  sa:
+    labels: {}
+    annotations: {}
+  env:
+  - name: DD_SERVICE
+    value: demo-cronjobs
+  - name: POD_IP
+    valueFrom:
+      fieldRef:
+        fieldPath: status.podIP
+  image:
+    repository: 123456789012.dkr.ecr.ap-northeast-2.amazonaws.com/demo-{ENV}-ecr_demo-cron  # {ENV}를 dev/prod로 변경
+    name: demo-{ENV}-ecr_demo-cron
+    tag: latest  # 실제 태그로 변경
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+    requests:
+      cpu: 1000m
+      memory: 512Mi
+
+cronJobs:
+- name: SampleService.sampleMethod
+  cronTimeExpression: 0 * * * *
+  arg:
+  - Sample cron job description
+  - SampleService.sampleMethod()

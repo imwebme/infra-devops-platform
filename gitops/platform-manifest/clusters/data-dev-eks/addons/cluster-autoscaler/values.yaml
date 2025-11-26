@@ -1,0 +1,10 @@
+tolerations:
+  - effect: NoSchedule
+    key: CommonAddonsOnly
+    value: "true"
+    operator: Equal
+
+nodeSelector:
+  service: common-addons
+
+priorityClassName: common-addons

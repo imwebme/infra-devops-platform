@@ -1,0 +1,22 @@
+apiVersion: karpenter.k8s.aws/v1beta1
+kind: EC2NodeClass
+metadata:
+  name: demo-alwalk
+spec:
+  amiFamily: Bottlerocket
+  blockDeviceMappings: []
+  role: karpenter-demo-prod-eks
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: demo-prod-eks
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: demo-prod-eks
+  tags:
+    Env: demo-prod
+    Group: demo-alwalk
+    KarpenterNodePoolName: demo-alwalk
+    NodeType: tech-a_demo-alwalk_prod_ec2
+    Team: tech-a
+    csmSecurity: "true"
+    karpenter.sh/discovery: demo-prod-eks

@@ -1,0 +1,18 @@
+key:
+  components:
+  #   - chart:
+  #       name: prometheus-mongodb-exporter
+  #       repo: https://github.com/wetripod/devops-gitops-manifest
+  #       path: prometheus-mongodb-exporter
+  #       version: main
+  #       namespace: monitoring
+  #       values_path: monitoring/prometheus-mongodb-exporter.yaml
+  #       auto_sync: true
+  #   - chart:
+  #       name: prometheus-pgbouncer-exporter
+  #       repo: https://github.com/wetripod/devops-gitops-manifest
+  #       path: prometheus-pgbouncer-exporter
+  #       version: main
+  #       namespace: monitoring
+  #       values_path: monitoring/prometheus-pgbouncer-exporter.yaml
+  #       auto_sync: true

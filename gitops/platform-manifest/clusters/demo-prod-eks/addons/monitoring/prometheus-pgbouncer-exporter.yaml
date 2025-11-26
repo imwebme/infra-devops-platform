@@ -1,0 +1,42 @@
+config:
+  - name: prod-item-proxy-write
+    host: prod-item-proxy-write.db.prod.iexample-org.com
+    passwordFile: ''
+    passwordSecret: {}
+    port: "6432"
+    database: 'pgbouncer'
+    sslmode: disable
+    extraParams: ''
+    datasourceSecret: {}
+    constantLabels: {}
+    logLevel: ""
+    logFormat: "json"
+    extraArgs: []
+    replicaCount: 1
+  - name: prod-item-proxy-read
+    host: prod-item-proxy-read.db.prod.iexample-org.com
+    passwordFile: ''
+    passwordSecret: {}
+    port: "6432"
+    database: 'pgbouncer'
+    sslmode: disable
+    extraParams: ''
+    datasourceSecret: {}
+    constantLabels: {}
+    logLevel: ""
+    logFormat: "json"
+    extraArgs: []
+    replicaCount: 1
+
+replicaCount: 1
+
+priorityClassName: monitoring-addons
+
+nodeSelector:
+  service: monitoring-addons
+
+tolerations:
+  - effect: NoSchedule
+    key: MonitoringAddonsOnly
+    value: "true"
+    operator: Equal

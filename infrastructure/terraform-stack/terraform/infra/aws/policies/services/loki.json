@@ -1,0 +1,33 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["s3:ListBucket"],
+      "Resource": [
+        "arn:aws:s3:::alwayz-dev-loki-admin",
+        "arn:aws:s3:::alwayz-dev-loki-chunks",
+        "arn:aws:s3:::alwayz-dev-loki-ruler",
+        "arn:aws:s3:::alwayz-dev-loki-store",
+        "arn:aws:s3:::alwayz-prod-loki-admin",
+        "arn:aws:s3:::alwayz-prod-loki-chunks",
+        "arn:aws:s3:::alwayz-prod-loki-ruler",
+        "arn:aws:s3:::alwayz-prod-loki-store"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"],
+      "Resource": [
+        "arn:aws:s3:::alwayz-dev-loki-admin/*",
+        "arn:aws:s3:::alwayz-dev-loki-chunks/*",
+        "arn:aws:s3:::alwayz-dev-loki-ruler/*",
+        "arn:aws:s3:::alwayz-dev-loki-store/*",
+        "arn:aws:s3:::alwayz-prod-loki-admin/*",
+        "arn:aws:s3:::alwayz-prod-loki-chunks/*",
+        "arn:aws:s3:::alwayz-prod-loki-ruler/*",
+        "arn:aws:s3:::alwayz-prod-loki-store/*"
+      ]
+    }
+  ]
+}

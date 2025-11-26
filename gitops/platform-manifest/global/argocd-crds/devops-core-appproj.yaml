@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  annotations:
+    # notifications.argoproj.io/subscribe.on-deleted.slack: 모니터링_데브옵스_dev
+    # notifications.argoproj.io/subscribe.on-health-degraded.slack: 모니터링_데브옵스_dev
+    # notifications.argoproj.io/subscribe.on-sync-failed.slack: 모니터링_데브옵스_dev
+    # notifications.argoproj.io/subscribe.on-sync-status-unknown.slack: 모니터링_데브옵스_dev
+  name: devops-core
+  namespace: argocd
+spec:
+  clusterResourceBlacklist:
+  - group: ""
+    kind: ""
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  description: Project to manage add-on, k8s admin resources, argocd project for devops-core
+  destinations:
+  - name: '*'
+    namespace: '*'
+    server: '*'
+  orphanedResources:
+    warn: true
+  sourceNamespaces:
+  - '*'
+  sourceRepos:
+  - '*'

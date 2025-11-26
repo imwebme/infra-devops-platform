@@ -1,0 +1,74 @@
+service: alwayz-back
+owner:
+  - name: Developer 2
+    email: yj@iexample-org.com
+  - name: Developer 1
+    email: kyh@iexample-org.com
+  - name: 김재곤
+    email: kjg@iexample-org.com
+slack_channels:
+  - 모니터링_올웨이즈백
+monitors:
+  - monitor_type: error_log
+    threshold: 500
+  - monitor_type: api_latency
+    threshold: 100
+    duration: 1000
+  - monitor_type: alb_5xx
+    threshold: 5
+    loadbalancer: alwayz-back-prod
+  - monitor_type: alb_target_5xx
+    threshold: 100
+    loadbalancer: alwayz-back-prod
+  - monitor_type: custom_alert
+    name: alwayz-back alb_target_4xx
+    type: trace-analytics alert
+    query: trace-analytics("service:alwayz-back* env:prod @http.status_code:4**").rollup("count").by("@http.url,@http.method").last("1m") > 1000
+    message_template: monitor_alb_target_4xx.tpl
+  - monitor_type: error_tracking_trace
+    threshold: 50
+synthetics:
+  - name: alwayz-back이 다운되었습니다.
+    type: api
+    subtype: http
+    status: "live"
+    locations: ["aws:ap-northeast-2"]
+    request_definition:
+      method: GET
+      url: https://alwayzshop.iexample-org.com/health-check
+    assertions:
+      - type: statusCode
+        operator: is
+        target: 204
+      - type: responseTime
+        operator: lessThan
+        target: 3000
+    options_list:
+      tick_every: 60
+      retry:
+        count: 3
+        interval: 1000
+      monitor_options:
+        renotify_interval: 10
+  - name: alwayz-back 내부 서버 테스트
+    type: api
+    subtype: http
+    status: "live"
+    locations: ["pl:devops-private-location-dc242ec68f6544a123e787d5345b2e06"]
+    request_definition:
+      method: GET
+      url: https://alwayz-back.prod.iexample-org.com/health-check
+    assertions:
+      - type: statusCode
+        operator: is
+        target: 204
+      - type: responseTime
+        operator: lessThan
+        target: 3000
+    options_list:
+      tick_every: 60
+      retry:
+        count: 3
+        interval: 1000
+      monitor_options:
+        renotify_interval: 10

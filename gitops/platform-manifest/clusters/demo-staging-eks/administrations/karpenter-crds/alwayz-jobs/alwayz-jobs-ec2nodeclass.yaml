@@ -1,0 +1,22 @@
+apiVersion: karpenter.k8s.aws/v1beta1
+kind: EC2NodeClass
+metadata:
+  name: demo-jobs
+spec:
+  amiFamily: Bottlerocket
+  blockDeviceMappings: []
+  role: karpenter-demo-staging-eks
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: demo-staging-eks
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: demo-staging-eks
+  tags:
+    Env: demo-staging
+    Group: demo-jobs
+    KarpenterNodePoolName: demo-jobs
+    NodeType: ops_demo-jobs_staging_ec2
+    Team: ops
+    csmSecurity: "false"
+    karpenter.sh/discovery: demo-staging-eks

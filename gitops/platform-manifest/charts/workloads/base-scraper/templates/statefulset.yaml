@@ -1,0 +1,93 @@
+{{- range .Values.statefulSets }}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: "{{ .name }}"
+  labels:
+    app.kubernetes.io/instance: {{ .name }}
+    {{- include "base-scraper.labels" $ | nindent 4 }}
+    {{- if $.Values.datadog.enabled }}
+    {{- include "base-scraper.datadog.labels" $ | nindent 4}}
+    {{- end}}
+    replicas-hash: "{{ .replicas }}"
+spec:
+  replicas: {{ .replicas }}
+  serviceName: "{{ .serviceName | default .name }}-headless"
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .name }}
+      {{- include "base-scraper.selectorLabels" $ | nindent 6 }}
+  revisionHistoryLimit: {{ $.Values.global.revisionHistoryLimit | default 4 }}
+  podManagementPolicy: Parallel
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: {{ .name }}
+        {{- include "base-scraper.selectorLabels" $ | nindent 8 }}
+        {{- include "base-scraper.statefulSet.labels" $ | nindent 8 }}
+        {{- if .labels }}
+        {{- toYaml .labels | nindent 8 }}
+        {{- end }}
+        {{- if $.Values.datadog.enabled }}
+        {{- include "base-scraper.datadog.labels" $ | nindent 8}}
+        admission.datadoghq.com/enabled: "true"
+        {{- end}}
+      annotations:
+        {{- include "base-scraper.statefulSet.annotations" $ | nindent 8 }}
+        {{- if $.Values.datadog.enabled }}
+        {{- if eq "js" $.Values.datadog.type }}
+        admission.datadoghq.com/js-lib.version: {{ $.Values.datadog.libVersion | default "v4.22.0" }}
+        {{- else if eq "python" $.Values.datadog.type }}
+        admission.datadoghq.com/python-lib.version: {{ $.Values.datadog.libVersion | default "v2.4.2" }}
+        {{- end}}
+        {{- end}}
+    spec:
+      containers:
+        - name: {{ .name }}
+          image: {{ $.Values.global.statefulSet.image.repository | default "nginx" }}:{{ $.Values.global.statefulSet.image.tag | default "1.14.2" }}
+          imagePullPolicy: {{ $.Values.global.statefulSet.image.pullPolicy | default "IfNotPresent" | quote }}
+          {{- if .command }}
+          command:
+            {{- toYaml .command | nindent 12 }}
+          {{- end }}
+          {{- if .args }}
+          args:
+            {{- toYaml .args | nindent 12 }}
+          {{- end }}
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: REPLICAS
+              value: {{ .replicas | quote }}
+            {{- if .env }}
+            {{- toYaml .env | nindent 12 }}
+            {{- end }}
+          ports:
+            - name: {{ $.Values.service.portName | default "http" }}
+              containerPort: {{ .port }}
+              protocol: TCP
+          resources:
+            {{- if .resources }}
+            {{- .resources | toYaml | nindent 12 }}
+            {{- else }}
+            requests:
+              memory: "1024Mi"
+              cpu: "250m"
+            limits:
+              memory: "1024Mi"
+              cpu: "2000m"
+            {{- end }}
+      terminationGracePeriodSeconds: {{ .terminationGracePeriodSeconds | default 0 }}
+      priorityClassName: {{ .priorityClassName | default "demo-scrapers" }}
+      nodeSelector:
+        {{- toYaml $.Values.nodeSelector | nindent 8 }}
+      tolerations:
+        {{- toYaml $.Values.tolerations | nindent 8 }}
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      partition: 0
+{{- end }}

@@ -1,0 +1,7 @@
+controller:
+  resources:
+    requests:
+      cpu: 668m
+      memory: 1633Mi
+    limits:
+      memory: 1633Mi

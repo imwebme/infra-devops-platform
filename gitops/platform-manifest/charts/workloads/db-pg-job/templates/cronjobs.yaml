@@ -1,0 +1,81 @@
+{{- range $.Values.db -}}
+{{- $name:= (printf "%s-%s-%s" .cluster .database $.Values.job) }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ $name }}
+type: Opaque
+data:
+  command.sql: {{ required "required parameter cmd" .cmd | b64enc | quote }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ $name }}
+  labels: 
+    {{ include "pg-job.labels" $ | nindent 4 }}
+    app.kubernetes.io/instance: {{ $name }}
+spec:
+  schedule: "{{ .schedule }}"
+  concurrencyPolicy: Forbid 
+  successfulJobsHistoryLimit: 1 
+  failedJobsHistoryLimit: 1 
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          name: {{ $name }}
+      template:
+        spec:
+          containers:
+            - name: postgres-client
+              image: {{ $.Values.image }}
+              imagePullPolicy: {{ $.Values.imagePullPolicy }}
+              command:
+                - "/bin/sh"
+                - "-c"
+              args: 
+                - |
+                  PGPASSWORD=${PG_PASSWORD} psql --host=${PG_HOST} --port=${PG_PORT} --username=${PG_USER} --dbname=${PG_DB} --file="/scripts/command.sql"
+              env:
+                - name: PG_HOST
+                  value: "{{ .endpoint }}"
+                - name: PG_DB
+                  value: "{{ .database }}"
+                - name: PG_PORT
+                  value: "{{ .port }}"
+                - name: PG_USER
+                  value: "{{ $.Values.user.name }}"
+                - name: PG_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ $.Values.user.secretName }}
+                      key: password
+              volumeMounts:
+                - name: pg-command
+                  mountPath: /scripts
+                  readOnly: true
+              livenessProbe:
+                {{- toYaml $.Values.livenessProbe | nindent 16 }}
+              resources:
+                {{- toYaml $.Values.resources | nindent 16 }}
+          restartPolicy: OnFailure
+          volumes:
+            - name: pg-command
+              secret:
+                secretName: {{ $name }}
+          {{- with $.Values.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $.Values.affinity }}
+          affinity:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $.Values.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          priorityClassName: {{ $.Values.priorityClassName }}
+{{- end -}}

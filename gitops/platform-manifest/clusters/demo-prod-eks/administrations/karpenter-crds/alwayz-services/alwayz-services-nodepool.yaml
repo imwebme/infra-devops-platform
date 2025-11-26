@@ -1,0 +1,40 @@
+apiVersion: karpenter.sh/v1beta1
+kind: NodePool
+metadata:
+  name: demo-services
+spec:
+  disruption:
+    consolidationPolicy: WhenUnderutilized
+    expireAfter: 720h
+  template:
+    metadata:
+      labels:
+        generated: karpenter
+        service: demo-services
+        team: devops
+    spec:
+      kubelet:
+        systemReserved:
+          cpu: 100m
+          memory: 100Mi
+      nodeClassRef:
+        name: demo-services
+      requirements:
+        - key: karpenter.k8s.aws/instance-family
+          operator: In
+          values:
+            ["r6g", "r6gd", "r7g", "c6g", "c6gd", "c7g", "m6g", "m6gd", "m7g"]
+        - key: karpenter.k8s.aws/instance-cpu
+          operator: In
+          values: ["4", "8", "16", "32", "48", "64"]
+        - key: kubernetes.io/arch
+          operator: In
+          values: ["arm64"]
+        - key: karpenter.sh/capacity-type
+          operator: In
+          values: ["spot", "on-demand"]
+      taints:
+        - effect: NoSchedule
+          key: AlwayzServicesOnly
+          value: "true"
+  weight: 2

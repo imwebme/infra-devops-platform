@@ -1,0 +1,58 @@
+summary: test
+
+config: ""
+
+parameter:
+  queryLimit: 1000
+
+image: 123456789012.dkr.ecr.ap-northeast-2.amazonaws.com/db/cw-summary:1.1.4
+imagePullPolicy: IfNotPresent
+
+labels: {}
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccountName:
+
+podAnnotations: {}
+
+podLabels: {}
+
+resources: 
+  requests: 
+    cpu: 100m
+    memory: 60Mi
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: ["all"]
+  readOnlyRootFilesystem: true
+  runAsGroup: 10000
+  runAsNonRoot: true
+  runAsUser: 10000
+
+livenessProbe:
+  exec:
+    command:
+    - sh
+    - -c
+    - "pgrep -x /cw-summary"
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  failureThreshold: 3
+
+priorityClassName: db
+
+nodeSelector:
+  service: db
+
+tolerations:
+  - effect: NoSchedule
+    key: DbOnly
+    value: "true"
+    operator: Equal
+    
+affinity: {}
+

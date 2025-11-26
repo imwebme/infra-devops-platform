@@ -1,0 +1,374 @@
+data: 
+  - name: shorts
+    hostAddress: "shorts"
+    ageLimit: 14d
+    queryLimit: 2000
+    archiveCheckInterval: 10
+    collection: coin_history
+    database: ALWAYZ
+    archiveField: createdAt
+    s3:
+      bucket: example-org-database-archive-prod/shorts/coin_history/
+      uploadInterval: 300
+
+  - name: log-user-item-visit-log
+    hostAddress: "log"
+    ageLimit: 45d
+    queryLimit: 2000
+    archiveCheckInterval: 10
+    collection: user_item_visit_log
+    database: Log
+    archiveField: enteredAt
+    s3:
+      bucket: example-org-database-archive-prod/log/user_item_visit_log/
+      uploadInterval: 300
+
+  - name: log-user-screen-log
+    hostAddress: "log"
+    ageLimit: 60d
+    queryLimit: 3000
+    archiveCheckInterval: 13
+    collection: user_screen_log
+    database: Log
+    archiveField: loggedAt
+    s3:
+      bucket: example-org-database-archive-prod/log/user_screen_log/
+      uploadInterval: 300
+
+  - name: log-ad-user-item-impression-log
+    hostAddress: "log"
+    ageLimit: 3d
+    queryLimit: 2000
+    archiveCheckInterval: 15
+    collection: ad_user_item_impression_log
+    database: Log
+    archiveField: loggedAt
+    s3:
+      bucket: example-org-database-archive-prod/log/ad_user_item_impression_log/
+      uploadInterval: 300
+
+  - name: log-user-click-log
+    hostAddress: "log"
+    ageLimit: 45d
+    queryLimit: 3000
+    archiveCheckInterval: 12
+    collection: user_click_log
+    database: Log
+    archiveField: eventLoggedAt
+    s3:
+      bucket: example-org-database-archive-prod/log/user_click_log/
+      uploadInterval: 300            
+
+  - name: alfarm-log
+    hostAddress: "alfarm-log"
+    ageLimit: 30d
+    queryLimit: 800
+    archiveCheckInterval: 10
+    collection: alfarm_usage_log
+    database: ALWAYZ
+    archiveField: createdAt
+    s3:
+      bucket: example-org-database-archive-prod/alfarm-log/alfarm_usage_log/
+      uploadInterval: 180
+
+  - name: alfarm
+    hostAddress: "alfarm"
+    ageLimit: 7d
+    queryLimit: 800
+    archiveCheckInterval: 10
+    collection: alfarm_social_history
+    database: ALWAYZ
+    archiveField: createdAt
+    s3:
+      bucket: example-org-database-archive-prod/alfarm/alfarm_social_history/
+      uploadInterval: 180
+
+  - name: alfarm-v2-vip-invitation-history
+    hostAddress: "alfarm-v2"
+    ageLimit: 30d
+    queryLimit: 1000
+    archiveCheckInterval: 10
+    collection: vip_invitation_history
+    database: alfarm
+    archiveField: createdAt
+    s3:
+      bucket: example-org-database-archive-prod/alfarm-v2/vip_invitation_history/
+      uploadInterval: 300
+
+  - name: alfarm-v2-kakao-share-history
+    hostAddress: "alfarm-v2"
+    ageLimit: 30d
+    queryLimit: 1000
+    archiveCheckInterval: 10
+    collection: kakao_share_history
+    database: alfarm
+    archiveField: createdAt
+    s3:
+      bucket: example-org-database-archive-prod/alfarm-v2/kakao_share_history/
+      uploadInterval: 300
+
+  - name: alfarm-v2-infinite-nutrient-history
+    hostAddress: "alfarm-v2"
+    ageLimit: 30d
+    queryLimit: 1000
+    archiveCheckInterval: 10
+    collection: infinite_nutrient_history
+    database: alfarm
+    archiveField: createdAt
+    s3:
+      bucket: example-org-database-archive-prod/alfarm-v2/infinite_nutrient_history/
+      uploadInterval: 300
+
+  - name: alfarm-v2-farm-resource-history
+    hostAddress: "alfarm-v2"
+    ageLimit: 30d
+    queryLimit: 2000
+    archiveCheckInterval: 10
+    collection: farm_resource_history
+    database: alfarm
+    archiveField: createdAt
+    s3:
+      bucket: example-org-database-archive-prod/alfarm-v2/farm_resource_history/
+      uploadInterval: 300      
+
+  - name: alfarm-v2-mission-history
+    hostAddress: "alfarm-v2"
+    ageLimit: 30d
+    queryLimit: 2000
+    archiveCheckInterval: 10
+    collection: mission_history
+    database: alfarm
+    archiveField: createdAt
+    s3:
+      bucket: example-org-database-archive-prod/alfarm-v2/mission_history/
+      uploadInterval: 300            
+
+  - name: alfarm-v2-arcade-history
+    hostAddress: "alfarm-v2"
+    ageLimit: 30d
+    queryLimit: 2000
+    archiveCheckInterval: 10
+    collection: arcade_history
+    database: alfarm
+    archiveField: createdAt
+    s3:
+      bucket: example-org-database-archive-prod/alfarm-v2/arcade_history/
+      uploadInterval: 300
+
+  - name: alfarm-v2-notification-history
+    hostAddress: "alfarm-v2"
+    ageLimit: 30d
+    queryLimit: 2000
+    archiveCheckInterval: 10
+    collection: notification_history
+    database: alfarm
+    archiveField: createdAt
+    s3:
+      bucket: example-org-database-archive-prod/alfarm-v2/notification_history/
+      uploadInterval: 300            
+
+  - name: alfarm-v2-arcade-custom-resource-history
+    hostAddress: "alfarm-v2"
+    ageLimit: 30d
+    queryLimit: 2000
+    archiveCheckInterval: 10
+    collection: arcade_custom_resource_history
+    database: alfarm
+    archiveField: createdAt
+    s3:
+      bucket: example-org-database-archive-prod/alfarm-v2/arcade_custom_resource_history/
+      uploadInterval: 300                  
+
+  - name: alfarm-v2-alfarm-seller-store-history
+    hostAddress: "alfarm-v2"
+    ageLimit: 30d
+    queryLimit: 1000
+    archiveCheckInterval: 10
+    collection: alfarm_seller_store_history
+    database: alfarm
+    archiveField: createdAt
+    s3:
+      bucket: example-org-database-archive-prod/alfarm-v2/alfarm_seller_store_history/
+      uploadInterval: 300                  
+
+  - name: alfarm-v2-event-history
+    hostAddress: "alfarm-v2"
+    ageLimit: 30d
+    queryLimit: 1000
+    archiveCheckInterval: 10
+    collection: event_history
+    database: alfarm
+    archiveField: createdAt
+    s3:
+      bucket: example-org-database-archive-prod/alfarm-v2/event_history/
+      uploadInterval: 300                        
+
+  - name: alfarm-v2-farm-purchase-reward-history
+    hostAddress: "alfarm-v2"
+    ageLimit: 30d
+    queryLimit: 1000
+    archiveCheckInterval: 10
+    collection: farm_purchase_reward_history
+    database: alfarm
+    archiveField: createdAt
+    s3:
+      bucket: example-org-database-archive-prod/alfarm-v2/farm_purchase_reward_history/
+      uploadInterval: 300
+
+  - name: alfarm-v2-farm-crop-level-up-history
+    hostAddress: "alfarm-v2"
+    ageLimit: 30d
+    queryLimit: 1000
+    archiveCheckInterval: 10
+    collection: farm_crop_level_up_history
+    database: alfarm
+    archiveField: createdAt
+    s3:
+      bucket: example-org-database-archive-prod/alfarm-v2/farm_crop_level_up_history/
+      uploadInterval: 300
+
+  - name: alfarm-v2-mission-daily-invitation-history
+    hostAddress: "alfarm-v2"
+    ageLimit: 30d
+    queryLimit: 1000
+    archiveCheckInterval: 10
+    collection: mission_daily_invitation_history
+    database: alfarm
+    archiveField: createdAt
+    s3:
+      bucket: example-org-database-archive-prod/alfarm-v2/mission_daily_invitation_history/
+      uploadInterval: 300
+
+  - name: alfarm-v2-event-migration-reward-history
+    hostAddress: "alfarm-v2"
+    ageLimit: 30d
+    queryLimit: 500
+    archiveCheckInterval: 10
+    collection: event_migration_reward_history
+    database: alfarm
+    archiveField: createdAt
+    s3:
+      bucket: example-org-database-archive-prod/alfarm-v2/event_migration_reward_history/
+      uploadInterval: 300
+
+  - name: alfarm-v2-farm-crop-harvest-history
+    hostAddress: "alfarm-v2"
+    ageLimit: 30d
+    queryLimit: 500
+    archiveCheckInterval: 10
+    collection: farm_crop_harvest_history
+    database: alfarm
+    archiveField: createdAt
+    s3:
+      bucket: example-org-database-archive-prod/alfarm-v2/farm_crop_harvest_history/
+      uploadInterval: 300
+
+  - name: alfarm-v2-chance-time-limited-history
+    hostAddress: "alfarm-v2"
+    ageLimit: 30d
+    queryLimit: 300
+    archiveCheckInterval: 10
+    collection: chance_time_limited_history
+    database: alfarm
+    archiveField: createdAt
+    s3:
+      bucket: example-org-database-archive-prod/alfarm-v2/chance_time_limited_history/
+      uploadInterval: 300
+
+  - name: user-coupon
+    hostAddress: "user"
+    ageLimit: 14d
+    queryLimit: 2000
+    archiveCheckInterval: 12
+    collection: coupon
+    database: ALWAYZ
+    archiveField: expiresAt
+    s3:
+      bucket: example-org-database-archive-prod/user/coupon/
+      uploadInterval: 300
+
+  - name: user-user-item-visit
+    hostAddress: "user"
+    ageLimit: 60d
+    queryLimit: 4000
+    archiveCheckInterval: 10
+    collection: user_item_visit
+    database: ALWAYZ
+    archiveField: enteredAt
+    s3:
+      bucket: example-org-database-archive-prod/user/user_item_visit/
+      uploadInterval: 60      
+
+  - name: incubator-applovin-event-log
+    hostAddress: "incubator"
+    ageLimit: 92d
+    queryLimit: 4000
+    archiveCheckInterval: 10
+    collection: appLovin_event_log
+    database: ALWAYZ
+    archiveField: createdAt
+    s3:
+      bucket: example-org-database-archive-prod/incubator/applovin_event_log/
+      uploadInterval: 60      
+      
+  - name: incubator-applovin-impression-log
+    hostAddress: "incubator"
+    ageLimit: 92d
+    queryLimit: 4000
+    archiveCheckInterval: 13
+    collection: appLovin_impression_log
+    database: ALWAYZ
+    archiveField: createdAt
+    s3:
+      bucket: example-org-database-archive-prod/incubator/applovin_impression_log/
+      uploadInterval: 60
+
+  - name: incubator-applovin-revenue-log
+    hostAddress: "incubator"
+    ageLimit: 92d
+    queryLimit: 4000
+    archiveCheckInterval: 11
+    collection: appLovin_revenue_log
+    database: ALWAYZ
+    archiveField: createdAt
+    s3:
+      bucket: example-org-database-archive-prod/incubator/applovin_revenue_log/
+      uploadInterval: 70
+
+  - name: incubator-admob-event-log
+    hostAddress: "incubator"
+    ageLimit: 92d
+    queryLimit: 4000
+    archiveCheckInterval: 15
+    collection: adMob_event_log
+    database: ALWAYZ
+    archiveField: createdAt
+    s3:
+      bucket: example-org-database-archive-prod/incubator/admob_event_log/
+      uploadInterval: 70
+
+  - name: incubator-applovin-callback-log
+    hostAddress: "incubator"
+    ageLimit: 92d
+    queryLimit: 4000
+    archiveCheckInterval: 12
+    collection: appLovin_callback_log
+    database: ALWAYZ
+    archiveField: createdAt
+    s3:
+      bucket: example-org-database-archive-prod/incubator/applovin_callback_log/
+      uploadInterval: 70
+
+  - name: incubator-offerwall-event-log
+    hostAddress: "incubator"
+    ageLimit: 92d
+    queryLimit: 2000
+    archiveCheckInterval: 9
+    collection: offerwall_event_log
+    database: ALWAYZ
+    archiveField: createdAt
+    s3:
+      bucket: example-org-database-archive-prod/incubator/offerwall_event_log/
+      uploadInterval: 65      
+
+secretName: demo-prod-db-admin-secret

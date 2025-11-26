@@ -1,0 +1,7 @@
+application_name: demo-back
+chart_name: demo-back
+chart_version: 0.0.50
+slack_channel: C0794BUEYAX
+type: active
+source: nodejs
+source_repo: https://github.com/wetripod/demo-back

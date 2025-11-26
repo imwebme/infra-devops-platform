@@ -1,0 +1,189 @@
+resources:
+  requests:
+    cpu: 100m
+    memory: 100Mi
+  limits:
+    memory: 100Mi
+
+data:
+  - name: dev-item-proxy-write
+    service_db: item
+    host_adress: dev-pg.cluster-c3epvhkyjnng.ap-northeast-2.rds.amazonaws.com port=5432
+    
+    logfile: /var/log/postgresql/pgbouncer.log
+    pidfile: /var/run/postgresql/pgbouncer.pid
+
+    replica_count: 2
+
+    listen_addr: 0.0.0.0
+    listen_port: 6432
+    
+    pool_mode: transaction
+    
+    max_client_conn: 8000
+    default_pool_size: 300
+    
+    max_prepared_statements: 500
+
+    unix_socket_dir: /tmp
+    unix_socket_mode: 0777
+    
+    auth_type: md5
+    auth_file: /etc/pgbouncer/userlist.txt
+    
+    admin_users: proxy_mon
+    stats_users: proxy_mon
+    auth_dbname: postgres
+    
+    client_idle_timeout: 600
+
+    server_lifetime: 3600
+    server_idle_timeout: 3600
+    server_round_robin: 1
+    
+    dns_max_ttl: 15
+    dns_max_used_counter_ttl: 50
+    dns_invalidate_conn_when_ip_changed: 1      
+
+    ignore_startup_parameters: extra_float_digits
+
+  - name: dev-item-proxy-read
+    service_db: item
+    host_adress: dev-pg.cluster-ro-c3epvhkyjnng.ap-northeast-2.rds.amazonaws.com port=5432
+    
+    logfile: /var/log/postgresql/pgbouncer.log
+    pidfile: /var/run/postgresql/pgbouncer.pid
+
+    replica_count: 2
+
+    listen_addr: 0.0.0.0
+    listen_port: 6432
+    
+    pool_mode: transaction
+    
+    max_client_conn: 8000
+    default_pool_size: 300
+    
+    max_prepared_statements: 500
+    
+    unix_socket_dir: /tmp
+    unix_socket_mode: 0777
+    
+    auth_type: md5
+    auth_file: /etc/pgbouncer/userlist.txt
+    
+    admin_users: proxy_mon
+    stats_users: proxy_mon
+    auth_dbname: postgres
+    
+    client_idle_timeout: 600
+
+    server_lifetime: 3600
+    server_idle_timeout: 3600
+    server_round_robin: 1
+    
+    dns_max_ttl: 15
+    dns_max_used_counter_ttl: 3
+    dns_invalidate_conn_when_ip_changed: 0      
+
+    ignore_startup_parameters: extra_float_digits
+
+  - name: dev-price-proxy-write
+    service_db: price
+    host_adress: dev-pg.cluster-c3epvhkyjnng.ap-northeast-2.rds.amazonaws.com port=5432
+    
+    logfile: /var/log/postgresql/pgbouncer.log
+    pidfile: /var/run/postgresql/pgbouncer.pid
+
+    replica_count: 2
+
+    listen_addr: 0.0.0.0
+    listen_port: 6432
+    
+    pool_mode: transaction
+    
+    max_client_conn: 8000
+    default_pool_size: 300
+    
+    max_prepared_statements: 500
+    
+    unix_socket_dir: /tmp
+    unix_socket_mode: 0777
+    
+    auth_type: md5
+    auth_file: /etc/pgbouncer/userlist.txt
+    
+    admin_users: proxy_mon
+    stats_users: proxy_mon
+    auth_dbname: postgres
+    
+    client_idle_timeout: 600
+
+    server_lifetime: 3600
+    server_idle_timeout: 3600
+    server_round_robin: 1
+    
+    dns_max_ttl: 15
+    dns_max_used_counter_ttl: 50
+    dns_invalidate_conn_when_ip_changed: 1      
+
+    ignore_startup_parameters: extra_float_digits
+
+  - name: dev-price-proxy-read
+    service_db: price
+    host_adress: dev-pg.cluster-ro-c3epvhkyjnng.ap-northeast-2.rds.amazonaws.com port=5432
+    
+    logfile: /var/log/postgresql/pgbouncer.log
+    pidfile: /var/run/postgresql/pgbouncer.pid
+
+    replica_count: 2
+
+    listen_addr: 0.0.0.0
+    listen_port: 6432
+    
+    pool_mode: transaction
+    
+    max_client_conn: 8000
+    default_pool_size: 300
+    
+    max_prepared_statements: 500
+    
+    unix_socket_dir: /tmp
+    unix_socket_mode: 0777
+    
+    auth_type: md5
+    auth_file: /etc/pgbouncer/userlist.txt
+    
+    admin_users: proxy_mon
+    stats_users: proxy_mon
+    auth_dbname: postgres
+    
+    client_idle_timeout: 600
+
+    server_lifetime: 3600
+    server_idle_timeout: 3600
+    server_round_robin: 1
+    
+    dns_max_ttl: 15
+    dns_max_used_counter_ttl: 3
+    dns_invalidate_conn_when_ip_changed: 0      
+
+    ignore_startup_parameters: extra_float_digits
+
+autoscaling: {}
+
+volumes: []
+
+volumeMounts: []
+
+nodeSelector: {}
+
+affinity: {}
+
+secret:
+  name: "pgbouncer-userlist-secret"
+  secretKey: "demo/dev/db/pgbouncer/userlist"
+
+image:
+  repository: 123456789012.dkr.ecr.ap-northeast-2.amazonaws.com/db/example-org-pgbouncer:1.0.2
+  pullPolicy: IfNotPresent

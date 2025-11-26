@@ -1,0 +1,9 @@
+key:
+  components:
+    # - chart:
+    #     name: cost-analyzer
+    #     repo: https://kubecost.github.io/cost-analyzer
+    #     version: 2.4.0
+    #     namespace: kubecost
+    #     values_path: kubecost/values.yaml
+    #     auto_sync: true

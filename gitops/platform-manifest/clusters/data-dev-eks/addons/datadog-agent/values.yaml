@@ -1,0 +1,95 @@
+datadog:
+  clusterName: data-dev-eks
+
+  clusterChecks:
+    enabled: true
+
+  # MSK (Amazon Managed Streaming for Apache Kafka) integration 설정
+  confd:
+    amazon_msk.yaml: |-
+      init_config:
+      instances:
+        - cluster_arn: "arn:aws:kafka:ap-northeast-2:123456789012:cluster/data-dev-kafka-msk/735233f9-38f1-4996-826b-8aac894956e4-4"
+          region_name: "ap-northeast-2"
+          use_openmetrics: true
+          tags:
+            - "env:dev"
+            - "cluster:data-dev-eks"
+            - "service:kafka"
+            - "msk_cluster:data-dev-kafka-msk"
+
+  kubelet:
+    useApiServer: true # API 서버를 통해 pod 목록 조회
+    tlsVerify: false
+
+  tags:
+    - "env:dev"
+    - "cluster:data-dev-eks"
+
+  env:
+    # hostname을 노드명으로 설정
+    - name: DD_HOSTNAME
+      valueFrom:
+        fieldRef:
+          fieldPath: spec.nodeName
+    # AWS 자격 증명 (MSK 모니터링용)
+    - name: AWS_REGION
+      value: "ap-northeast-2"
+
+clusterChecksRunner:
+  enabled: true
+  resources:
+    requests:
+      cpu: 100m
+      memory: 110Mi
+    limits:
+      memory: 110Mi
+
+clusterAgent:
+  image:
+    tag: 7.68.0
+  resources: 
+    requests:
+      cpu: 80m
+      memory: 535Mi
+    limits:
+      memory: 535Mi
+
+agents:
+  image:
+    tag: 7.68.0
+  containers:
+    agent:
+      resources:
+        requests:
+          cpu: 90m
+          memory: 270Mi
+        limits:
+          memory: 270Mi
+    traceAgent:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 100Mi
+        limits:
+          memory: 100Mi
+    processAgent:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 100Mi
+        limits:
+          memory: 100Mi
+    systemProbe:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 482Mi
+        limits:
+          memory: 482Mi
+  tolerations:
+    - operator: Equal
+      key: CommonAddonsOnly
+      value: "true"
+      effect: NoSchedule
+    

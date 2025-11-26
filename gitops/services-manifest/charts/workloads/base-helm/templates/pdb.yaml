@@ -1,0 +1,17 @@
+{{- if .Values.pdb.enabled }}
+  {{- if or (eq "true" (include "base-helm.hpa.enabled" .)) ( gt (.Values.deployment.replicas | int) 1 ) }}
+  apiVersion: policy/v1
+  kind: PodDisruptionBudget
+  metadata:
+    name: "{{ include "base-helm.realname" . }}-pdb"
+  spec:
+    {{- if eq (int .Values.pdb.maxUnavailable) 0 }}
+    maxUnavailable: 1
+    {{- else }}
+    maxUnavailable: {{ .Values.pdb.maxUnavailable | default 1 }}
+    {{- end }}
+    selector:
+      matchLabels:
+        {{- include "base-helm.selectorLabels" . | nindent 6 }}
+  {{- end }}
+{{- end }}

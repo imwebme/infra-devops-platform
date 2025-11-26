@@ -1,0 +1,36 @@
+project:
+  name: shopin
+  slug: shopin
+  teams: ["example-org"]
+  platform: javascript-react
+  resolve_age: 720
+  default_rules: false
+  filters:
+    blacklisted_ips: ["127.0.0.1", "0.0.0.0/8"]
+    error_messages: ["test"]
+  fingerprinting_rules: ""
+  grouping_enhancements: ""
+owner:
+  - name: 이상민
+    email: sangmin.lee@iexample-org.com
+  - name: 신재용
+    email: jays@iexample-org.com
+alerts:
+  - type: issue
+    name: "shopin Alert"
+    action_match: "all"
+    filter_match: "all"
+    frequency: 5
+    conditions_json:
+      - id: "sentry.rules.conditions.event_frequency.EventFrequencyCondition"
+        value: 50
+        interval: "5m"
+        comparison_type: "count"
+    filters_json: []
+    actions_json:
+      - id: "sentry.integrations.slack.notify_action.SlackNotifyServiceAction"
+        channel_id: "CXXXXXXXXX5"
+        tags: ""
+      - id: "sentry.integrations.slack.notify_action.SlackNotifyServiceAction"
+        channel_id: "CXXXXXXXXX2"
+        tags: ""

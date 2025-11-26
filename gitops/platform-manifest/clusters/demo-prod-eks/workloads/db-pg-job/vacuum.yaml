@@ -1,0 +1,32 @@
+job: vacuum
+
+db: 
+- cluster: prod-item
+  endpoint: prod-item.cluster-c3epvhkyjnng.ap-northeast-2.rds.amazonaws.com
+  port: 5432
+  database: item
+  schedule: "0 17 * * *"
+  cmd: |
+    SELECT 'VACUUM (VERBOSE,SKIP_LOCKED,ANALYZE,TRUNCATE false) ' || schemaname || '.' || relname || ';'
+    FROM pg_stat_user_tables A, (SELECT CURRENT_TIMESTAMP - INTERVAL '24 hours') B (stale_time)
+    WHERE ( (last_vacuum < stale_time OR last_vacuum IS NULL) AND (last_autovacuum < stale_time OR last_autovacuum IS NULL) )
+      OR ( (last_analyze < stale_time OR last_analyze IS NULL) AND (last_autoanalyze < stale_time OR last_autoanalyze IS NULL) )\gexec
+
+- cluster: prod-price
+  endpoint: prod-price.cluster-c3epvhkyjnng.ap-northeast-2.rds.amazonaws.com
+  port: 5432
+  database: price
+  schedule: "0 17 * * *"
+  cmd: |
+    SELECT 'VACUUM (VERBOSE,SKIP_LOCKED,ANALYZE,TRUNCATE false) ' || schemaname || '.' || relname || ';'
+    FROM pg_stat_user_tables A, (SELECT CURRENT_TIMESTAMP - INTERVAL '24 hours') B (stale_time)
+    WHERE ( (last_vacuum < stale_time OR last_vacuum IS NULL) AND (last_autovacuum < stale_time OR last_autovacuum IS NULL) )
+      OR ( (last_analyze < stale_time OR last_analyze IS NULL) AND (last_autoanalyze < stale_time OR last_autoanalyze IS NULL) )\gexec
+
+user:
+  secretName: pg-vacuum-user
+  name: "example-org_admin"
+  password: 
+    secretManager: 
+      key: "demo/dev/db/admin"
+      property: example-org_admin

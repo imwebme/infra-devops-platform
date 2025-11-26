@@ -1,0 +1,17 @@
+{{- range .Values.statefulSets }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: "{{ .name }}-pdb"
+spec:
+  {{- if eq (int $.Values.pdb.maxUnavailable) 0 }}
+  maxUnavailable: 1
+  {{- else }}
+  maxUnavailable: {{ $.Values.pdb.maxUnavailable | default 1 }}
+  {{- end }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .name }}
+      {{- include "base-scraper.selectorLabels" $ | nindent 6 }}
+{{- end }}

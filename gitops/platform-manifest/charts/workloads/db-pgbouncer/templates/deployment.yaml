@@ -1,0 +1,83 @@
+{{- range .Values.data }}
+{{- $name := (printf "%s-%s-%s" (include "example-org-pgbouncer.name" $) (.name) "deploy") }}
+{{- $name_config := (printf "%s-%s-%s" (include "example-org-pgbouncer.name" $) (.name) "config") }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels:
+    app.kubernetes.io/name: {{ $name }}
+    {{- include "example-org-pgbouncer.labels" $ | nindent 4 }}
+  annotations:    
+    {{- if $.Values.annotations }}
+    {{- toYaml $.Values.annotations | indent 4 }}
+    {{- end }}
+spec:
+  replicas: {{ .replica_count | default $.Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "example-org-pgbouncer.selectorLabels" $ | nindent 6 }}
+      instance/label: {{ .name }}
+  template:
+    metadata:
+      {{- with $.Values.podAnnotations }}
+      annotations:
+        {{- toYaml $ | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "example-org-pgbouncer.selectorLabels" $ | nindent 8 }}
+        instance/label: {{ .name }}
+    spec:
+      serviceAccountName: {{ $.Values.serviceAccountName }}
+      containers:
+        - name: "{{ $.Chart.Name }}"
+          image: "{{ $.Values.image.repository }}"
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          readinessProbe:
+            tcpSocket:
+              port: 6432
+            initialDelaySeconds: 5
+            timeoutSeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 6432
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          ports:
+            - name: pgbouncer-port
+              containerPort: {{ $.Values.service.port }}
+              protocol: TCP
+          volumeMounts:
+            - name: pgbouncer-config-volume
+              mountPath: /etc/pgbouncer/config.ini
+              subPath: config.ini
+            - name: pgbouncer-secret-volume
+              mountPath: /etc/pgbouncer/userlist.txt
+              subPath: userlist.txt
+          {{- with $.Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      affinity:
+        {{- toYaml $.Values.affinity | nindent 8 }}
+      nodeSelector:
+        {{- toYaml $.Values.nodeSelector | nindent 8 }}
+      {{- if $.Values.priorityClassName }}
+      priorityClassName: {{ $.Values.priorityClassName }}
+      {{- end }}
+      terminationGracePeriodSeconds: 30
+      tolerations:
+        {{- toYaml $.Values.tolerations | nindent 8 }}
+      volumes:
+        - name: pgbouncer-config-volume
+          configMap:
+            name: {{ $name_config }}
+        - name: pgbouncer-secret-volume
+          secret:
+            secretName: {{ $.Values.secret.name }}
+            items:
+              - key: userlist
+                path: userlist.txt
+{{- end }}

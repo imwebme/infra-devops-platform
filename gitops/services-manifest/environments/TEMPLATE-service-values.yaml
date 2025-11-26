@@ -1,0 +1,79 @@
+# 보일러플레이트 템플릿 - 일반 서비스용 values 파일 (Deployment 기반)
+# 사용법: 이 파일을 복사하여 각 환경(dev/prod/staging)에 맞게 수정
+
+# 기본 설정 (모든 환경 공통)
+tolerations:
+- effect: NoSchedule
+  key: AlwayzServicesOnly  # 서비스별로 변경: AlwayzBackOnly, AlwayzJobsOnly 등
+  value: "true"
+  operator: Equal
+
+nodeSelector:
+  service: demo-services  # 서비스별로 변경: demo-back, demo-jobs 등
+
+topologySpreadConstraints: []
+
+# 배포 설정
+deployment:
+  image:
+    repository: 123456789012.dkr.ecr.ap-northeast-2.amazonaws.com/demo-{ENV}-ecr_demo-back  # {ENV}를 dev/prod로 변경
+    tag: latest  # 실제 태그로 변경
+  resources:
+    requests:
+      cpu: 400m      # dev: 400m, prod: 1200m
+      memory: 750Mi  # dev: 750Mi, prod: 1100Mi
+    limits:
+      cpu: 400m      # dev: 400m, prod: 1200m
+      memory: 750Mi  # dev: 750Mi, prod: 1100Mi
+  port: 3000
+  readinessProbe:
+    httpGet:
+      path: /health-check
+      port: 3000
+    initialDelaySeconds: 15
+    periodSeconds: 5
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  securityContext:
+    readOnlyRootFilesystem: true
+  env:
+  - name: DD_SERVICE
+    value: demo-back  # 서비스명으로 변경
+  - name: DD_ENV
+    value: dev  # 환경에 맞게 변경: dev/prod
+  - name: POD_IP
+    valueFrom:
+      fieldRef:
+        fieldPath: status.podIP
+
+# HPA 설정
+hpa:
+  enabled: true
+  minReplicas: 2     # dev: 2, prod: 10
+  maxReplicas: 4     # dev: 4, prod: 1500
+  targetCPUUtilizationPercentage: 55    # dev: 55, prod: 60
+  targetMemoryUtilizationPercentage: 70 # dev: 70, prod: 80
+
+# 인그레스 설정
+ingress:
+- name: demo-back
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/load-balancer-name: demo-back-{ENV}  # {ENV}를 dev/prod로 변경
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: "6"
+    alb.ingress.kubernetes.io/healthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/healthcheck-path: /health-check
+    alb.ingress.kubernetes.io/success-codes: 200-299
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    external-dns.alpha.kubernetes.io/hostname: demo-back.{ENV}.iexample-org.com  # {ENV}를 dev/prod로 변경
+  rules:
+  - host: demo-back.{ENV}.iexample-org.com  # {ENV}를 dev/prod로 변경
+    paths:
+    - path: /
+      pathType: Prefix
+
+# 서비스 설정
+service:
+  port: 80
+  targetPort: 3000

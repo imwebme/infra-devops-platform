@@ -1,0 +1,418 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: psmdb-mongod-exporter
+  labels:
+    app.kubernetes.io/instance: psmdb-monitor
+  annotations:
+spec:
+  ports:
+    - port: 9216
+      targetPort: metrics
+      protocol: TCP
+      name: metrics
+  selector:
+    app.kubernetes.io/instance: psmdb-monitor
+    app.kubernetes.io/name: psmdb-mongod-exporter
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: psmdb-mongos-exporter-0
+  labels:
+    app.kubernetes.io/instance: psmdb-monitor
+  annotations:
+spec:
+  ports:
+    - port: 9216
+      targetPort: metrics
+      protocol: TCP
+      name: metrics
+  selector:
+    app.kubernetes.io/instance: psmdb-monitor
+    app.kubernetes.io/name: psmdb-mongos-exporter-0
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: psmdb-mongos-exporter-1
+  labels:
+    app.kubernetes.io/instance: psmdb-monitor
+  annotations:
+spec:
+  ports:
+    - port: 9216
+      targetPort: metrics
+      protocol: TCP
+      name: metrics
+  selector:
+    app.kubernetes.io/instance: psmdb-monitor
+    app.kubernetes.io/name: psmdb-mongos-exporter-1
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: psmdb-mongod-exporter
+  labels:
+    app.kubernetes.io/instance: psmdb-monitor
+    app.kubernetes.io/name: psmdb-mongod-exporter
+  annotations:
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: psmdb-mongod-exporter
+      app.kubernetes.io/instance: psmdb-monitor
+  template:
+    metadata:
+      annotations:
+      labels:
+        app.kubernetes.io/instance: psmdb-monitor
+        app.kubernetes.io/name: psmdb-mongod-exporter
+    spec:
+      containers:
+        - name: mongodb-exporter
+          env:
+            - name: MONGODB_URI
+              value: mongodb://dev-alfarm-v2-shard01-0.mongodb.svc.cluster.local:27017,mongodb://dev-alfarm-v2-shard01-1.mongodb.svc.cluster.local:27017,mongodb://dev-alfarm-v2-shard01-2.mongodb.svc.cluster.local:27017,mongodb://dev-alfarm-shard01-0.mongodb.svc.cluster.local:27017,mongodb://dev-alfarm-shard01-1.mongodb.svc.cluster.local:27017,mongodb://dev-alfarm-shard01-2.mongodb.svc.cluster.local:27017,mongodb://dev-allulu-log-shard01-0.mongodb.svc.cluster.local:27017,mongodb://dev-allulu-log-shard01-1.mongodb.svc.cluster.local:27017,mongodb://dev-allulu-log-shard01-2.mongodb.svc.cluster.local:27017,mongodb://dev-allulu-shard01-0.mongodb.svc.cluster.local:27017,mongodb://dev-allulu-shard01-1.mongodb.svc.cluster.local:27017,mongodb://dev-allulu-shard01-2.mongodb.svc.cluster.local:27017,mongodb://dev-almart-shard01-0.mongodb.svc.cluster.local:27017,mongodb://dev-almart-shard01-1.mongodb.svc.cluster.local:27017,mongodb://dev-almart-shard01-2.mongodb.svc.cluster.local:27017,mongodb://dev-alranch-shard01-0.mongodb.svc.cluster.local:27017,mongodb://dev-alranch-shard01-1.mongodb.svc.cluster.local:27017,mongodb://dev-alranch-shard01-2.mongodb.svc.cluster.local:27017,mongodb://dev-altoon-shard01-0.mongodb.svc.cluster.local:27017,mongodb://dev-altoon-shard01-1.mongodb.svc.cluster.local:27017,mongodb://dev-altoon-shard01-2.mongodb.svc.cluster.local:27017,mongodb://dev-checkin-shard01-0.mongodb.svc.cluster.local:27017,mongodb://dev-checkin-shard01-1.mongodb.svc.cluster.local:27017,mongodb://dev-checkin-shard01-2.mongodb.svc.cluster.local:27017,mongodb://dev-cluster0-shard01-0.mongodb.svc.cluster.local:27017,mongodb://dev-cluster0-shard01-1.mongodb.svc.cluster.local:27017,mongodb://dev-cluster0-shard01-2.mongodb.svc.cluster.local:27017,mongodb://dev-crm-shard01-0.mongodb.svc.cluster.local:27017,mongodb://dev-crm-shard01-1.mongodb.svc.cluster.local:27017,mongodb://dev-crm-shard01-2.mongodb.svc.cluster.local:27017,mongodb://dev-external-shard01-0.mongodb.svc.cluster.local:27017,mongodb://dev-external-shard01-1.mongodb.svc.cluster.local:27017,mongodb://dev-external-shard01-2.mongodb.svc.cluster.local:27017,mongodb://dev-incubator-shard01-0.mongodb.svc.cluster.local:27017,mongodb://dev-incubator-shard01-1.mongodb.svc.cluster.local:27017,mongodb://dev-incubator-shard01-2.mongodb.svc.cluster.local:27017,mongodb://dev-item-shard01-0.mongodb.svc.cluster.local:27017,mongodb://dev-item-shard01-1.mongodb.svc.cluster.local:27017,mongodb://dev-item-shard01-2.mongodb.svc.cluster.local:27017,mongodb://dev-log-shard01-0.mongodb.svc.cluster.local:27017,mongodb://dev-log-shard01-1.mongodb.svc.cluster.local:27017,mongodb://dev-log-shard01-2.mongodb.svc.cluster.local:27017,mongodb://dev-recommendation-shard01-0.mongodb.svc.cluster.local:27017,mongodb://dev-recommendation-shard01-1.mongodb.svc.cluster.local:27017,mongodb://dev-recommendation-shard01-2.mongodb.svc.cluster.local:27017,mongodb://dev-seller-shard01-0.mongodb.svc.cluster.local:27017,mongodb://dev-seller-shard01-1.mongodb.svc.cluster.local:27017,mongodb://dev-seller-shard01-2.mongodb.svc.cluster.local:27017,mongodb://dev-shorts-shard01-0.mongodb.svc.cluster.local:27017,mongodb://dev-shorts-shard01-1.mongodb.svc.cluster.local:27017,mongodb://dev-shorts-shard01-2.mongodb.svc.cluster.local:27017,mongodb://dev-square-shard01-0.mongodb.svc.cluster.local:27017,mongodb://dev-square-shard01-1.mongodb.svc.cluster.local:27017,mongodb://dev-square-shard01-2.mongodb.svc.cluster.local:27017,mongodb://dev-user-shard01-0.mongodb.svc.cluster.local:27017,mongodb://dev-user-shard01-1.mongodb.svc.cluster.local:27017,mongodb://dev-user-shard01-2.mongodb.svc.cluster.local:27017,mongodb://dev-pay-shard01-0.mongodb.svc.cluster.local:27017,mongodb://dev-pay-shard01-1.mongodb.svc.cluster.local:27017,mongodb://dev-pay-shard01-2.mongodb.svc.cluster.local:27017,mongodb://dev-sku-catalog-shard01-0.mongodb.svc.cluster.local:27017,mongodb://dev-sku-catalog-shard01-1.mongodb.svc.cluster.local:27017,mongodb://dev-sku-catalog-shard01-2.mongodb.svc.cluster.local:27017
+
+            - name: MONGODB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: psmdb-user
+                  key: MONGODB_CLUSTER_MONITOR_USER
+            - name: MONGODB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: psmdb-user
+                  key: MONGODB_CLUSTER_MONITOR_PASSWORD
+          image: "percona/mongodb_exporter:0.43.1"
+          imagePullPolicy: IfNotPresent
+          args:
+            - --web.listen-address=:9216
+            - --log.level=error
+            - --collector.diagnosticdata
+            - --collector.replicasetstatus
+            - --collector.collstats
+            - --collector.indexstats
+            - --collector.dbstats
+            - --collector.topmetrics
+            - --collector.collstats-limit=100
+            - --collector.currentopmetrics
+            - --metrics.overridedescendingindex
+            - --discovering-mode
+            - --compatible-mode
+          ports:
+            - name: metrics
+              containerPort: 9216
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: metrics
+            initialDelaySeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: metrics
+            initialDelaySeconds: 10
+          resources:
+            requests:
+              memory: 10Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - all
+            readOnlyRootFilesystem: true
+            runAsGroup: 10000
+            runAsNonRoot: true
+            runAsUser: 10000
+          volumeMounts: []
+      affinity: {}
+      imagePullSecrets: []
+      terminationGracePeriodSeconds: 30
+      volumes: []
+      tolerations:
+        - effect: NoSchedule
+          key: MongoDBOnly
+          operator: Equal
+          value: "true"
+      nodeSelector:
+        service: mongodb
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: psmdb-mongos-exporter-0
+  labels:
+    app.kubernetes.io/instance: psmdb-monitor
+    app.kubernetes.io/name: psmdb-mongos-exporter-0
+  annotations:
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: psmdb-mongos-exporter-0
+      app.kubernetes.io/instance: psmdb-monitor
+  template:
+    metadata:
+      annotations:
+      labels:
+        app.kubernetes.io/instance: psmdb-monitor
+        app.kubernetes.io/name: psmdb-mongos-exporter-0
+    spec:
+      containers:
+        - name: mongodb-exporter
+          env:
+            - name: MONGODB_URI
+              value: mongodb://127.0.0.1:27017
+            - name: MONGODB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: psmdb-user
+                  key: MONGODB_CLUSTER_MONITOR_USER
+            - name: MONGODB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: psmdb-user
+                  key: MONGODB_CLUSTER_MONITOR_PASSWORD
+          image: "percona/mongodb_exporter:0.43.1"
+          imagePullPolicy: IfNotPresent
+          args:
+            - --web.listen-address=:9216
+            - --log.level=error
+            - --collector.diagnosticdata
+            - --compatible-mode
+          ports:
+            - name: metrics
+              containerPort: 9216
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: metrics
+            initialDelaySeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: metrics
+            initialDelaySeconds: 10
+          resources:
+            requests:
+              memory: 10Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - all
+            readOnlyRootFilesystem: true
+            runAsGroup: 10000
+            runAsNonRoot: true
+            runAsUser: 10000
+          volumeMounts: []
+      affinity: {}
+      imagePullSecrets: []
+      terminationGracePeriodSeconds: 30
+      volumes: []
+      tolerations:
+        - effect: NoSchedule
+          key: MongoDBOnly
+          operator: Equal
+          value: "true"
+      nodeSelector:
+        service: mongodb
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: psmdb-mongos-exporter-1
+  labels:
+    app.kubernetes.io/instance: psmdb-monitor
+    app.kubernetes.io/name: psmdb-mongos-exporter-1
+  annotations:
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: psmdb-mongos-exporter-1
+      app.kubernetes.io/instance: psmdb-monitor
+  template:
+    metadata:
+      annotations:
+      labels:
+        app.kubernetes.io/instance: psmdb-monitor
+        app.kubernetes.io/name: psmdb-mongos-exporter-1
+    spec:
+      containers:
+        - name: mongodb-exporter
+          env:
+            - name: MONGODB_URI
+              value: mongodb://127.0.0.1:27017
+            - name: MONGODB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: psmdb-user
+                  key: MONGODB_CLUSTER_MONITOR_USER
+            - name: MONGODB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: psmdb-user
+                  key: MONGODB_CLUSTER_MONITOR_PASSWORD
+          image: "percona/mongodb_exporter:0.43.1"
+          imagePullPolicy: IfNotPresent
+          args:
+            - --web.listen-address=:9216
+            - --log.level=error
+            - --collector.diagnosticdata
+          ports:
+            - name: metrics
+              containerPort: 9216
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: metrics
+            initialDelaySeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: metrics
+            initialDelaySeconds: 10
+          resources:
+            requests:
+              memory: 10Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - all
+            readOnlyRootFilesystem: true
+            runAsGroup: 10000
+            runAsNonRoot: true
+            runAsUser: 10000
+          volumeMounts: []
+      affinity: {}
+      imagePullSecrets: []
+      terminationGracePeriodSeconds: 30
+      volumes: []
+      tolerations:
+        - effect: NoSchedule
+          key: MongoDBOnly
+          operator: Equal
+          value: "true"
+      nodeSelector:
+        service: mongodb
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: "psmdb-mongod-monitor"
+  labels:
+    app.kubernetes.io/name: "psmdb-mongod-monitor"
+    helm.sh/chart: prometheus-mongodb-exporter-3.5.0
+    app.kubernetes.io/instance: psmdb-monitor
+    app.kubernetes.io/version: "0.40.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: percona-server-mongodb
+      app.kubernetes.io/component: external-service
+  endpoints:
+    - path: /scrape
+      interval: 30s
+      scrapeTimeout: 10s
+      relabelings: 
+        - action: replace
+          sourceLabels: [__meta_kubernetes_service_label_app_kubernetes_io_instance]
+          targetLabel: cl
+        - action: replace
+          targetLabel: cl_region
+          replacement: 'ap-northeast-2'
+        - action: replace
+          sourceLabels: [__meta_kubernetes_service_name]
+          targetLabel: instance
+        - action: replace
+          targetLabel: env
+          replacement: 'dev'
+        - action: replace
+          sourceLabels: [instance]
+          targetLabel: __param_target
+          replacement: 'mongodb://$1.mongodb.svc.cluster.local:27017'
+        - action: replace
+          targetLabel: __address__
+          replacement: 'psmdb-mongod-exporter.mongodb.svc.cluster.local:9216'
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: "psmdb-mongos-monitor"
+  labels:
+    app.kubernetes.io/name: "psmdb-mongos-monitor"
+    app.kubernetes.io/instance: psmdb-monitor
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: percona-server-mongodb
+      app.kubernetes.io/component: mongos
+  endpoints:
+    - path: /scrape
+      interval: 30s
+      scrapeTimeout: 10s
+      relabelings: 
+        - action: drop
+          sourceLabels: [__meta_kubernetes_service_name]
+          regex: '(.*-mongos-[^0]+[0-9]*$)'
+        - action: replace
+          sourceLabels: [__meta_kubernetes_service_label_app_kubernetes_io_instance]
+          targetLabel: cl
+        - action: replace
+          targetLabel: cl_region
+          replacement: 'ap-northeast-2'
+        - action: replace
+          sourceLabels: [__meta_kubernetes_service_name]
+          targetLabel: instance
+        - action: replace
+          targetLabel: env
+          replacement: 'dev'
+        - action: replace
+          sourceLabels: [instance]
+          targetLabel: __param_target
+          replacement: 'mongodb://$1.mongodb.svc.cluster.local:27017'
+        - action: replace
+          targetLabel: __address__
+          replacement: 'psmdb-mongos-exporter-0.mongodb.svc.cluster.local:9216'
+    - path: /scrape
+      interval: 30s
+      scrapeTimeout: 10s
+      relabelings: 
+        - action: drop
+          sourceLabels: [__meta_kubernetes_service_name]
+          regex: '(.*-mongos-0$)'
+        - action: drop
+          sourceLabels: [__meta_kubernetes_service_name]
+          regex: '(.*-mongos$)'
+        - action: replace
+          sourceLabels: [__meta_kubernetes_service_label_app_kubernetes_io_instance]
+          targetLabel: cl
+        - action: replace
+          targetLabel: cl_region
+          replacement: 'ap-northeast-2'
+        - action: replace
+          sourceLabels: [__meta_kubernetes_service_name]
+          targetLabel: instance
+        - action: replace
+          targetLabel: env
+          replacement: 'dev'
+        - action: replace
+          sourceLabels: [instance]
+          targetLabel: __param_target
+          replacement: 'mongodb://$1.mongodb.svc.cluster.local:27017'
+        - action: replace
+          targetLabel: __address__
+          replacement: 'psmdb-mongos-exporter-1.mongodb.svc.cluster.local:9216'

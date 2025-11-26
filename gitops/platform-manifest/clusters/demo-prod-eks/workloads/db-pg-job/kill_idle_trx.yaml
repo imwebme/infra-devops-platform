@@ -1,0 +1,40 @@
+job: kill-idle-trx
+
+db:   
+- cluster: prod-item-1
+  endpoint: prod-item-1.c3epvhkyjnng.ap-northeast-2.rds.amazonaws.com
+  port: 5432
+  database: item
+  schedule: "0 */1 * * *"
+  cmd: |
+    -- check:
+    SELECT datname, pid, usename, application_name, client_addr, xact_start, query_start, state, LEFT(query,50) || ' ..' as query 
+    FROM pg_stat_activity 
+    WHERE state = 'idle in transaction' AND usename NOT IN ('rdsadmin','example-org_admin') AND usename NOT LIKE '%_proxy' AND xact_start < (CURRENT_TIMESTAMP - INTERVAL '5 minute');
+    -- kill: 
+    SELECT pg_terminate_backend(pid)
+    FROM pg_stat_activity 
+    WHERE state = 'idle in transaction' AND usename NOT IN ('rdsadmin','example-org_admin') AND usename NOT LIKE '%_proxy' AND xact_start < (CURRENT_TIMESTAMP - INTERVAL '5 minute');
+
+- cluster: prod-item-2
+  endpoint: prod-item-2.c3epvhkyjnng.ap-northeast-2.rds.amazonaws.com
+  port: 5432
+  database: item
+  schedule: "0 */1 * * *"
+  cmd: |
+    -- check:
+    SELECT datname, pid, usename, application_name, client_addr, xact_start, query_start, state, LEFT(query,50) || ' ..' as query 
+    FROM pg_stat_activity 
+    WHERE state = 'idle in transaction' AND usename NOT IN ('rdsadmin','example-org_admin') AND usename NOT LIKE '%_proxy' AND xact_start < (CURRENT_TIMESTAMP - INTERVAL '5 minute');
+    -- kill: 
+    SELECT pg_terminate_backend(pid)
+    FROM pg_stat_activity 
+    WHERE state = 'idle in transaction' AND usename NOT IN ('rdsadmin','example-org_admin') AND usename NOT LIKE '%_proxy' AND xact_start < (CURRENT_TIMESTAMP - INTERVAL '5 minute');  
+
+user:
+  secretName: pg-job-kill-idle-trx
+  name: "example-org_admin"
+  password: 
+    secretManager: 
+      key: "demo/prod/db/admin"
+      property: example-org_admin

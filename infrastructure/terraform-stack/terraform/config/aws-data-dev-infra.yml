@@ -1,0 +1,88 @@
+---
+category: "data"
+env: "dev"
+vpc_cidr: "10.14.0.0/16"
+vpc_endpoints:
+  enabled: true
+
+datadog_private_link:
+  enabled: true
+
+vpc_peering:
+  enabled: true
+  connections:
+    - name: "to-datadog"
+      peer_vpc_id: "vpc-b52882c8"
+      peer_region: "us-east-1"
+      peer_cidr: "172.31.0.0/16"
+
+cloudfront:
+  origin_access_controls: "sign requests about data-dev"
+gitops:
+  workspace_repo_url: "https://github.com/wetripod/data-gitops-manifest"
+
+frontend: []
+ecr: []
+eks:
+  kms: false
+  version: "1.29"
+  # 기본 bottlerocket 노드그룹 활성화 여부
+  enable_bottlerocket_nodegroup: false
+  # 추가 새로운 노드그룹 활성화 여부 (data-dev 전용)
+  enable_new_nodegroup: true
+  auth_config:
+    # Users are now managed by GitOps
+    # See: data-gitops-manifest/clusters/data-dev-eks/administrations/aws-auth/
+    users: []
+    roles:
+      - rolearn: "arn:aws:iam::123456789012:role/aws-reserved/sso.amazonaws.com/ap-northeast-2/AWSReservedSSO_example_devops_xxxxxxxxxxxx"
+        username: "{{SessionName}}"
+        groups: ["system:masters"]
+nat_gateway:
+  enabled: true
+  per_az: false
+coredns:
+  replica: 4
+  version: "v1.11.4-eksbuild.22"
+
+kube_proxy:
+  version: "v1.29.15-eksbuild.16"
+
+vpc_cni:
+  version: "v1.20.1-eksbuild.3"
+
+aws_mountpoint_s3_csi_driver:
+  version: "v2.0.0-eksbuild.1"
+
+route53_zones:
+  private:
+    - "data.dev.iexample-org.com"
+  public:
+    - "data.dev.iexample-org.com"
+
+secretmanagers:
+  data-services: {}
+
+service_roles:
+  argocd:
+    name: argocd
+    policies:
+      - name: secretsmanager
+        file: base/secretsmanager-read.json
+
+managed_policies:
+  eks_nodes:
+    name: eks_nodes
+    policies:
+      - name: ebs-access
+        file: services/ebs.json
+  karpenter:
+    name: karpenter
+    policies:
+      - name: athena-glue-lakeformation-s3-full-access-policy
+        file: base/athena-glue-lakeformation-s3-full-access-policy.json
+
+pod_identity_associations:
+  argocd:
+    namespace: argocd
+    service_account: argo-cd-argocd-repo-server

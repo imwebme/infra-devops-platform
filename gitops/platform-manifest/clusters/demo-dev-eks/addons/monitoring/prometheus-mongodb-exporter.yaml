@@ -1,0 +1,58 @@
+mongodb:
+  - cluster: dev-test-mongo8
+    mongod:
+      - dev-test-mongo8-shard01-00.db.dev.iexample-org.com
+      - dev-test-mongo8-shard01-01.db.dev.iexample-org.com
+      - dev-test-mongo8-shard01-02.db.dev.iexample-org.com
+    tls: false
+  - cluster: dev-test
+    mongod:
+      - dev-test-shard01-00.db.dev.iexample-org.com:27017
+      - dev-test-shard01-01.db.dev.iexample-org.com:27017
+      - dev-test-shard01-02.db.dev.iexample-org.com:27017
+    tls: false
+
+image:
+  pullPolicy: IfNotPresent
+  repository: percona/mongodb_exporter
+  tag: 0.44.0
+
+serviceMonitor:
+  enabled: true
+  interval: 30s
+  scrapeTimeout: 10s
+  namespace: 
+  namespaceSelector:
+  additionalLabels: 
+  selectorLabels:
+    mongodb.exporter: mongod
+  jobLabel: ""
+  targetLabels: 
+  podTargetLabels: 
+  metricRelabelings: 
+  relabelings:
+    - action: replace
+      sourceLabels: [__meta_kubernetes_service_annotation_mongodb_cluster]
+      targetLabel: cl
+    - action: replace
+      targetLabel: cl_region
+      replacement: 'ap-northeast-2'
+    - action: replace
+      targetLabel: env
+      replacement: 'dev'
+    - action: replace
+      sourceLabels: [__meta_kubernetes_service_annotation_mongodb_instance]
+      targetLabel: instance
+  multipleTarget:
+    enabled: true
+
+priorityClassName: monitoring-addons
+
+nodeSelector:
+  service: monitoring-addons
+
+tolerations:
+  - effect: NoSchedule
+    key: MonitoringAddonsOnly
+    value: "true"
+    operator: Equal

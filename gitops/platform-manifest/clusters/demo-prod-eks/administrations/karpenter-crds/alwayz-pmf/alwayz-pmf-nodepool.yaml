@@ -1,0 +1,60 @@
+apiVersion: karpenter.sh/v1beta1
+kind: NodePool
+metadata:
+  name: demo-pmf
+spec:
+  disruption:
+    consolidationPolicy: WhenUnderutilized
+    expireAfter: 720h
+  template:
+    metadata:
+      labels:
+        generated: karpenter
+        service: demo-pmf
+        team: devops
+    spec:
+      kubelet:
+        cpuCFSQuota: true
+        evictionHard:
+          memory.available: 5%
+          nodefs.available: 10%
+          nodefs.inodesFree: 10%
+        evictionMaxPodGracePeriod: 60
+        evictionSoft:
+          memory.available: 500Mi
+          nodefs.available: 15%
+          nodefs.inodesFree: 15%
+        evictionSoftGracePeriod:
+          memory.available: 1m0s
+          nodefs.available: 1m30s
+          nodefs.inodesFree: 2m0s
+        kubeReserved:
+          cpu: 100m
+          ephemeral-storage: 3Gi
+          memory: 300Mi
+        maxPods: 50
+        podsPerCore: 2
+        systemReserved:
+          cpu: 100m
+          ephemeral-storage: 1Gi
+          memory: 200Mi
+      nodeClassRef:
+        name: demo-pmf
+      requirements:
+        - key: karpenter.k8s.aws/instance-family
+          operator: In
+          values: ["t4g", "m6g", "c6g"]
+        - key: karpenter.k8s.aws/instance-cpu
+          operator: In
+          values: ["4", "8", "16", "32", "64"]
+        - key: kubernetes.io/arch
+          operator: In
+          values: ["arm64"]
+        - key: karpenter.sh/capacity-type
+          operator: In
+          values: ["spot", "on-demand"]
+      taints:
+        - effect: NoSchedule
+          key: AlwayzPmfOnly
+          value: "true"
+  weight: 2

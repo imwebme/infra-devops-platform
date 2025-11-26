@@ -1,0 +1,202 @@
+# This file contains API keys. To load them from secrets, refer to https://docs.robusta.dev/master/setup-robusta/configuration-secrets.html
+
+clusterName: security-prod-eks # NOTE - adjust the clusterName when adding additional clusters
+globalConfig:
+  signing_key: "{{ env.ROBUSTA_GLOBAL_SIGNING_KEY }}"
+  account_id: "{{ env.ROBUSTA_GLOBAL_ACCOUNT_ID }}"
+  krr_args: "--allow-hpa --prometheus-url=http://prometheus-operated.monitoring.svc.cluster.local:9090 --points-required=30 --cpu-percentile=90 --memory-buffer-percentage=20"
+sinksConfig:
+  - robusta_sink:
+      name: robusta_ui_sink
+      token: "{{ env.ROBUSTA_UI_SINK_TOKEN }}"
+  # slack integration params
+  - slack_sink:
+      name: main_slack_sink
+      api_key: "{{ env.ROBUSTA_MAIN_SLACK_SINK_TOKEN }}"
+      slack_channel: C084B3ZRDCM
+      investigate_link: true # optional, if false no investigate links/buttons will be included in Slack messages
+      grouping:
+        group_by:
+          - cluster # Default: groups all cluster-related notifications
+          - namespace # Groups notifications within the same namespace
+          - identifier # Groups notifications by alert name, e.g., 'KubePodNotReady'
+          - workload # Groups notifications by workload, e.g., 'Deployment'
+          - severity # Groups notifications by severity level
+        interval: 3600 # Grouping interval in seconds (3600s = 1 hour)
+        notification_mode:
+          summary:
+            threaded: true # Optional: includes each new alert in the message thread
+            by:
+              - identifier
+      stop: true
+      scope:
+        exclude:
+          - namespace: db
+
+  - slack_sink:
+      name: job_slack_sink
+      api_key: "{{ env.ROBUSTA_MAIN_SLACK_SINK_TOKEN }}"
+      slack_channel: C081F9QQU0J
+
+  - slack_sink:
+      name: infra_alert_slack_sink
+      api_key: "{{ env.ROBUSTA_MAIN_SLACK_SINK_TOKEN }}"
+      slack_channel: C093LS4945B
+
+  - slack_sink:
+      name: db_slack_sink
+      api_key: "{{ env.ROBUSTA_MAIN_SLACK_SINK_TOKEN }}"
+      slack_channel: C08VA5YH9QE
+      scope:
+        include:
+          - namespace: db
+
+enablePrometheusStack: false
+enablePlatformPlaybooks: true
+
+kubewatch:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 100Mi
+    limits:
+      memory: 100Mi
+
+runner:
+  resources:
+    requests:
+      cpu: 479m
+      memory: 927Mi
+    limits:
+      memory: 927Mi
+  sendAdditionalTelemetry: true
+  additional_env_vars:
+    - name: ROBUSTA_GLOBAL_SIGNING_KEY
+      valueFrom:
+        secretKeyRef:
+          name: robusta-secret
+          key: global_signing_key
+    - name: ROBUSTA_GLOBAL_ACCOUNT_ID
+      valueFrom:
+        secretKeyRef:
+          name: robusta-secret
+          key: global_account_id
+    - name: ROBUSTA_UI_SINK_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: robusta-secret
+          key: robusta_ui_sink_token
+    - name: ROBUSTA_MAIN_SLACK_SINK_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: robusta-secret
+          key: robusta_main_slack_sink_token
+
+enableHolmesGPT: true
+enabledManagedConfiguration: true
+
+holmes:
+  resources:
+    requests:
+      cpu: 206m
+      memory: 380Mi
+    limits:
+      memory: 380Mi
+  toolsets:
+    github_tools:
+      description: "Tools for managing GitHub repositories"
+      tags:
+        - cli
+      prerequisites:
+        - env:
+            - "GITHUB_TOKEN"
+        - command: "curl --version"
+      tools:
+        - name: "get_recent_commits"
+          description: "Fetches the most recent commits for a repository"
+          command: "curl -H 'Authorization: token ${GITHUB_TOKEN}' https://api.github.com/repos/{{ owner }}/{{ repo }}/commits?per_page={{ limit }} "
+
+        - name: "get_repo_details"
+          description: "Fetches details of a specific repository"
+          command: "curl -H 'Authorization: token ${GITHUB_TOKEN}' https://api.github.com/repos/{{ owner }}/{{ repo }}"
+
+          # In the above examples, LLM-provided parameters like {{ owner }} are inferred automatically from the command
+          # you can also define them explicitly - this is useful if:
+          # - You want to enforce parameter requirements (e.g., `owner` and `repo` are required).
+          # - You want to define provide a default value for optional parameters.
+          parameters:
+            owner:
+              type: "string"
+              description: "Owner of the repository."
+              required: true
+            repo:
+              type: "string"
+              description: "Name of the repository."
+              required: true
+  customClusterRoleRules:
+    - apiGroups: ["discovery.k8s.io"]
+      resources: ["endpointslices"]
+      verbs: ["list", "get", "watch"]
+    - apiGroups: ["argoproj.io"]
+      resources: ["applications"]
+      verbs: ["list", "get", "watch"]
+  additionalEnvVars:
+    - name: ROBUSTA_AI
+      value: "true"
+    - name: ROBUSTA_UI_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: robusta-secret
+          key: robusta_ui_sink_token
+    - name: GITHUB_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: robusta-secret
+          key: robusta_github_token
+
+customPlaybooks:
+  - triggers:
+      - on_namespace_create: {}
+    actions:
+      - create_finding: #
+          title: "$name 네임스페이스가 생성되었습니다."
+          aggregation_key: "Namespace_created"
+    sinks:
+      - "slack_test"
+
+  - triggers:
+      - on_prometheus_alert:
+          alert_name: KubeJobFailed
+    actions:
+      - job_pod_enricher: {}
+    sinks:
+      - "job_slack_sink"
+
+  - triggers:
+      - on_prometheus_alert:
+          alert_name: KubeJobFailed
+    actions:
+      - job_pod_enricher: {}
+      - mention_enricher:
+          static_mentions:
+            - U07TSPLQMGU
+    sinks:
+      - "db_slack_sink"
+
+  - triggers:
+      - on_prometheus_alert: {}
+    actions:
+      - logs_enricher: {}
+    sinks:
+      - "main_slack_sink"
+
+  - triggers:
+      - on_schedule:
+          cron_schedule_repeat:
+            repeat: -1 # number of times to run or -1 to run forever
+            cron_expression: "0 0 * * *" # every day at 00:00 UTC (09:00 KST)
+    actions:
+      - krr_scan:
+          args: "" ## 전체 클러스터 스캔을 위해 비움
+    sinks:
+      - "infra_alert_slack_sink" # slack sink you want to send the report to here

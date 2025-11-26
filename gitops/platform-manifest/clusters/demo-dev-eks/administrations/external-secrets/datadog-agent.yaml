@@ -1,0 +1,23 @@
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: datadog-secret
+  namespace: datadog
+spec:
+  data:
+    - secretKey: api-key
+      remoteRef:
+        key: demo/dev/devops
+        property: DATADOG_API_KEY
+    - secretKey: app-key
+      remoteRef:
+        key: demo/dev/devops
+        property: DATADOG_APP_KEY
+    - secretKey: token
+      remoteRef:
+        key: demo/dev/devops
+        property: DATADOG_TOKEN
+  refreshInterval: 60s
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: aws-cluster-secret-store

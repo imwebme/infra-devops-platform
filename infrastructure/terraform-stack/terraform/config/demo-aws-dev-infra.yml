@@ -1,0 +1,206 @@
+---
+org: "alwayz"
+env: "dev"
+vpc_cidr: "10.6.0.0/16"
+vpc_endpoints:
+  enabled: true
+
+datadog_private_link:
+  enabled: true
+
+vpc_peering:
+  enabled: true
+  connections:
+    - name: "to-data-dev"
+      peer_vpc_id: "vpc-046b03efc179deedc"
+      peer_region: "ap-northeast-2"
+      peer_cidr: "10.14.0.0/16"
+    - name: "to-datadog"
+      peer_vpc_id: "vpc-b52882c8"
+      peer_region: "us-east-1"
+      peer_cidr: "172.31.0.0/16"
+
+ecr:
+  - "alwayz-pay"
+  - "shopin-api-legacy"
+  - "shopin-partners-api-legacy"
+  - "alwayz-product-worker"
+  - "alwayz-price-agent-backend"
+
+eks:
+  kms: false
+  auth_config:
+    # Users are now managed by GitOps
+    # See: devops-gitops-manifest/clusters/alwayz-dev-eks/administrations/aws-auth/
+    users: []
+    roles:
+      - rolearn: "arn:aws:iam::123456789012:role/aws-reserved/sso.amazonaws.com/ap-northeast-2/AWSReservedSSO_example_devops_xxxxxxxxxxxx"
+        username: "{{SessionName}}"
+        groups: ["system:masters"]
+
+nat_gateway:
+  enabled: true
+  per_az: false
+
+cloudfront:
+  origin_access_controls: "sign requests about alwayz-dev"
+
+coredns:
+  replica: 2
+
+route53_zones:
+  private:
+    - "dev.iexample-org.com"
+  public:
+    - "dev.iexample-org.com"
+
+secretmanagers:
+  alwayz-services: {}
+  alwayz-commerce-admin: {}
+  alwayz-commerce-api: {}
+  alwayz-commerce-connect: {}
+  alwayz-commerce-worker: {}
+  alwayz-product-worker: {}
+  alwayz-commerce-batch: {}
+  alwayz-commerce-shipping: {}
+  alwayz-commerce-order-pay: {}
+  alwayz-bff: {}
+  alwayz-core-api: {}
+  alwayz-core-connect: {}
+  alwayz-price-api: {}
+  alwayz-product-api: {}
+  alwayz-product-admin: {}
+  alwayz-product-batch: {}
+  alwayz-alfarm-api: {}
+  alwayz-quality-batch: {}
+  alwayz-quality-api: {}
+  alwayz-ads-batch: {}
+  alwayz-ads-api: {}
+  alwayz-ads-admin: {}
+  alwayz-ads-partner: {}
+  alwayz-review-api: {}
+  abwayz: {}
+  devops: {}
+  alwayz-lowest-crawler-realtime: {}
+  alwayz-price-agent-backend: {}
+elasticache:
+  "alwayz-services-valkey8":
+    name: "alwayz-dev-alwayz-services-valkey8"
+    description: "This is the cache cluster for the alwayz services."
+    cluster_mode: "enabled"
+    node_type: "cache.t4g.small"
+    engine: "valkey"
+    engine_version: "8.0"
+    family: "valkey8"
+    maintenance_window: "sat:07:30-sat:08:30"
+    multi_az_enabled: true
+    snapshot_retention_limit: 1
+    snapshot_window: "02:00-03:00"
+    num_node_groups: 1
+    replicas_per_node_group: 1
+
+loki:
+  enabled: true
+
+service_roles:
+  alwayz_services:
+    name: alwayz_services
+    policies:
+      - name: secretsmanager
+        file: base/secretsmanager-read.json
+      - name: s3GetObject
+        file: base/s3-get-object.json
+      - name: reco-access-resource
+        file: services/reco-access-resource.json
+      - name: price-business
+        file: services/price-business.json
+
+  alwayz_cronjobs:
+    name: alwayz_cronjobs
+    policies:
+      - name: combined-permissions
+        file: roles/cronjob-role.json
+
+  argocd:
+    name: argocd
+    policies:
+      - name: secretsmanager
+        file: base/secretsmanager-read.json
+
+  mongodb:
+    name: mongodb
+    policies:
+      - name: storage-access
+        file: services/storage.json
+      - name: backup-access
+        file: services/mongodb-backup.json
+
+  db_manager:
+    name: db_manager
+    policies:
+      - name: cloudwatch-access
+        file: services/cloudwatch.json
+      - name: ebs-access
+        file: services/ebs.json
+
+  monitoring:
+    name: monitoring
+    policies:
+      - name: monitoring-access
+        file: services/monitoring.json
+      - name: loki-access
+        file: services/loki.json
+
+managed_policies:
+  eks_nodes:
+    name: eks_nodes
+    policies:
+      - name: ebs-access
+        file: services/ebs.json
+  karpenter:
+    name: karpenter
+    policies:
+      - name: athena-glue-lakeformation-s3-full-access-policy
+        file: base/athena-glue-lakeformation-s3-full-access-policy.json
+
+pod_identity_associations:
+  alwayz_services:
+    namespace: alwayz-services
+    service_account: alwayz-services
+  alwayz_cronjobs:
+    namespace: alwayz-cronjobs
+    service_account: alwayz-cronjobs
+  argocd:
+    namespace: argocd
+    service_account: argo-cd-argocd-repo-server
+  mongodb:
+    namespace: mongodb
+    service_account: mongodb
+  db_manager:
+    namespace: db-manager
+    service_account: db-manager-account
+  monitoring:
+    namespace: monitoring
+    service_account: monitoring
+
+gitops:
+  workspace_repo_url: "https://github.com/wetripod/alwayz-gitops-manifest"
+
+frontend:
+  [
+    "alwayz-shop-front",
+    "alwayz-altto-front",
+    "alwayz-brainteaser-front",
+    "alwayz-storybook",
+    "alwayz-admin-front",
+    "alwayz-ads-front",
+    "alwayz-price-front",
+    "alwayz-altoon-web-front",
+    "alwayz-alfarm-v2-front",
+    "shopin-front",
+    "shopin-partners-front",
+    "price-csx-front",
+    "alwayz-events-front",
+    "alwayz-grocery-assitant-front",
+    "alwayz-alfarm",
+  ]

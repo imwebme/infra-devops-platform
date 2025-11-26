@@ -1,0 +1,153 @@
+# Default values for base-cronjobs.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+appName: base-cronjobs
+
+env:
+
+rbac:
+  rules: []
+  # - apiGroups: ["argoproj.io"]
+  #   resources: ["applications"]
+  #   verbs: ["get","list","watch"]
+  # - apiGroups: [""]
+  #   resources: ["configmaps"]
+  #   verbs: ["get","list","watch"]
+  # clusterRole: view
+
+secrets:
+  vaultPath: "k8s_kv/demo-devops/common"
+  useEnv: true
+  data:
+    []
+    # - secretKey: test
+    #   vaultKey: boo
+
+nodeSelector:
+  {}
+  # service: infra
+
+tolerations:
+  []
+  # - effect: NoSchedule
+  #   key: CriticalAddonsOnly
+  #   operator: Equal
+  #   value: 'true'
+
+sa:
+  enabled: false
+  shared: false
+  name: ""
+
+configMap:
+  json:
+    {}
+    # protectedEnvs:
+    #   {
+    #     dev: "",
+    #     qa: "",
+    #     stage: ""
+    #   }
+  string:
+    {}
+    # PROFILE: dev
+
+cronJobDefault:
+  # cron config
+  failedJobsHistoryLimit: 1
+  successfulJobsHistoryLimit: 3
+  backoffLimit: 1
+  concurrencyPolicy: Forbid
+
+  # common config
+  labels: {}
+  annotations: {}
+  timeZone: "Asia/Seoul"
+  sa:
+    labels: {}
+    annotations: {}
+  image:
+    repository: docker.io/library
+    name: nginx
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  tolerations: []
+  nodeSelector: {}
+  volumes: []
+  #  - name: test-vol
+  #    emptyDir: {}
+  volumeMounts: []
+  #  - mountPath: /temp
+  #    name: test-vol
+  env:
+    []
+    # - name: foo
+    #   value: bar
+  extraEnvFrom:
+    []
+    # - configMapRef:
+    #     name: env-configmap
+    # - secretRef:
+    #     name: env-secrets
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 3000
+  externalSecrets:
+    enabled: false
+    extractKey: ""
+    decodingStrategy: ""
+    env: []
+    #  - key: db_password
+    #    alias: prefix_db_password
+    #  - key: slack_token
+    #    alias: prefix_slack_token
+
+cronJobs:
+  []
+  # - name: app-syncer
+  #   image:
+  #     repository: example-org
+  #     tag: latest
+  #     pullPolicy: IfNotPresent
+  #   timeZone: "Asia/Seoul"
+  #   cronTimeExpression: "* * * * *"
+  #   command: ["sh", "-c"]
+  #   arg: ["--job.name=aws-eb", "--spring.profiles.active=dev"]
+  #   resources:
+  #     limits:
+  #       cpu: 120m
+  #       memory: 128Mi
+  #     requests:
+  #       cpu: 100m
+  #       memory: 128Mi
+  #   externalSecrets:
+  #     env:
+  #       - key: db_password
+  #         alias: prefix_db_password
+  #       - key: slack_token
+  #         alias: prefix_slack_token
+  #   volumes:
+  #     - name: "google-service-account-key"
+  #       secret:
+  #         secretName: "demo-services"
+  #         items:
+  #           - key: "google_service_account_key"
+  #             path: "google.json"
+  #   volumeMounts:
+  #     - name: "google-service-account-key"
+  #       mountPath: "/app/google.json"
+  #       subPath: "google.json"
+
+datadog:
+  enabled: true
+  profile:
+    enabled: false
+  # type: js

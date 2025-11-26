@@ -1,0 +1,219 @@
+name: 프로덕션 배포
+
+on:
+  workflow_dispatch:
+
+env:
+  AWS_REGION: ap-northeast-2
+  ECR_REPOSITORY: demo-prod-ecr_demo-cron
+
+jobs:
+  build-arm64:
+    name: Build ARM64
+    runs-on: LinuxARM64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Fail if branch is not main
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "This workflow should not be triggered with workflow_dispatch on a branch other than main"
+          exit 1
+
+      - name: Create Info for image tag
+        id: image_info
+        run: |
+          echo "sha_short=$(git rev-parse --short=6 HEAD)" >> $GITHUB_OUTPUT
+          echo "version=$(npm pkg get version | tr -d '\"')" >> $GITHUB_OUTPUT
+          echo "environment=prod" >> $GITHUB_OUTPUT
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push ARM64 image
+        run: |
+          docker buildx build \
+            --push \
+            --build-arg ENCRYPT_KEY=${{ secrets.ENCRYPT_KEY_PROD }} \
+            --build-arg AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
+            --build-arg AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
+            --build-arg GIT_PERSONAL_ACCESS_TOKEN=${{ secrets.GIT_PERSONAL_ACCESS_TOKEN }} \
+            --build-arg IMAGE_TAG=${{ github.run_number }}-${{ steps.image_info.outputs.version }}-${{ steps.image_info.outputs.environment }}-${{ steps.image_info.outputs.sha_short }} \
+            --build-arg DD_GIT_REPOSITORY_URL=$(git config --get remote.origin.url) \
+            --build-arg DD_GIT_COMMIT_SHA=$(git rev-parse HEAD) \
+            --cache-from type=registry,ref=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:arm64-cache \
+            --cache-to type=registry,mode=max,ref=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:arm64-cache,image-manifest=true,oci-mediatypes=true \
+            --platform linux/arm64 \
+            --attest type=provenance,disabled=true \
+            --file .dockerfile/Dockerfile.prod \
+            --tag ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:arm64-${{ github.run_number }}-${{ steps.image_info.outputs.version }}-${{ steps.image_info.outputs.environment }}-${{ steps.image_info.outputs.sha_short }} \
+            .
+
+  build-amd64:
+    name: Build AMD64
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Fail if branch is not main
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "This workflow should not be triggered with workflow_dispatch on a branch other than main"
+          exit 1
+
+      - name: Create Info for image tag
+        id: image_info
+        run: |
+          echo "sha_short=$(git rev-parse --short=6 HEAD)" >> $GITHUB_OUTPUT
+          echo "version=$(npm pkg get version | tr -d '\"')" >> $GITHUB_OUTPUT
+          echo "environment=prod" >> $GITHUB_OUTPUT
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push AMD64 image
+        run: |
+          docker buildx build \
+            --push \
+            --build-arg ENCRYPT_KEY=${{ secrets.ENCRYPT_KEY_PROD }} \
+            --build-arg AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
+            --build-arg AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
+            --build-arg GIT_PERSONAL_ACCESS_TOKEN=${{ secrets.GIT_PERSONAL_ACCESS_TOKEN }} \
+            --build-arg IMAGE_TAG=${{ github.run_number }}-${{ steps.image_info.outputs.version }}-${{ steps.image_info.outputs.environment }}-${{ steps.image_info.outputs.sha_short }} \
+            --build-arg DD_GIT_REPOSITORY_URL=$(git config --get remote.origin.url) \
+            --build-arg DD_GIT_COMMIT_SHA=$(git rev-parse HEAD) \
+            --cache-from type=registry,ref=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:amd64-cache \
+            --cache-to type=registry,mode=max,ref=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:amd64-cache,image-manifest=true,oci-mediatypes=true \
+            --platform linux/amd64 \
+            --attest type=provenance,disabled=true \
+            --file .dockerfile/Dockerfile.prod \
+            --tag ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:amd64-${{ github.run_number }}-${{ steps.image_info.outputs.version }}-${{ steps.image_info.outputs.environment }}-${{ steps.image_info.outputs.sha_short }} \
+            .
+
+  merge:
+    name: Merge Docker Images
+    runs-on: ubuntu-latest
+    needs: [build-arm64, build-amd64]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Create Info for image tag
+        id: image_info
+        run: |
+          echo "sha_short=$(git rev-parse --short=6 HEAD)" >> $GITHUB_OUTPUT
+          echo "version=$(npm pkg get version | tr -d '\"')" >> $GITHUB_OUTPUT
+          echo "environment=prod" >> $GITHUB_OUTPUT
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Merge and push multi-arch image
+        run: |
+          docker buildx imagetools create \
+            --tag ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.run_number }}-${{ steps.image_info.outputs.version }}-${{ steps.image_info.outputs.environment }}-${{ steps.image_info.outputs.sha_short }} \
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:arm64-${{ github.run_number }}-${{ steps.image_info.outputs.version }}-${{ steps.image_info.outputs.environment }}-${{ steps.image_info.outputs.sha_short }} \
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:amd64-${{ github.run_number }}-${{ steps.image_info.outputs.version }}-${{ steps.image_info.outputs.environment }}-${{ steps.image_info.outputs.sha_short }}
+
+      - name: Update version
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git config --global user.email "dev@ilevit.com"
+          git config --global user.name "levit-dev"
+
+      - name: push main
+        run: |
+          git tag v${{ github.run_number }}-${{ steps.image_info.outputs.version }}-${{ steps.image_info.outputs.environment }}-${{ steps.image_info.outputs.sha_short }}
+          git push --tags
+
+  notify-on-failure:
+    name: Notify on Failure
+    runs-on: ubuntu-latest
+    if: failure()
+    steps:
+      - name: Get Slack user info by email
+        if: failure()
+        id: get-slack-user
+        run: |
+          SLACK_USER_INFO=$(curl -L \
+            -H "Authorization: Bearer ${{ secrets.SLACK_OAUTH_TOKEN }}" \
+            https://slack.com/api/users.lookupByEmail?email=$EMAIL)
+          SLACK_USER_ID=$(echo "$SLACK_USER_INFO" | jq -r '.user.id')
+          echo "SLACK_USER_ID=$SLACK_USER_ID" >> $GITHUB_ENV
+
+      - name: Send Slack notification
+        if: failure()
+        run: |
+          WORKFLOW_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          WORKFLOW_NAME="${{ github.workflow }}"
+          PAYLOAD=$(jq -n \
+              --arg slackUserId "$SLACK_USER_ID" \
+              --arg workflowName "$WORKFLOW_NAME" \
+              --arg workflowUrl "$WORKFLOW_URL" \
+              '{
+                channel: "C0810PDEF6K",
+                blocks: [
+                  {
+                    type: "header",
+                    text: {
+                      type: "plain_text",
+                      text: ":rotating_light: 배포 실패 알림",
+                      emoji: true
+                    }
+                  },
+                  {
+                    type: "section",
+                    fields: [
+                      {
+                        type: "mrkdwn",
+                        text: "*실행한 사용자:* <@\($slackUserId)>\n*워크플로우:* `\($workflowName)`\n*GitHub 액션 URL:* <\($workflowUrl)|바로가기>"
+                      }
+                    ]
+                  }
+                ]
+              }')
+
+            curl -s -L \
+              -X POST \
+              -H "Authorization: Bearer ${{ secrets.SLACK_OAUTH_TOKEN }}" \
+              -H "Content-type: application/json" \
+              -d "$PAYLOAD" \
+              https://slack.com/api/chat.postMessage

@@ -1,0 +1,187 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: snyk-security-scanner
+  labels:
+    name: snyk-security-scanner
+    purpose: vulnerability-scanning
+    team: security
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: snyk-scanner
+  namespace: snyk-security-scanner
+  labels:
+    app: snyk-scanner
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: snyk-scanner-config
+  namespace: snyk-security-scanner
+data:
+  WORKSPACE_PATH: "/tmp/workspace"
+  LOG_LEVEL: "INFO"
+  TIMEZONE: "Asia/Seoul"
+  GITHUB_ORG: "wetripod"
+  DEFAULT_BRANCH: "main"
+  SLACK_CHANNEL: "#모니터링_코드보안_심각"
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: critical-vulnerability-scanner
+  namespace: snyk-security-scanner
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: scanner=123456789012.dkr.ecr.ap-northeast-2.amazonaws.com/security-cron
+    argocd-image-updater.argoproj.io/scanner.update-strategy: latest
+  labels:
+    app: snyk-scanner
+    component: critical-scan
+spec:
+  schedule: "0 9 * * 1-5"  # 평일 오전 9시
+  timeZone: "Asia/Seoul"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 5
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        metadata:
+          labels:
+            app: snyk-scanner
+            component: critical-scan
+        spec:
+          serviceAccountName: snyk-scanner
+          restartPolicy: OnFailure
+          containers:
+          - name: critical-scanner
+            image: 123456789012.dkr.ecr.ap-northeast-2.amazonaws.com/security-cron:latest
+            imagePullPolicy: Always
+            command: ["/bin/bash", "-c"]
+            args:
+              - |
+                echo "Starting Snyk critical vulnerability scan at $(date)"
+                ./critical-vuln-scanner.sh
+                echo "Snyk critical scan completed at $(date)"
+            env:
+            - name: SNYK_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: snyk-credentials
+                  key: SNYK_TOKEN
+            - name: SNYK_ORG_ID
+              valueFrom:
+                secretKeyRef:
+                  name: snyk-credentials
+                  key: SNYK_ORG_ID
+            - name: SLACK_WEBHOOK
+              valueFrom:
+                secretKeyRef:
+                  name: snyk-slack-webhook
+                  key: SLACK_WEBHOOK
+            envFrom:
+            - configMapRef:
+                name: snyk-scanner-config
+            resources:
+              requests:
+                memory: "512Mi"
+                cpu: "250m"
+              limits:
+                memory: "1Gi"
+                cpu: "500m"
+            volumeMounts:
+            - name: workspace
+              mountPath: /tmp/workspace
+          volumes:
+          - name: workspace
+            emptyDir:
+              sizeLimit: 2Gi
+          nodeSelector:
+            service: "common-addons"
+          tolerations:
+          - key: "CommonAddonsOnly"
+            operator: "Equal"
+            value: "true"
+            effect: "NoSchedule"
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: snyk-api-full-scanner
+  namespace: snyk-security-scanner
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: scanner=123456789012.dkr.ecr.ap-northeast-2.amazonaws.com/security-cron
+    argocd-image-updater.argoproj.io/scanner.update-strategy: latest
+  labels:
+    app: snyk-scanner
+    component: api-scan
+spec:
+  schedule: "30 9 * * 1-5"  # 평일 오전 9시 30분
+  timeZone: "Asia/Seoul"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 5
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        metadata:
+          labels:
+            app: snyk-scanner
+            component: api-scan
+        spec:
+          serviceAccountName: snyk-scanner
+          restartPolicy: OnFailure
+          containers:
+          - name: api-scanner
+            image: 123456789012.dkr.ecr.ap-northeast-2.amazonaws.com/security-cron:latest
+            imagePullPolicy: Always
+            command: ["/bin/bash", "-c"]
+            args:
+              - |
+                echo "Starting Snyk API full scan at $(date)"
+                ./snyk-api-final.sh
+                echo "Snyk API scan completed at $(date)"
+            env:
+            - name: SNYK_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: snyk-credentials
+                  key: SNYK_TOKEN
+            - name: SNYK_ORG_ID
+              valueFrom:
+                secretKeyRef:
+                  name: snyk-credentials
+                  key: SNYK_ORG_ID
+            - name: SLACK_WEBHOOK
+              valueFrom:
+                secretKeyRef:
+                  name: snyk-slack-webhook
+                  key: SLACK_WEBHOOK
+            envFrom:
+            - configMapRef:
+                name: snyk-scanner-config
+            resources:
+              requests:
+                memory: "512Mi"
+                cpu: "250m"
+              limits:
+                memory: "1Gi"
+                cpu: "500m"
+            volumeMounts:
+            - name: workspace
+              mountPath: /tmp/workspace
+          volumes:
+          - name: workspace
+            emptyDir:
+              sizeLimit: 2Gi
+          nodeSelector:
+            service: "common-addons"
+          tolerations:
+          - key: "CommonAddonsOnly"
+            operator: "Equal"
+            value: "true"
+            effect: "NoSchedule"

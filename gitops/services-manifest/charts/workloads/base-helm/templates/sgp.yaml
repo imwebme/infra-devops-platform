@@ -1,0 +1,14 @@
+{{- if .Values.securityGroups.enabled }}
+apiVersion: vpcresources.k8s.aws/v1beta1
+kind: SecurityGroupPolicy
+metadata:
+  name: {{ include "base-helm.realname" . }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      role: '{{ include "base-helm.realname" . }}-sg'
+  securityGroups:
+    groupIds:
+    {{- toYaml (concat .Values.securityGroups.groupIds .Values.global.securityGroups.groupIds | uniq) | nindent 6 }}
+{{- end }}

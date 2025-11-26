@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db-go-chive-test2
+  labels:
+    app.kubernetes.io/name: db-go-chive-test2
+    app.kubernetes.io/instance: db-go-chive
+  annotations:
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: db-go-chive-test2
+      app.kubernetes.io/instance: db-go-chive
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: db-go-chive-test2
+        app.kubernetes.io/instance: db-go-chive
+    spec:
+      serviceAccountName:
+      containers:
+        - name: go-chive
+          image: "123456789012.dkr.ecr.ap-northeast-2.amazonaws.com/db/go-chive:1.5-go-chive"
+          env:
+            - name: AGE_LIMIT
+              value: "1d"
+            - name: ARCHIVE_CHECK_INTERVAL
+              value: "60"
+            - name: COLLECTION
+              value: "test"
+            - name: DATABASE
+              value: "test"
+            - name: PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: "admin"
+                  key: example-org_admin
+            - name: S3_BUCKET_URI
+              value: "example-org-database-backup-prod/test"
+            - name: S3_UPLOAD_INTERVAL
+              value: "180"
+            - name: ARCHIVE_FIELD
+              value: "createdAt"
+            - name: HOST_ADDRESS
+              value: "test"
+          args:
+            - -age-limit=$(AGE_LIMIT)
+            - -archive-check-interval=$(ARCHIVE_CHECK_INTERVAL)
+            - -collection=$(COLLECTION)
+            - -database=$(DATABASE)
+            - -host=mongodb+srv://example-org_admin:$(PASSWORD)@$(HOST_ADDRESS).db.prod.iexample-org.com/?tls=false
+            - -s3-bucket-uri=$(S3_BUCKET_URI)
+            - -s3-upload-interval=$(S3_UPLOAD_INTERVAL)
+            - -archive-field=$(ARCHIVE_FIELD)
+          resources: {}
+          securityContext: {}
+      affinity: {}
+      nodeSelector: {}
+      terminationGracePeriodSeconds: 30
+      tolerations: []
+      imagePullPolicy:

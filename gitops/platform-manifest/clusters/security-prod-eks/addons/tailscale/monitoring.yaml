@@ -1,0 +1,42 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: tailscale-subnet-router
+  namespace: tailscale
+  labels:
+    app: tailscale-subnet-router
+    cluster: security-prod-eks
+    environment: prod
+    team: infra
+spec:
+  selector:
+    matchLabels:
+      app: tailscale-subnet-router
+  endpoints:
+    - port: metrics
+      interval: 30s
+      path: /metrics
+      scheme: http
+  namespaceSelector:
+    matchNames:
+      - tailscale
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tailscale-subnet-router-metrics
+  namespace: tailscale
+  labels:
+    app: tailscale-subnet-router
+    cluster: security-prod-eks
+    environment: prod
+    team: infra
+spec:
+  selector:
+    app: tailscale-subnet-router
+  ports:
+    - name: metrics
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+  type: ClusterIP

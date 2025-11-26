@@ -1,0 +1,60 @@
+apiVersion: tailscale.com/v1alpha1
+kind: Connector
+metadata:
+  name: security-prod-subnet-router
+  namespace: tailscale
+  labels:
+    app: tailscale-connector
+    cluster: security-prod-eks
+    purpose: subnet-router
+    team: infra
+    environment: prod
+spec:
+  # 서브넷 라우터 설정
+  subnetRouter:
+    advertiseRoutes:
+      # EKS 클러스터 VPC CIDR 블록들
+      - "10.2.0.0/16"   # security-prod-eks VPC
+      - "10.0.0.0/16"   # demo-prod-eks VPC
+      - "10.24.0.0/16"  # data-prod-eks VPC
+      - "10.14.0.0/16"  # demo-dev-eks VPC
+      - "10.6.0.0/16"   # data-dev-eks VPC
+      - "10.20.0.0/16"  # demo-staging-eks VPC
+      - "10.10.0.0/16"  # Additional VPC
+      - "10.8.0.0/16"   # Additional VPC
+      - "172.20.0.0/16" # Private subnet range
+      - "172.31.0.0/16" # Default VPC range
+  
+  # 고가용성을 위한 복제본 설정
+  replicas: 2
+  
+  # 호스트명 접두사 (각 복제본에 자동으로 번호 추가됨)
+  hostnamePrefix: "security-prod-subnet-router"
+  
+  # Tailscale ACL 태그 (자동 승인을 위해)
+  tags:
+    - "tag:k8s-operator"
+    - "tag:subnet-router"
+    - "tag:prod-server"
+  
+  # ProxyGroup 사용 (고가용성)
+  proxyGroup: "security-prod-routers"
+  
+  # 리소스 제한
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+  
+  # 노드 선택자 및 톨러레이션
+  nodeSelector:
+    service: "common-addons"
+  
+  tolerations:
+    - key: "CommonAddonsOnly"
+      operator: "Equal"
+      value: "true"
+      effect: "NoSchedule"

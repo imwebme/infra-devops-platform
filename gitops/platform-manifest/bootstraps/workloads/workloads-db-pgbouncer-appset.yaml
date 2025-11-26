@@ -1,0 +1,42 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: devops-workloads-db-pgbouncer-appset
+spec:
+  syncPolicy:
+    preserveResourcesOnDeletion: true
+  generators:
+    - clusters:
+        values:
+          chart: db-pgbouncer
+        selector:
+          matchExpressions:
+            - key: aws_cluster_name
+              operator: In
+              values: ["demo-prod-eks", "demo-dev-eks"]
+  template:
+    metadata:
+      name: "devops-{{ metadata.labels.aws_cluster_name }}-workload-{{ values.chart }}"
+    spec:
+      project: devops-core
+      source:
+        repoURL: https://github.com/wetripod/devops-gitops-manifest.git
+        targetRevision: main
+        path: "charts/workloads/{{ values.chart }}"
+        helm:
+          releaseName: "{{ values.chart }}"
+          ignoreMissingValueFiles: true
+          valueFiles:
+            - $values/environments/base/workloads/db-pgbouncer/values.yaml
+            - $values/environments/{{ metadata.labels.environment }}/workloads/db-pgbouncer/values.yaml
+            - $values/clusters/{{ metadata.labels.aws_cluster_name }}/workloads/db-pgbouncer/values.yaml
+      destination:
+        namespace: "db"
+        name: "{{ name }}"
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true
+          - Validate=false
+          - PrunePropagationPolicy=foreground
+          - PruneLast=false
+          - ApplyOutOfSyncOnly=true

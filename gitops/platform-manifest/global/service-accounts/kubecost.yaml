@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kubecost
+  namespace: kubecost
+  annotations:
+    eks.amazonaws.com/role-arn: "{{ kubecost_iam_role_arn }}"

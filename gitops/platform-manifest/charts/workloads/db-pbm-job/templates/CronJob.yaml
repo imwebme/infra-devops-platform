@@ -1,0 +1,70 @@
+{{- range $.Values.mongodb -}}
+{{- $cluster := .cluster -}}
+{{- $uri := .uri -}}
+{{- $schedule := .schedule -}}
+{{- $name:= (printf "%s-%s" $cluster "backup-task") }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ $name }}
+  labels:
+    app.kubernetes.io/instance: {{ $cluster }}
+spec:
+  schedule: "{{- $schedule -}}"
+  concurrencyPolicy: Forbid 
+  successfulJobsHistoryLimit: 1 
+  failedJobsHistoryLimit: 1 
+  jobTemplate:
+    spec:
+      backoffLimit: 0 
+      template:
+        metadata:
+          name: {{ $name }}
+        spec:
+          {{- if regexMatch "^[0-9]+d$" .keep }}
+          initContainers:
+            - name: pbm-backup-remove
+              env: 
+                - name: PBM_MONGODB_URI
+                  value: "{{ $uri }}"
+                - name: PBM_KEEP
+                  value: "{{ .keep }}"
+              command: ["/bin/sh", "-c"]
+              args:
+                - 'pbm cleanup --older-than="${PBM_KEEP}" --yes --wait'
+              image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag }}"
+              imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          {{- end }}
+          containers:
+            - name: pbm-backup
+              env: 
+                - name: PBM_MONGODB_URI
+                  value: "{{ $uri }}"
+              args:
+                - /usr/bin/pbm
+                - backup
+                {{- if eq .type "physical" }}
+                - --type=physical
+                {{- end }}
+              image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag }}"
+              imagePullPolicy: {{ $.Values.image.pullPolicy }}
+              livenessProbe:
+                {{- toYaml $.Values.livenessProbe | nindent 16 }}
+              resources:
+                {{- toYaml $.Values.resources | nindent 16 }}
+          restartPolicy: Never
+          {{- with $.Values.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $.Values.affinity }}
+          affinity:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $.Values.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          priorityClassName: {{ $.Values.priorityClassName }}
+{{- end -}}

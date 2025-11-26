@@ -1,0 +1,39 @@
+apiVersion: karpenter.sh/v1beta1
+kind: NodePool
+metadata:
+  name: common-addons
+spec:
+  disruption:
+    consolidationPolicy: WhenUnderutilized
+    expireAfter: 720h
+  template:
+    metadata:
+      labels:
+        generated: karpenter
+        service: common-addons
+        team: devops
+    spec:
+      kubelet:
+        systemReserved:
+          cpu: 100m
+          memory: 100Mi
+      nodeClassRef:
+        name: common-addons
+      requirements:
+        - key: karpenter.k8s.aws/instance-family
+          operator: In
+          values: ["t3", "t3a", "m5", "m5a", "c5", "c5a"]
+        - key: karpenter.k8s.aws/instance-cpu
+          operator: In
+          values: ["2", "4", "8"]
+        - key: kubernetes.io/arch
+          operator: In
+          values: ["amd64"]
+        - key: karpenter.sh/capacity-type
+          operator: In
+          values: ["spot", "on-demand"]
+      taints:
+        - effect: NoSchedule
+          key: CommonAddonsOnly
+          value: "true"
+  weight: 10

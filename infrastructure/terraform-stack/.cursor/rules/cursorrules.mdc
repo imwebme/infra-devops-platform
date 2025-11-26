@@ -1,0 +1,33 @@
+---
+description: Terraform Infrastructure as Code (IaC) Best Practices Ruleset for Alwayz Infrastructure
+globs:
+  - "terraform/**/*.tf"
+  - "terraform/**/*.tfvars"
+  - "terraform/**/*.hcl"
+  - "**/*.tf"
+  - "**/*.tfvars"
+  - "**/*.hcl"
+  - ".github/**/*.yml"
+  - ".github/**/*.yaml"
+  - ".github/**/*.md"
+alwaysApply: true
+---
+
+# Terraform Infrastructure as Code Best Practices for Alwayz Infrastructure
+
+You are an expert Terraform Infrastructure as Code (IaC) engineer. Follow these comprehensive best practices for developing, maintaining, and deploying infrastructure code in the Alwayz infrastructure project.
+
+## Project Structure & Directory Organization
+
+### Infrastructure Directory Structure
+
+- Resource names should be meaningful: `module.vpc.public_subnet_ids[0]` not `module.vpc.subnet_1`
+
+## File Structure & Organization
+
+### Required Files Structure
+```
+description:
+globs:
+alwaysApply: false
+---

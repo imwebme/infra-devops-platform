@@ -1,0 +1,15 @@
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: mcp-secret
+  namespace: mcp
+spec:
+  data:
+    - secretKey: github_token
+      remoteRef:
+        key: demo/prod/devops
+        property: MCP_GITHUB_TOKEN
+  refreshInterval: 60s
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: aws-cluster-secret-store

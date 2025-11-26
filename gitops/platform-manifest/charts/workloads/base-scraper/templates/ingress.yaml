@@ -1,0 +1,43 @@
+{{- if or .Values.ingress .Values.global.ingress }}
+{{- $appName := include "base-scraper.realname" . -}}
+{{- range $index, $ingress := default .Values.global.ingress .Values.ingress }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $ingress.name }}
+  labels:
+    app.kubernetes.io/instance: {{ .name }}
+    {{- include "base-scraper.labels" $ | nindent 4 }}
+  annotations:
+    {{- include "base-scraper.alb.annotations" $ | nindent 4 }}
+    {{- with $ingress.annotations }}{{ toYaml . | trim | nindent 4 }}{{- end }}
+spec:
+  ingressClassName: alb
+  rules:  
+    {{- range $rule := $ingress.rules }}
+    - host: {{ $rule.host | quote }}
+      http:
+        paths:
+          {{- range $path := $rule.paths }}
+          - path: {{ $path.path | default "/" }}
+            pathType: {{ $path.pathType | default "Prefix" }}
+            backend:
+              service:
+                name: {{ $path.serviceName | default $appName }}
+                port:
+                  number: {{ $path.port | default 80 }}
+          {{- end }}
+    {{- end }}
+  {{- if $ingress.tls }}
+  tls:
+  {{- range $ingress.tls }}
+    - hosts:
+    {{- range .hosts }}
+        - {{ quote . }}
+    {{- end }}
+      secretName: {{ .secretName }}
+  {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}

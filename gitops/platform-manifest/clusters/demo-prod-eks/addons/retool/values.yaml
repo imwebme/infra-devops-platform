@@ -1,0 +1,41 @@
+config:
+  licenseKeySecretName: retool-secret
+  licenseKeySecretKey:  license-key
+  encryptionKeySecretName: retool-secret
+  encryptionKeySecretKey: encryption-key
+  jwtSecretSecretName: retool-secret
+  jwtSecretSecretKey: jwt-secret
+  auth:
+    google:
+      clientId: 363788399416-fhr53fov9ajr49i6klf8qttvouk3vavh.apps.googleusercontent.com
+      clientSecretSecretName: retool-secret
+      clientSecretSecretKey: google-client-secret
+
+image:
+  tag: 3.75.12-stable
+
+ingress:
+  enabled: true
+  ingressClassName: alb
+  annotations:
+    alb.ingress.kubernetes.io/security-groups: sg-0a4851339415d092f,sg-0d3f031898dd1fbb4
+    alb.ingress.kubernetes.io/load-balancer-name: retool-prod-in
+    alb.ingress.kubernetes.io/scheme: internal
+    alb.ingress.kubernetes.io/target-group-attributes: load_balancing.algorithm.type=least_outstanding_requests
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/target-type: 'ip'
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/healthcheck-path: "/health"
+    alb.ingress.kubernetes.io/success-codes: 200,304
+    external-dns.alpha.kubernetes.io/hostname: retool.prod.iexample-org.com
+    external-dns.alpha.kubernetes.io/set-identifier: retool-prod-private
+    external-dns.alpha.kubernetes.io/aws-weight: "100"
+  hosts:
+    - host: retool.prod.iexample-org.com
+      paths:
+      - path: /*
+        pathType: Prefix
+
+service:
+  externalPort: 80
+  portName: http-server

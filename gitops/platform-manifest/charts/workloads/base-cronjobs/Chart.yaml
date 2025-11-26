@@ -1,0 +1,7 @@
+apiVersion: v2
+name: base-cronjobs
+description: A Helm chart for Kubernetes
+icon: https://always-bucket-dev.s3.us-west-1.amazonaws.com/AlwayZ+로고파일.png
+type: application
+version: 0.0.20
+appVersion: 0.0.19

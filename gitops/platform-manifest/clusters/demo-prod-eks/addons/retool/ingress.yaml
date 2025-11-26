@@ -1,0 +1,31 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: retool-ingress
+  namespace: retool
+  annotations:
+    alb.ingress.kubernetes.io/security-groups: sg-0a4851339415d092f,sg-0d1b49c3cc4a2feeb
+    alb.ingress.kubernetes.io/load-balancer-name: retool-prod
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-group-attributes: load_balancing.algorithm.type=least_outstanding_requests
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/target-type: 'ip'
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/healthcheck-path: "/health"
+    alb.ingress.kubernetes.io/success-codes: "200,304"
+    external-dns.alpha.kubernetes.io/hostname: retool.prod.iexample-org.com
+    external-dns.alpha.kubernetes.io/set-identifier: retool-prod
+    external-dns.alpha.kubernetes.io/aws-weight: "100"
+spec:
+  ingressClassName: alb
+  rules:
+    - host: retool.prod.iexample-org.com
+      http:
+        paths:
+          - path: /*
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: retool
+                port:
+                  number: 80

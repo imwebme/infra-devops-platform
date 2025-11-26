@@ -1,0 +1,58 @@
+
+# require cluster, uri, schedule, keep
+# keep: N, keep backups for N days ago
+mongodb:
+- cluster: prod-alfarm
+  uri: "mongodb://example-org_bak:..."
+  schedule: "40 17 * * *"
+  keep: 3d
+  type: physical
+  
+labels: {}
+
+image:
+  repository: percona/percona-backup-mongodb
+  tag: "2.9.1"
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+# This is for setting Kubernetes Annotations to a Pod.
+# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+podAnnotations: {}
+# This is for setting Kubernetes Labels to a Pod.
+# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+podLabels: {}
+
+
+resources: {}
+
+livenessProbe:
+  exec:
+    command:
+    - /usr/bin/pbm
+    - version
+  initialDelaySeconds: 5
+  periodSeconds: 5
+
+
+# priorityClassName: monitoring-addons
+
+# nodeSelector: 
+  # service: monitoring-addons
+
+# tolerations: 
+#   - effect: NoSchedule
+#     key: monitoringAddonsOnly
+#     value: "true"
+#     operator: Equal
+
+affinity: {}
+

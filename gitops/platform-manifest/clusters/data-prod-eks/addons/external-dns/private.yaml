@@ -1,0 +1,7 @@
+aws:
+  zoneType: "private"
+
+logLevel: info
+
+extraArgs:
+  annotation-filter: "alb.ingress.kubernetes.io/scheme notin (internet-facing),service.beta.kubernetes.io/aws-load-balancer-scheme notin (internet-facing)"

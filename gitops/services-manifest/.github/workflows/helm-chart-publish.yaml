@@ -1,0 +1,61 @@
+## Reference: https://github.com/helm/chart-releaser-action
+name: Chart Publish
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "charts/workloads/**"
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    permissions:
+      contents: write # for helm/chart-releaser-action to push chart release and create a release
+      packages: write # to push OCI chart package to GitHub Registry
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          fetch-depth: 0
+
+      - name: Install Helm
+        uses: azure/setup-helm@5119fcb9089d432beecbf79bb2c7915207344b78 # v3.5
+        with:
+          version: v3.10.1 # Also update in lint-and-test.yaml
+
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@a917fd15b20e8b64b94d9158ad54cd6345335584 # v1.6.0
+        with:
+          charts_dir: charts/workloads
+          config: "./.github/configs/cr.yaml"
+          skip_existing: true
+          packages_with_index: true
+        env:
+          CR_TOKEN: "${{ secrets.GIT_PERSONAL_ACCESS_TOKEN }}"
+
+      - name: Login to GHCR
+        uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # v3.1.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GIT_PERSONAL_ACCESS_TOKEN }}
+
+      - name: Push chart to GHCR
+        run: |
+          shopt -s nullglob
+          for pkg in .cr-release-packages/*.tgz; do
+            if [ -z "${pkg:-}" ]; then
+              break
+            fi
+            helm push "${pkg}" oci://ghcr.io/${{ github.repository }}
+          done

@@ -1,0 +1,22 @@
+{{- range .Values.data }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .name }}
+  labels:
+    {{- include "example-org-pgbouncer.labels" $ | nindent 4 }}
+    instance/label: {{ .name }}
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: {{.name }}.db.prod.iexample-org.com
+spec:
+  type: {{ $.Values.service.type }}
+  ports:
+    - port: {{ $.Values.service.port }}
+      targetPort: 6432
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "example-org-pgbouncer.selectorLabels" $ | nindent 4 }}
+    instance/label: {{ .name }}
+{{- end }}

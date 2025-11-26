@@ -1,0 +1,48 @@
+deployment:
+  image:
+    repository: ghcr.io/github/github-mcp-server
+    tag: latest
+  priorityClassName: common-addons
+  # MCP 서버는 stdio 기반이므로 stdin/tty를 활성화해야 함
+  stdin: true
+  tty: true
+  # command: []
+  args:
+    - "stdio"
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+  # MCP 서버는 stdio 기반이므로 HTTP 포트가 없음 - 포트 제거
+  # port: 3000
+  securityContext:
+    readOnlyRootFilesystem: false
+  env:
+    - name: GITHUB_HOST
+      value: "https://github.com"
+    - name: GITHUB_PERSONAL_ACCESS_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: mcp-secret
+          key: github_token
+    - name: GITHUB_TOOLSETS
+      value: "repos,issues,pull_requests,code_security,experiments"
+  # 프로세스가 종료되지 않도록 하는 추가 설정
+  lifecycle:
+    postStart:
+      exec:
+        command: ["/bin/sh", "-c", "sleep infinity &"]
+  # Health check는 프로세스 존재 여부로 확인
+  livenessProbe:
+    exec:
+      command: ["pgrep", "github-mcp-server"]
+    initialDelaySeconds: 30
+    periodSeconds: 10
+  readinessProbe:
+    exec:
+      command: ["pgrep", "github-mcp-server"]
+    initialDelaySeconds: 5
+    periodSeconds: 5

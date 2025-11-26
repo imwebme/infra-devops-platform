@@ -1,0 +1,30 @@
+{{- range .Values.config }}
+{{- $name := (printf "%s-%s" (.name) "pgbouncer-exporter") }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  {{- if $.Values.service.annotations }}
+  annotations:
+{{ toYaml $.Values.service.annotations | indent 4 }}
+{{- end }}
+  labels:
+    app: {{ template "prometheus-pgbouncer-exporter.name" $ }}
+    chart: {{ template "prometheus-pgbouncer-exporter.chart" $ }}
+    release: {{ $.Release.Name }}
+    heritage: {{ $.Release.Service }}
+{{- if $.Values.service.labels }}
+{{ toYaml $.Values.service.labels | trim | indent 4 }}
+{{- end }}
+spec:
+  type: {{ $.Values.service.type }}
+  ports:
+    - port: {{ $.Values.service.port }}
+      targetPort: {{ $.Values.service.targetPort }}
+      protocol: TCP
+      name: {{ $.Values.service.name }}
+  selector:
+    {{- include "prometheus-pgbouncer-exporter.labels" $ | nindent 4 }}
+    instance/label: {{ .name }}
+{{- end }}

@@ -1,0 +1,29 @@
+service: alwayz-assignment-front
+owner:
+  - name: Developer 2
+    email: yj@iexample-org.com
+slack_channels:
+  - 모니터링_프론트_과제
+synthetics:
+  - name: alwayz-assignment-front가 다운되었습니다.
+    type: api
+    subtype: http
+    status: "live"
+    locations: ["aws:ap-northeast-2"]
+    request_definition:
+      method: GET
+      url: https://assignment-front.iexample-org.com/health-check
+    assertions:
+      - type: statusCode
+        operator: is
+        target: 204
+      - type: responseTime
+        operator: lessThan
+        target: 3000
+    options_list:
+      tick_every: 60
+      retry:
+        count: 3
+        interval: 1000
+      monitor_options:
+        renotify_interval: 10

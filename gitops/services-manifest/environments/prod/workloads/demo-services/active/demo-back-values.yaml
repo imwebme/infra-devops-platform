@@ -1,0 +1,133 @@
+deployment:
+  image:
+    repository: 123456789012.dkr.ecr.ap-northeast-2.amazonaws.com/demo-prod-ecr_demo-back
+    tag: 2257-3.3.142-prod-d4af8e
+  resources:
+    requests:
+      cpu: 1200m
+      memory: 1100Mi
+    limits:
+      cpu: 1200m
+      memory: 1100Mi
+  port: 3000
+  readinessProbe:
+    httpGet:
+      path: /health-check
+      port: 3000
+    initialDelaySeconds: 15
+    periodSeconds: 5
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  lifecycle:
+    preStop:
+      exec:
+        command:
+        - /bin/sh
+        - -c
+        - sleep 100
+  terminationGracePeriodSeconds: 120
+  securityContext:
+    readOnlyRootFilesystem: true
+  env:
+  - name: DD_SERVICE
+    value: demo-back
+  - name: DD_ENV
+    value: prod
+  - name: DD_TRACE_CLIENT_IP_ENABLED
+    value: "true"
+  - name: POD_IP
+    valueFrom:
+      fieldRef:
+        fieldPath: status.podIP
+  - name: USE_INTERNAL_DB
+    value: "true"
+  - name: DD_DBM_PROPAGATION_MODE
+    value: full
+hpa:
+  enabled: true
+  minReplicas: 10
+  maxReplicas: 1500
+  targetCPUUtilizationPercentage: 60
+  targetMemoryUtilizationPercentage: 80
+  annotations:
+    zalando.org/schedule-actions: |
+      [
+        {"schedule": "00 21 * * *", "minReplicas": "160"},
+        {"schedule": "10 01 * * *", "minReplicas": "10"}
+      ]
+ingress:
+- name: demo-back
+  annotations:
+    alb.ingress.kubernetes.io/security-groups: sg-0d1b49c3cc4a2feeb
+    alb.ingress.kubernetes.io/load-balancer-name: demo-back-prod
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: "6"
+    alb.ingress.kubernetes.io/healthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/healthcheck-path: /health-check
+    alb.ingress.kubernetes.io/success-codes: 200-299
+    alb.ingress.kubernetes.io/target-group-attributes: load_balancing.algorithm.type=least_outstanding_requests
+    alb.ingress.kubernetes.io/load-balancer-attributes: |
+      idle_timeout.timeout_seconds=60,
+      client_keep_alive.seconds=120,
+      access_logs.s3.enabled=true,
+      access_logs.s3.bucket=demo-services-alb-access-log,
+      access_logs.s3.prefix=demo-back-prod,
+      connection_logs.s3.enabled=true,
+      connection_logs.s3.bucket=demo-services-alb-connection-log,
+      connection_logs.s3.prefix=demo-back-prod
+    alb.ingress.kubernetes.io/tags: |
+      Team=ops,
+      Env=demo-prod,
+      Group=demo-back,
+      NodeType=ops_demo-back_prod_alb
+    external-dns.alpha.kubernetes.io/hostname: demo-back.prod.iexample-org.com
+    external-dns.alpha.kubernetes.io/set-identifier: demo-back-prod
+    external-dns.alpha.kubernetes.io/aws-weight: "100"
+  rules:
+  - host: demoshop.iexample-org.com
+    paths:
+    - path: /
+      pathType: Prefix
+  - host: demo-back.prod.iexample-org.com
+    paths:
+    - path: /
+      pathType: Prefix
+- name: demo-back-private
+  annotations:
+    alb.ingress.kubernetes.io/load-balancer-name: demo-back-prod-in
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: "6"
+    alb.ingress.kubernetes.io/healthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/healthcheck-path: /health-check
+    alb.ingress.kubernetes.io/success-codes: 200-299
+    alb.ingress.kubernetes.io/target-group-attributes: load_balancing.algorithm.type=least_outstanding_requests
+    alb.ingress.kubernetes.io/load-balancer-attributes: |
+      idle_timeout.timeout_seconds=60,
+      client_keep_alive.seconds=120,
+      access_logs.s3.enabled=true,
+      access_logs.s3.bucket=demo-services-alb-access-log,
+      access_logs.s3.prefix=demo-back-private-prod,
+      connection_logs.s3.enabled=true,
+      connection_logs.s3.bucket=demo-services-alb-connection-log,
+      connection_logs.s3.prefix=demo-back-private-prod
+    alb.ingress.kubernetes.io/scheme: internal
+    alb.ingress.kubernetes.io/tags: |
+      Team=ops,
+      Env=demo-prod,
+      Group=demo-back,
+      NodeType=ops_demo-back_prod_alb_private
+    external-dns.alpha.kubernetes.io/hostname: demo-back.prod.iexample-org.com
+    external-dns.alpha.kubernetes.io/set-identifier: demo-back-prod-private
+    external-dns.alpha.kubernetes.io/aws-weight: "100"
+    external-dns.alpha.kubernetes.io/ingress-hostname-source: annotation-only
+  rules:
+  - host: demoshop.iexample-org.com
+    paths:
+    - path: /
+      pathType: Prefix
+  - host: demo-back.prod.iexample-org.com
+    paths:
+    - path: /
+      pathType: Prefix
+service:
+  port: 80
+  targetPort: 3000

@@ -1,0 +1,26 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# 네임스페이스 설정
+namespace: tailscale
+
+# 리소스 목록
+resources:
+  - proxygroup.yaml
+  - connector-subnet-router.yaml
+
+# 공통 라벨 추가
+commonLabels:
+  app.kubernetes.io/name: tailscale
+  app.kubernetes.io/component: subnet-router
+  app.kubernetes.io/part-of: tailscale-operator
+  app.kubernetes.io/managed-by: kustomize
+  cluster: security-prod-eks
+  environment: prod
+  team: infra
+
+# 공통 어노테이션 추가
+commonAnnotations:
+  tailscale.com/cluster: "security-prod-eks"
+  tailscale.com/purpose: "inter-cluster-routing"
+  tailscale.com/managed-by: "gitops"

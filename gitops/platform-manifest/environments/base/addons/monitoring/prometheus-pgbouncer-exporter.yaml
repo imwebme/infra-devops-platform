@@ -1,0 +1,98 @@
+replicaCount: 1
+
+image:
+  repository: quay.io/prometheuscommunity/pgbouncer-exporter
+  tag: "v0.10.2"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 9127
+  name: http
+  labels: {}
+  annotations: {}
+
+serviceMonitor:
+  enabled: true
+  path: /metrics
+  interval: 30s
+  scrapeTimeout: 90s
+  namespace: 
+  namespaceSelector: {}
+  additionalLabels: 
+  selectorLabels:
+    app: prometheus-pgbouncer-exporter
+    chart: prometheus-pgbouncer-exporter-0.5.0
+  jobLabel: ""
+  targetLabels: 
+  podTargetLabels: 
+  metricRelabelings: 
+  relabelings:
+    - action: replace
+      sourceLabels: [__meta_kubernetes_pod_label_instance_label]
+      targetLabel: pgbouncer
+
+prometheusRule:
+  enabled: false
+  additionalLabels: {}
+  namespace: ""
+  rules: []
+
+resources: {}
+  # limits:
+  #   cpu: 100m
+  #    memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+rbac:
+  # Specifies whether RBAC resources should be created
+  create: false
+
+serviceAccount:
+  # Specifies whether a ServiceAccount should be created
+  create: false
+  # The name of the ServiceAccount to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+  # Add annotations to the ServiceAccount, useful for EKS IAM Roles for Service Accounts or Google Workload Identity.
+  annotations: {}
+
+# Add a default ingress to allow namespace access to service.targetPort
+# Helpful if other NetworkPolicies are configured in the namespace
+networkPolicy:
+  # Specifies whether a NetworkPolicy should be created
+  enabled: false
+  # Set labels for the NetworkPolicy
+  labels: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+hostAliases: []
+
+existingSecret:
+  name: prometheus-pgbouncer-exporter-user
+  secretKey: demo/prod/db/pgbouncer-exporter
+
+affinity: {}
+
+annotations: {}
+
+podLabels: {}
+
+extraEnvs: []
+
+initContainers: []
+
+extraContainers: []
+
+extraVolumes: []
+extraVolumeMounts: []
+
+podDisruptionBudget:
+  enabled: false
+  maxUnavailable: 1

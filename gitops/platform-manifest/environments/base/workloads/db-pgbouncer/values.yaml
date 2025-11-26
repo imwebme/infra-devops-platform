@@ -1,0 +1,52 @@
+image:
+  repository: 123456789012.dkr.ecr.ap-northeast-2.amazonaws.com/db/example-org-pgbouncer:1.0.2
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccountName: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+service:
+  type: LoadBalancer
+  port: 6432
+
+resources:
+  requests:
+    memory: 2Gi
+  limits:
+    memory: 3Gi
+
+autoscaling: {}
+
+volumes: []
+
+volumeMounts: []
+
+
+affinity: {}
+
+secret:
+  name: "pgbouncer-userlist-secret"
+  secretKey: "demo/prod/db/pgbouncer/userlist"
+
+priorityClassName: db
+
+nodeSelector:
+  service: db
+
+tolerations:
+  - effect: NoSchedule
+    key: DbOnly
+    value: "true"
+    operator: Equal

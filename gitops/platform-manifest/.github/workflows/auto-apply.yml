@@ -1,0 +1,29 @@
+name: "PR open CI process"
+
+on:
+  pull_request:
+
+jobs:
+  auto-approve:
+    name: "Auto Approve"
+    runs-on: ubuntu-latest
+    outputs:
+      prod: ${{ steps.changes.outputs.prod }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 3
+      - name: Check changes
+        run: |
+          if git diff --quiet --exit-code ${{ github.sha }}^ ${{ github.sha }}^2 -- prod/; then
+            echo "No changes found in the 'prod/' directory. Approving the pull request."
+            echo "prod=$(git diff --name-only --diff-filter=ACMRT ${{ github.sha }}^ ${{ github.sha }}^2 | grep '^.prod/' | xargs)" >> $GITHUB_ENV
+          else
+            echo "Changes found in the 'prod/' directory. Proceed with standard approval process."
+          fi
+      - name: Auto Approve
+        if: ${{ env.prod == '' }}
+        uses: hmarr/auto-approve-action@v3
+        with:
+          review-message: "Auto approved automated PR"

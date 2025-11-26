@@ -1,0 +1,42 @@
+oauth:
+  clientSecretRef:
+    name: operator-oauth
+    clientIdKey: client_id
+    clientSecretKey: client_secret
+  scopes:
+    - "read"
+    - "write"
+  extraParams:
+    response_type: "code"
+
+proxyClass:
+  create: false # Production에서는 false로 설정하여 예상치 못한 네트워크 정책 방지
+  name: "security-prod-proxy" # 명시적 이름 지정
+
+operatorConfig:
+  logging:
+    level: info # Production에서는 info 레벨로 설정
+  operatorMode: "operator" # 명시적 operator 모드 설정
+  oauth:
+    scopes:
+      - "read"
+      - "write"
+    extraParams:
+      response_type: "code"
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+nodeSelector:
+  service: "common-addons" # 적절한 노드 선택자
+
+tolerations:
+  - key: "CommonAddonsOnly"
+    operator: "Equal"
+    value: "true"
+    effect: "NoSchedule"

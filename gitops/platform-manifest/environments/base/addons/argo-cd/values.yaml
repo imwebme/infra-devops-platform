@@ -1,0 +1,1062 @@
+global:
+  tolerations:
+    - effect: NoSchedule
+      key: CoreAddonsOnly
+      value: "true"
+      operator: Equal
+  nodeSelector:
+    service: core-addons
+  priorityClassName: core-addons
+
+server:
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+  metrics:
+    enabled: true
+    service:
+      annotations:
+        prometheus.io/scrape: true
+  service:
+    type: LoadBalancer
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
+      service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+  tolerations:
+    - effect: NoSchedule
+      key: CoreAddonsOnly
+      value: "true"
+      operator: Equal
+  nodeSelector:
+    service: core-addons
+  priorityClassName: core-addons
+  podAnnotations:
+    ad.datadoghq.com/server.checks: |
+      {
+        "argocd": {
+          "init_config": {},
+          "instances": [
+            {
+              "api_server_endpoint": "http://%%host%%:8083/metrics"
+            }
+          ]
+        }
+      }
+
+repoServer:
+  replicas: 2
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 15
+    targetCPUUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 80
+  metrics:
+    enabled: true
+    service:
+      annotations:
+        prometheus.io/scrape: true
+  tolerations:
+    - effect: NoSchedule
+      key: CoreAddonsOnly
+      value: "true"
+      operator: Equal
+  nodeSelector:
+    service: core-addons
+  priorityClassName: core-addons
+  podAnnotations:
+    ad.datadoghq.com/repo-server.checks: |
+      {
+        "argocd": {
+          "init_config": {},
+          "instances": [
+            {
+              "repo_server_endpoint": "http://%%host%%:8084/metrics"
+            }
+          ]
+        }
+      }
+
+redis:
+  tolerations:
+    - effect: NoSchedule
+      key: CoreAddonsOnly
+      value: "true"
+      operator: Equal
+  nodeSelector:
+    service: core-addons
+  priorityClassName: core-addons
+
+controller:
+  replicas: 1 # Additional replicas will cause sharding of managed clusters across number of replicas.
+  metrics:
+    enabled: true
+    service:
+      annotations:
+        prometheus.io/scrape: true
+  env:
+    - name: ARGOCD_K8S_CLIENT_QPS
+      value: "300"
+    - name: ARGOCD_K8S_CLIENT_BURST
+      value: "500"
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: "app.kubernetes.io/name"
+                  operator: In
+                  values:
+                    - argocd-applicationset-controller
+            topologyKey: "kubernetes.io/hostname"
+  tolerations:
+    - effect: NoSchedule
+      key: CoreAddonsOnly
+      value: "true"
+      operator: Equal
+  nodeSelector:
+    service: core-addons
+  priorityClassName: core-addons
+  podAnnotations:
+    ad.datadoghq.com/application-controller.checks: |
+      {
+        "argocd": {
+          "init_config": {},
+          "instances": [
+            {
+              "app_controller_endpoint": "http://%%host%%:8082/metrics"
+            }
+          ]
+        }
+      }
+
+applicationSet:
+  replicaCount: 1 # The controller doesn't scale horizontally, is active-standby replicas
+  metrics:
+    enabled: true
+    service:
+      annotations:
+        prometheus.io/scrape: true
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: "app.kubernetes.io/name"
+                  operator: In
+                  values:
+                    - argocd-applicationset-controller
+            topologyKey: "kubernetes.io/hostname"
+  tolerations:
+    - effect: NoSchedule
+      key: CoreAddonsOnly
+      value: "true"
+      operator: Equal
+  nodeSelector:
+    service: core-addons
+  priorityClassName: core-addons
+
+dex:
+  tolerations:
+    - effect: NoSchedule
+      key: CoreAddonsOnly
+      value: "true"
+      operator: Equal
+  nodeSelector:
+    service: core-addons
+  priorityClassName: core-addons
+
+notifications:
+  tolerations:
+    - effect: NoSchedule
+      key: CoreAddonsOnly
+      value: "true"
+      operator: Equal
+  nodeSelector:
+    service: core-addons
+  priorityClassName: core-addons
+  templates:
+    template.app-deploy-start: |
+      email:
+        subject: New version of an application {{.app.metadata.labels.app_name}} is up and running.
+      message: |
+        {{if eq .serviceType "slack"}}:running:{{end}} *{{.context.title}} 배포 시작* ({{.app.metadata.labels.app_name}})
+      slack:
+        attachments: |
+          [
+            {
+              "color": "#0DADEA",
+              "blocks": [
+                { "type": "divider" },
+                {
+                  "type": "section",
+                  "text": { "type": "mrkdwn", "text": "*서비스 이름:* {{ .app.metadata.labels.app_name }}" }
+                },
+                {
+                  "type": "section",
+                  "text": { "type": "mrkdwn", "text": "*타겟 클러스터:* {{ .context.eksClusterName }}" }
+                },
+                {{- $images := .app.status.summary.images | default (list "") }}
+                {{- if gt (len $images) 0 }}
+                  {{- $image := index $images (sub (len $images) 1) }}
+                  {{- $split := splitList ":" $image }}
+                  {{- $tag := "" }}
+                  {{- if gt (len $split) 1 }}
+                    {{- $tag = index $split 1 }}
+                  {{- else }}
+                    {{- $tag = index $split 0 }}
+                  {{- end }}
+                  {{- $parts := splitList "-" $tag }}
+                  {{- $sha := index $parts (sub (len $parts) 1) }}
+                  {{- $repo := default "" .app.metadata.annotations.source_repo }}
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "*이미지 태그:* <{{$image}}|{{$tag}}>"
+                    }
+                  },
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "*커밋:* <{{$repo}}/commit/{{$sha}}|{{$sha}}>"
+                    }
+                  },
+                {{- else }}
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "*이미지 태그:* 없음"
+                    }
+                  },
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "*커밋:* 알 수 없음"
+                    }
+                  },
+                {{- end }}
+                { "type": "divider" },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": { "type": "plain_text", "text": "ArgoCD", "emoji": true },
+                      "url": "{{ .context.argocdUrl }}/applications/{{ .app.metadata.name }}"
+                    }
+                    {{- if and .app.status.summary.externalURLs (gt (len .app.status.summary.externalURLs) 0) }},
+                    {
+                      "type": "button",
+                      "text": { "type": "plain_text", "text": "{{ .app.metadata.labels.app_name }} URL", "emoji": true },
+                      "url": "{{ (index .app.status.summary.externalURLs 0) }}"
+                    }
+                    {{- end }}
+                  ]
+                }
+              ]
+            }
+          ]
+    template.app-deployed: |
+      email:
+        subject: New version of an application {{.app.metadata.labels.app_name}} is up and running.
+      message: |
+        {{if eq .serviceType "slack"}}:confetti_ball:{{end}} *{{.context.title}} 배포 완료* ({{.app.metadata.labels.app_name}})
+      slack:
+        attachments: |
+          [
+            {
+              "color": "#18be52",
+              "blocks": [
+                { "type": "divider" },
+                {
+                  "type": "section",
+                  "text": { "type": "mrkdwn", "text": "*서비스 이름:* {{ .app.metadata.labels.app_name }}" }
+                },
+                {
+                  "type": "section",
+                  "text": { "type": "mrkdwn", "text": "*타겟 클러스터:* {{ .context.eksClusterName }}" }
+                },
+                {{- $images := .app.status.summary.images | default (list "") }}
+                {{- if gt (len $images) 0 }}
+                  {{- $image := index $images (sub (len $images) 1) }}
+                  {{- $split := splitList ":" $image }}
+                  {{- $tag := "" }}
+                  {{- if gt (len $split) 1 }}
+                    {{- $tag = index $split 1 }}
+                  {{- else }}
+                    {{- $tag = index $split 0 }}
+                  {{- end }}
+                  {{- $parts := splitList "-" $tag }}
+                  {{- $sha := index $parts (sub (len $parts) 1) }}
+                  {{- $repo := default "" .app.metadata.annotations.source_repo }}
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "*이미지 태그:* <{{$image}}|{{$tag}}>"
+                    }
+                  },
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "*커밋:* <{{$repo}}/commit/{{$sha}}|{{$sha}}>"
+                    }
+                  },
+                {{- else }}
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "*이미지 태그:* 없음"
+                    }
+                  },
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "*커밋:* 알 수 없음"
+                    }
+                  },
+                {{- end }}
+                { "type": "divider" },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": { "type": "plain_text", "text": "ArgoCD", "emoji": true },
+                      "url": "{{ .context.argocdUrl }}/applications/{{ .app.metadata.name }}"
+                    }
+                    {{- if and .app.status.summary.externalURLs (gt (len .app.status.summary.externalURLs) 0) }},
+                    {
+                      "type": "button",
+                      "text": { "type": "plain_text", "text": "{{ .app.metadata.labels.app_name }} URL", "emoji": true },
+                      "url": "{{ (index .app.status.summary.externalURLs 0) }}"
+                    }
+                    {{- end }}
+                  ]
+                }
+              ]
+            }
+          ]
+    template.app-deploy-failed: |
+      email:
+        subject: Application {{.app.metadata.labels.app_name}} deployment failed
+      message: |
+        {{if eq .serviceType "slack"}}:x:{{end}} *{{.context.title}} 배포 실패* ({{.app.metadata.labels.app_name}})
+      slack:
+        attachments: |
+          [
+            {
+              "color": "#ff4d4f",
+              "blocks": [
+                { "type": "divider" },
+                {
+                  "type": "section",
+                  "text": { "type": "mrkdwn", "text": "*서비스 이름:* {{.app.metadata.labels.app_name}}" }
+                },
+                {
+                  "type": "section",
+                  "text": { "type": "mrkdwn", "text": "*타겟 클러스터:* {{.context.eksClusterName}}" }
+                },
+                {{- $images := .app.status.summary.images | default (list "") }}
+                {{- if gt (len $images) 0 }}
+                  {{- $image := index $images (sub (len $images) 1) }}
+                  {{- $split := splitList ":" $image }}
+                  {{- $tag := "" }}
+                  {{- if gt (len $split) 1 }}
+                    {{- $tag = index $split 1 }}
+                  {{- else }}
+                    {{- $tag = index $split 0 }}
+                  {{- end }}
+                  {{- $parts := splitList "-" $tag }}
+                  {{- $sha := index $parts (sub (len $parts) 1) }}
+                  {{- $repo := default "" .app.metadata.annotations.source_repo }}
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "*이미지 태그:* <{{$image}}|{{$tag}}>"
+                    }
+                  },
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "*커밋:* <{{$repo}}/commit/{{$sha}}|{{$sha}}>"
+                    }
+                  },
+                {{- else }}
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "*이미지 태그:* 없음"
+                    }
+                  },
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "*커밋:* 알 수 없음"
+                    }
+                  },
+                {{- end }}
+                { "type": "divider" },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": { "type": "plain_text", "text": "ArgoCD", "emoji": true },
+                      "url": "{{ .context.argocdUrl }}/applications/{{ .app.metadata.name }}"
+                    }
+                    {{- if and .app.status.summary.externalURLs (gt (len .app.status.summary.externalURLs) 0) }},
+                    {
+                      "type": "button",
+                      "text": { "type": "plain_text", "text": "{{ .app.metadata.labels.app_name }} URL", "emoji": true },
+                      "url": "{{ (index .app.status.summary.externalURLs 0) }}"
+                    }
+                    {{- end }}
+                  ]
+                }
+              ]
+            }
+          ]
+    template.app-deploy-timeout: |
+      email:
+        subject: Application {{.app.metadata.labels.app_name}} deployment is taking too long
+      message: |
+        {{if eq .serviceType "slack"}}:warning:{{end}} *{{.context.title}} 배포 지연* ({{.app.metadata.labels.app_name}})
+      slack:
+        attachments: |
+          [
+            {
+              "color": "#f4c030",
+              "blocks": [
+                { "type": "divider" },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*서비스 이름:* {{ .app.metadata.labels.app_name }}\n*상태:* 배포가 30분 이상 진행 중입니다."
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*타겟 클러스터:* {{ .context.eksClusterName }}"
+                  }
+                },
+                {{- $image := (index .app.status.summary.images | default (list "")) | last }}
+                {{- $split := splitList ":" $image }}
+                {{- $tag := "" }}
+                {{- if gt (len $split) 1 }}
+                  {{- $tag = index $split 1 }}
+                {{- else }}
+                  {{- $tag = index $split 0 }}
+                {{- end }}
+                {{- $parts := splitList "-" $tag }}
+                {{- $sha := index $parts (sub (len $parts) 1) }}
+                {{- $repo := default "" .app.metadata.annotations.source_repo }}
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*이미지 태그:* <{{$image}}|{{$image}}>\n*커밋:* <https://github.com/wetripod/{{$repo}}/commit/{{$sha}}|{{$sha}}>"
+                  }
+                },
+                { "type": "divider" },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "ArgoCD",
+                        "emoji": true
+                      },
+                      "url": "{{ .context.argocdUrl }}/applications/{{ .app.metadata.name }}"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+    template.app-health-degraded: |
+      email:
+        subject: Application {{.app.metadata.name}} has degraded.
+      message: |
+        {{if eq .serviceType "slack"}}:exclamation:{{end}} Application {{.app.metadata.name}} has degraded.
+        Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
+      slack:
+        attachments: |-
+          [{
+            "title": "{{ .app.metadata.name}}",
+            "title_link": "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+            "color": "#f4c030",
+            "fields": [
+            {
+              "title": "Sync Status",
+              "value": "{{.app.status.sync.status}}",
+              "short": true
+            },
+            {{if .app.spec.source.repoURL}}
+            {
+              "title": "Repository",
+              "value": "{{.app.spec.source.repoURL}}",
+              "short": true
+            }
+            {{else}}
+            {
+                "title": "Repository",
+                "value": "{{ (index .app.spec.sources 0).repoURL }}",
+                "short": true
+            }
+            {{end}}
+            {{range $index, $c := .app.status.conditions}}
+            {{if not $index}},{{end}}
+            {{if $index}},{{end}}
+            {
+              "title": "{{$c.type}}",
+              "value": "{{$c.message}}",
+              "short": true
+            }
+            {{end}}
+            ]
+          }]
+    template.app-sync-failed: |
+      email:
+        subject: Failed to sync application {{.app.metadata.name}}.
+      message: |
+        {{if eq .serviceType "slack"}}:exclamation:{{end}}  The sync operation of application {{.app.metadata.name}} has failed at {{.app.status.operationState.finishedAt}} with the following error: {{.app.status.operationState.message}}
+        Sync operation details are available at: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}?operation=true .
+      slack:
+        attachments: |-
+          [{
+            "title": "{{ .app.metadata.name}}",
+            "title_link":"{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+            "color": "#E96D76",
+            "fields": [
+            {
+              "title": "Sync Status",
+              "value": "{{.app.status.sync.status}}",
+              "short": true
+            },
+            {{if .app.spec.source.repoURL}}
+            {
+              "title": "Repository",
+              "value": "{{.app.spec.source.repoURL}}",
+              "short": true
+            }
+            {{else}}
+            {
+                "title": "Repository",
+                "value": "{{ (index .app.spec.sources 0).repoURL }}",
+                "short": true
+            }
+            {{end}}
+            {{range $index, $c := .app.status.conditions}}
+            {{if not $index}},{{end}}
+            {{if $index}},{{end}}
+            {
+              "title": "{{$c.type}}",
+              "value": "{{$c.message}}",
+              "short": true
+            }
+            {{end}}
+            ]
+          }]
+    template.app-sync-running: |
+      email:
+        subject: Start syncing application {{.app.metadata.name}}.
+      message: |
+        The sync operation of application {{.app.metadata.name}} has started at {{.app.status.operationState.startedAt}}.
+        Sync operation details are available at: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}?operation=true .
+      slack:
+        attachments: |-
+          [{
+            "title": "{{ .app.metadata.name}}",
+            "title_link":"{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+            "color": "#0DADEA",
+            "fields": [
+            {
+              "title": "Sync Status",
+              "value": "{{.app.status.sync.status}}",
+              "short": true
+            },
+            {{if .app.spec.source.repoURL}}
+            {
+              "title": "Repository",
+              "value": "{{.app.spec.source.repoURL}}",
+              "short": true
+            }
+            {{else}}
+            {
+                "title": "Repository",
+                "value": "{{ (index .app.spec.sources 0).repoURL }}",
+                "short": true
+            }
+            {{end}}
+            {{range $index, $c := .app.status.conditions}}
+            {{if not $index}},{{end}}
+            {{if $index}},{{end}}
+            {
+              "title": "{{$c.type}}",
+              "value": "{{$c.message}}",
+              "short": true
+            }
+            {{end}}
+            ]
+          }]
+    template.app-sync-status-unknown: |
+      email:
+        subject: Application {{.app.metadata.name}} sync status is 'Unknown'
+      message: |
+        {{if eq .serviceType "slack"}}:exclamation:{{end}} Application {{.app.metadata.name}} sync is 'Unknown'.
+        Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
+        {{if ne .serviceType "slack"}}
+        {{range $c := .app.status.conditions}}
+            * {{$c.message}}
+        {{end}}
+        {{end}}
+      slack:
+        attachments: |-
+          [{
+            "title": "{{ .app.metadata.name}}",
+            "title_link":"{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+            "color": "#E96D76",
+            "fields": [
+            {
+              "title": "Sync Status",
+              "value": "{{.app.status.sync.status}}",
+              "short": true
+            },
+            {{if .app.spec.source.repoURL}}
+            {
+              "title": "Repository",
+              "value": "{{.app.spec.source.repoURL}}",
+              "short": true
+            }
+            {{else}}
+            {
+                "title": "Repository",
+                "value": "{{ (index .app.spec.sources 0).repoURL }}",
+                "short": true
+            }
+            {{end}}
+            {{range $index, $c := .app.status.conditions}}
+            {{if not $index}},{{end}}
+            {{if $index}},{{end}}
+            {
+              "title": "{{$c.type}}",
+              "value": "{{$c.message}}",
+              "short": true
+            }
+            {{end}}
+            ]
+          }]
+    template.app-sync-succeeded: |
+      email:
+        subject: Application {{.app.metadata.name}} has been successfully synced.
+      message: |
+        {{if eq .serviceType "slack"}}:white_check_mark:{{end}} Application {{.app.metadata.name}} has been successfully synced at {{.app.status.operationState.finishedAt}}.
+        Sync operation details are available at: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}?operation=true .
+      slack:
+        attachments: |-
+          [{
+            "title": "{{ .app.metadata.name}}",
+            "title_link":"{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+            "color": "#18be52",
+            "fields": [
+            {
+              "title": "Sync Status",
+              "value": "{{.app.status.sync.status}}",
+              "short": true
+            },
+            {{if .app.spec.source.repoURL}}
+            {
+              "title": "Repository",
+              "value": "{{.app.spec.source.repoURL}}",
+              "short": true
+            }
+            {{else}}
+            {
+                "title": "Repository",
+                "value": "{{ (index .app.spec.sources 0).repoURL }}",
+                "short": true
+            }
+            {{end}}
+            {{range $index, $c := .app.status.conditions}}
+            {{if not $index}},{{end}}
+            {{if $index}},{{end}}
+            {
+              "title": "{{$c.type}}",
+              "value": "{{$c.message}}",
+              "short": true
+            }
+            {{end}}
+            ]
+          }]
+
+  triggers:
+    # trigger.on-deploy-start: |
+    #   - description: Application is deploying.
+    #     oncePer: app.status.operationState.startedAt
+    #     send: [app-deploy-start]
+    #     when: |
+    #       app.status.health.status == 'Progressing' ||
+    #       (app.status.operationState.phase == 'Running' &&
+    #       app.status.sync.status == 'OutOfSync')
+
+    trigger.on-deploy-start: |
+      - description: Application is deploying.
+        oncePer: |
+          app.status.summary.images != nil &&
+          len(app.status.summary.images) > 0 &&
+          app.status.summary.images[len(app.status.summary.images)-1]
+        send: [app-deploy-start]
+        when: |
+          app.status.health.status == 'Progressing' ||
+          (app.status.operationState.phase == 'Running' &&
+          app.status.sync.status == 'OutOfSync')
+
+    trigger.on-deployed: |
+      - description: Application is successfully deployed.
+        oncePer: |
+          app.status.summary.images != nil &&
+          len(app.status.summary.images) > 0 &&
+          app.status.summary.images[len(app.status.summary.images)-1]
+        send: [app-deployed]
+        when: |
+          app.status.operationState.phase == 'Succeeded' &&
+          app.status.health.status == 'Healthy'
+
+    trigger.on-deploy-failed: |
+      - description: App has degraded resources after sync.
+        oncePer: |
+          app.status.summary.images != nil &&
+          len(app.status.summary.images) > 0 &&
+          app.status.summary.images[len(app.status.summary.images)-1]
+        send: [app-deploy-failed]
+        when: |
+          app.status.operationState.phase == 'Succeeded' &&
+          app.status.health.status != 'Healthy' &&
+          app.status.resources != nil &&
+          any(app.status.resources, { .health.status == 'Degraded' })
+
+    trigger.on-deploy-timeout: |
+      - description: Application deployment is taking too long
+        oncePer: app.status.operationState.startedAt
+        send: [app-deploy-timeout]
+        when: |
+          app.status.operationState != nil &&
+          app.status.operationState.phase == 'Running' &&
+          app.status.health.status == 'Progressing' &&
+          time.Now().Sub(time.Parse(app.status.operationState.startedAt)).Minutes() >= 30
+
+    trigger.on-sync-failed: |
+      - description: Application syncing has failed
+        oncePer: app.status.operationState.startedAt
+        send: [app-sync-failed]
+        when: |
+          app.status.operationState != nil &&
+          app.status.operationState.phase in ['Error', 'Failed']
+
+    trigger.on-sync-running: |
+      - description: Application is syncing
+        oncePer: app.status.operationState.startedAt
+        send: [app-sync-running]
+        when: |
+          app.status.operationState != nil &&
+          app.status.operationState.phase == 'Running'
+
+    trigger.on-sync-succeeded: |
+      - description: Application syncing succeeded
+        oncePer: app.status.operationState.startedAt
+        send: [app-sync-succeeded]
+        when: |
+          app.status.operationState != nil &&
+          app.status.operationState.phase == 'Succeeded'
+
+    trigger.on-sync-status-unknown: |
+      - description: Application sync status is unknown
+        oncePer: app.status.conditions[0].lastTransitionTime
+        send: [app-sync-status-unknown]
+        when: |
+          app.status.sync.status == 'Unknown'
+
+    trigger.on-out-of-sync: |
+      - description: Application is out of sync
+        oncePer: app.status.conditions[0].lastTransitionTime
+        send: [app-sync-status-unknown]
+        when: |
+          app.status.sync.status == 'OutOfSync'
+
+    trigger.on-health-degraded: |
+      - description: Application has degraded outside of deployment
+        oncePer: app.status.conditions[0].lastTransitionTime
+        send: [app-health-degraded]
+        when: |
+          (app.status.operationState == nil ||
+          app.status.operationState.phase != 'Running') &&
+          app.status.health.status == 'Degraded'
+
+    trigger.on-resource-missing: |
+      - description: Application resources are missing
+        oncePer: app.status.conditions[0].lastTransitionTime
+        send: [app-health-degraded]
+        when: |
+          app.status.conditions != nil &&
+          app.status.conditions[0].type == 'ResourcesMissing'
+
+    trigger.on-high-resource-usage: |
+      - description: Application is using high resources
+        oncePer: app.status.operationState.startedAt
+        send: [app-health-degraded]
+        when: |
+          app.status.resources != nil &&
+          app.status.resources[0].status == 'ResourceQuotaExceeded'
+
+  defaultTriggers: |
+    - on-sync-status-unknown
+
+configs:
+  repositories:
+    # Required when using helm repository with oci formal like karpenter and aws-gateway-api-controller
+    aws-public-ecr:
+      name: aws-public-ecr
+      type: helm
+      url: public.ecr.aws
+      enableOCI: "true"
+  cm:
+    admin.enabled: true
+    exec.enabled: true
+    exec.shells: bash,sh,powershell,cmd,zsh
+    statusbadge.enabled: "true"
+    help.chatUrl: "https://example-org-sam7420.slack.com/archives/C0793M1NWD9"
+    help.chatText: "Help me!!!"
+    application.resourceTrackingMethod: "annotation" #use annotation for tracking required for Crossplane
+    accounts.image-updater: apiKey
+    dex.config: |
+      connectors:
+        # GitHub example
+        - type: github
+          id: github
+          name: GitHub
+          config:
+            clientID: $GITHUB_CLIENT_ID
+            clientSecret: $GITHUB_CLIENT_SECRET
+            orgs:
+            - name: wetripod
+              teams:
+              - demo
+              - ps
+              - example-org
+              - example-org_pm
+              - example-org_engineering
+              - example-org_devops
+              - example-org_data
+              - example-org_product
+            loadAllGroups: false
+            teamNameField: slug
+            useLoginAsId: false
+    resource.exclusions: |
+      - kinds:
+        - ProviderConfigUsage
+        apiGroups:
+        - "*"
+    resource.customizations: |
+      "awsblueprints.io/*":
+        health.lua: |
+          health_status = {
+            status = "Progressing",
+            message = "Provisioning ..."
+          }
+
+          if obj.status == nil or obj.status.conditions == nil then
+            return health_status
+          end
+
+          for i, condition in ipairs(obj.status.conditions) do
+            if condition.type == "Ready" then
+              if condition.status == "True" then
+                health_status.status = "Healthy"
+                health_status.message = "Resource is up-to-date."
+                return health_status
+              end
+            end
+
+            if condition.type == "LastAsyncOperation" then
+              if condition.status == "False" then
+                health_status.status = "Degraded"
+                health_status.message = condition.message
+                return health_status
+              end
+            end
+
+            if condition.type == "Synced" then
+              if condition.status == "False" then
+                health_status.status = "Degraded"
+                health_status.message = condition.message
+                return health_status
+              end
+            end
+          end
+
+          return health_status
+
+      "*.aws.upbound.io/*":
+        health.lua: |
+          health_status = {
+            status = "Progressing",
+            message = "Provisioning ..."
+          }
+
+          if obj.status == nil or obj.status.conditions == nil then
+            return health_status
+          end
+
+          for i, condition in ipairs(obj.status.conditions) do
+            if condition.type == "Ready" then
+              if condition.status == "True" then
+                health_status.status = "Healthy"
+                health_status.message = "Resource is up-to-date."
+                return health_status
+              end
+            end
+
+            if condition.type == "LastAsyncOperation" then
+              if condition.status == "False" then
+                health_status.status = "Degraded"
+                health_status.message = condition.message
+                return health_status
+              end
+            end
+
+            if condition.type == "Synced" then
+              if condition.status == "False" then
+                health_status.status = "Degraded"
+                health_status.message = condition.message
+                return health_status
+              end
+            end
+          end
+
+          return health_status
+
+      "*.aws.crossplane.io/*":
+        health.lua: |
+          health_status = {
+            status = "Progressing",
+            message = "Provisioning ..."
+          }
+
+          if obj.status == nil or obj.status.conditions == nil then
+            return health_status
+          end
+
+          for i, condition in ipairs(obj.status.conditions) do
+            if condition.type == "Ready" then
+              if condition.status == "True" then
+                health_status.status = "Healthy"
+                health_status.message = "Resource is up-to-date."
+                return health_status
+              end
+            end
+
+            if condition.type == "LastAsyncOperation" then
+              if condition.status == "False" then
+                health_status.status = "Degraded"
+                health_status.message = condition.message
+                return health_status
+              end
+            end
+
+            if condition.type == "Synced" then
+              if condition.status == "False" then
+                health_status.status = "Degraded"
+                health_status.message = condition.message
+                return health_status
+              end
+            end
+          end
+
+          return health_status
+  rbac:
+    policy.default: ""
+    policy.csv: |
+      p, role:devops-role, *, *, *, allow
+
+      p, role:ps-role, applications, *, example-org-app-workspaces/example-org-demo-*-workload-*, allow
+      p, role:ps-role, exec, create, example-org-app-workspaces/example-org-demo-*-workload-*, allow
+      p, role:ps-role, logs, *, example-org-app-workspaces/example-org-demo-*-workload-*, allow
+
+      p, role:ps-role, repositories, *, *, deny
+      p, role:ps-role, clusters, get, *, allow
+
+      p, role:product-role, applications, *, example-org-app-workspaces/example-org-demo-*-workload-*, allow
+      p, role:product-role, exec, create, example-org-app-workspaces/example-org-demo-*-workload-*, allow
+      p, role:product-role, logs, *, example-org-app-workspaces/example-org-demo-*-workload-*, allow
+
+      p, role:product-role, repositories, *, *, deny
+      p, role:product-role, clusters, get, *, allow
+
+      p, role:data-role, applications, *, example-org-app-workspaces/*, allow
+      p, role:data-role, exec, create, example-org-app-workspaces/*, allow
+      p, role:data-role, logs, *, example-org-app-workspaces/*, allow
+
+      p, role:data-role, repositories, *, *, deny
+      p, role:data-role, clusters, get, *, allow
+
+      g, wetripod:example-org_pm, role:ps-role
+      g, wetripod:example-org_engineering, role:readonly
+      g, wetripod:example-org_devops, role:devops-role
+      g, wetripod:example-org_data, role:devops-role
+      g, wetripod:example-org_product, role:product-role
+
+      p, role:image-updater, applications, get, */*, allow
+      p, role:image-updater, applications, update, */*, allow
+      g, image-updater, role:devops-role
+
+# -- Array of extra K8s manifests to deploy
+## Note: Supports use of custom Helm templates
+##       It gets handle in this form inside the argo-cd chart
+# {{ range .Values.extraObjects }}
+# ---
+# {{ if typeIs "string" . }}
+#     {{- tpl . $ }}
+# {{- else }}
+#     {{- tpl (toYaml .) $ }}
+# {{- end }}
+# {{ end }}
+extraObjects:
+  - |
+    apiVersion: argoproj.io/v1alpha1
+    kind: AppProject
+    metadata:
+      name: default
+      namespace: {{ $.Release.Namespace | quote }}
+      annotations:
+        source: gitops-brige
+    spec:
+      clusterResourceWhitelist:
+      - group: '*'
+        kind: '*'
+      sourceRepos:
+        - '*'
+      destinations:
+        - namespace: '*'
+          name: '*'
+          server: '*'

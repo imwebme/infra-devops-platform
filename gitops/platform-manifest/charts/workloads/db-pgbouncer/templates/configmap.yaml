@@ -1,0 +1,51 @@
+{{- range .Values.data }}
+{{- $name := (printf "%s-%s-%s" (include "example-org-pgbouncer.name" $) (.name) "config") }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $name }}
+data:
+  config.ini: |
+    [databases]
+    {{ .service_db }} = host={{ .host_adress }} port=5432
+    
+    [pgbouncer]
+    logfile = {{ .logfile }}
+    pidfile = {{ .pidfile }}
+    
+    listen_addr = {{ .listen_addr }}
+    listen_port = {{ .listen_port }}
+    
+    pool_mode = {{ .pool_mode }}
+
+    max_client_conn = {{ .max_client_conn }}
+    default_pool_size = {{ .default_pool_size }}
+
+    {{- if .max_prepared_statements }}
+    max_prepared_statements = {{ .max_prepared_statements }}
+    {{- end }}
+
+    unix_socket_dir = {{ .unix_socket_dir }}
+    unix_socket_mode = {{ .unix_socket_mode }}
+    
+    auth_type = {{ .auth_type }}
+    auth_file = {{ .auth_file }}
+    
+    admin_users = {{ .admin_users }}
+    stats_users = {{ .stats_users }}
+    auth_dbname = {{ .auth_dbname }}
+
+    server_lifetime = {{ .server_lifetime }}
+    server_idle_timeout = {{ .server_idle_timeout }}
+    server_round_robin = {{ .server_round_robin }}
+    
+    dns_max_ttl = {{ .dns_max_ttl }}
+    dns_max_used_counter_ttl = {{ .dns_max_used_counter_ttl }}
+    dns_invalidate_conn_when_ip_changed = {{ .dns_invalidate_conn_when_ip_changed }}
+
+    client_idle_timeout = {{ .client_idle_timeout }}
+    
+    ignore_startup_parameters = {{ .ignore_startup_parameters }}
+
+{{- end }}

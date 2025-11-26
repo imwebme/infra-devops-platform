@@ -1,0 +1,69 @@
+fullnameOverride: promstack
+
+crds:
+  create: true
+
+global:
+  rbac:
+    create: true
+    createAggregateClusterRoles: false
+    pspEnabled: false
+    pspAnnotations: {}
+
+  imageRegistry: ""
+  imagePullSecrets: []
+
+prometheusOperator:
+  enabled: true
+  serviceAccount:
+    create: false
+  admissionWebhooks:
+    enabled: false
+  tls:
+    enabled: false
+
+alertmanager:
+  enabled: false
+
+# rulers
+customRules: {}
+
+defaultRules:
+  create: false
+
+thanosRuler:
+  enabled: false
+
+# scrapes
+kubeApiServer:
+  enabled: false
+
+kubelet:
+  enabled: false
+
+windowsMonitoring:
+  enabled: false
+
+kubeControllerManager:
+  enabled: false
+
+coreDns:
+  enabled: false
+
+kubeDns:
+  enabled: false
+
+kubeEtcd:
+  enabled: false
+
+kubeScheduler:
+  enabled: false
+
+kubeProxy:
+  enabled: false
+
+kubeStateMetrics:
+  enabled: false
+
+nodeExporter:
+  enabled: false

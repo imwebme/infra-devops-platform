@@ -1,0 +1,150 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: devops-addons-helm-external-dynamic-appset
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=invalid"]
+  syncPolicy:
+    preserveResourcesOnDeletion: true
+  generators:
+    - matrix:
+        generators:
+          - matrix:
+              generators:
+                - git:
+                    repoURL: https://github.com/wetripod/devops-gitops-manifest.git
+                    revision: main
+                    files:
+                      - path: configs/**/addons/helm-external-dynamic-elements.yaml
+                - list:
+                    elementsYaml: "{{ .key.components | toJson }}"
+          - clusters:
+              selector:
+                matchLabels:
+                  aws_cluster_name: "{{ index .path.segments 1 }}"
+  template:
+    metadata:
+      name: "devops-{{ .metadata.labels.aws_cluster_name }}-addon-{{.chart.release_name}}"
+    spec:
+      project: devops-core
+      sources:
+        - chart: "{{.chart.name}}"
+          repoURL: "{{.chart.repo}}"
+          targetRevision: "{{.chart.version}}"
+          helm:
+            releaseName: "{{.chart.release_name}}"
+            ignoreMissingValueFiles: true
+            valueFiles:
+              - $values/environments/base/addons/{{.chart.name}}/values.yaml
+              - $values/environments/{{.metadata.labels.environment}}/addons/{{.chart.values_path}}
+              - $values/clusters/{{.metadata.labels.aws_cluster_name}}/addons/{{.chart.values_path}}
+            values: |
+              {{- if eq .chart.name "cluster-autoscaler" }}
+              image:
+                tag: {{ index .chart.dynamic_values "image" "tag" }}
+              awsRegion: {{$.metadata.annotations.aws_region}}
+              autoDiscovery:
+                clusterName: {{$.metadata.annotations.aws_cluster_name}}
+              rbac:
+                serviceAccount:
+                  name: {{$.metadata.annotations.cluster_autoscaler_service_account}}
+                  annotations:
+                    eks.amazonaws.com/role-arn: {{$.metadata.annotations.cluster_autoscaler_iam_role_arn}}
+              {{- else if eq .chart.name "cert-manager" }}
+              installCRDs: true
+              serviceAccount:
+                name: {{$.metadata.annotations.cert_manager_service_account}}
+                annotations:
+                  eks.amazonaws.com/role-arn: {{$.metadata.annotations.cert_manager_iam_role_arn}}
+              {{- else if eq .chart.name "external-dns" }}
+              provider: aws
+              fullnameOverride: "external-dns-{{.chart.zone_type}}"
+              serviceAccount:
+                create: {{.chart.create_sa | default "false"}}
+                name: {{$.metadata.annotations.external_dns_service_account}}
+                annotations:
+                  eks.amazonaws.com/role-arn: {{$.metadata.annotations.external_dns_iam_role_arn}}
+              domainFilters:
+                - {{$.metadata.annotations.eks_cluster_domain | default ""}}
+              txtOwnerId: {{$.metadata.annotations.aws_cluster_name}}
+              policy: {{$.metadata.annotations.external_dns_policy | default "upsert-only"}}
+              aws:
+                zoneType: {{.chart.zone_type}}
+                zoneTags:
+                  - "zone={{.chart.zone_type}}"
+                preferCNAME: true
+              txtPrefix: "external-dns-{{.chart.zone_type}}."
+              zoneIdFilters:
+                {{- range .chart.zoneIdFilters }}
+                - "{{ . }}"
+                {{- end }}
+              {{- else if eq .chart.name "external-secrets" }}
+              serviceAccount:
+                name: {{$.metadata.annotations.external_secrets_service_account}}
+                annotations:
+                  eks.amazonaws.com/role-arn: {{$.metadata.annotations.external_secrets_iam_role_arn}}
+              {{- else if eq .chart.name "karpenter" }}
+              settings:
+                clusterName: {{$.metadata.annotations.aws_cluster_name}}
+                interruptionQueue: {{$.metadata.annotations.karpenter_sqs_queue_name}}
+              serviceAccount:
+                name: {{$.metadata.annotations.karpenter_service_account}}
+                annotations:
+                  eks.amazonaws.com/role-arn: {{$.metadata.annotations.karpenter_iam_role_arn}}
+              {{- else if eq .chart.name "aws-load-balancer-controller" }}
+              clusterName: {{$.metadata.annotations.aws_cluster_name}}
+              serviceAccount:
+                name: {{$.metadata.annotations.aws_load_balancer_controller_service_account}}
+                annotations:
+                  eks.amazonaws.com/role-arn: {{$.metadata.annotations.aws_load_balancer_controller_iam_role_arn}}
+              {{- else if eq .chart.name "aws-efs-csi-driver" }}
+              controller:
+                serviceAccount:
+                  name: {{$.metadata.annotations.aws_efs_csi_driver_controller_service_account}}
+                  annotations:
+                    eks.amazonaws.com/role-arn: {{$.metadata.annotations.aws_efs_csi_driver_iam_role_arn}}
+              node:
+                serviceAccount:
+                  name: {{$.metadata.annotations.aws_efs_csi_driver_node_service_account}}
+                  annotations:
+                    eks.amazonaws.com/role-arn: {{$.metadata.annotations.aws_efs_csi_driver_iam_role_arn}}
+              {{- end }}
+        - repoURL: https://github.com/wetripod/devops-gitops-manifest.git
+          targetRevision: main
+          ref: values
+      destination:
+        namespace: "{{.chart.namespace}}"
+        name: "{{.name}}"
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true
+          - Validate=false
+          - PrunePropagationPolicy=foreground
+          - PruneLast=false
+          - ApplyOutOfSyncOnly=true
+          - ServerSideApply=true
+      ignoreDifferences:
+        - kind: Secret
+          name: aws-load-balancer-tls
+          jsonPointers: [/data]
+        - group: admissionregistration.k8s.io
+          kind: MutatingWebhookConfiguration
+          jqPathExpressions: [".webhooks[].clientConfig.caBundle"]
+        - group: admissionregistration.k8s.io
+          kind: ValidatingWebhookConfiguration
+          jqPathExpressions: [".webhooks[].clientConfig.caBundle"]
+        - group: apps
+          kind: StatefulSet
+          jqPathExpressions:
+            - ".spec.volumeClaimTemplates[].apiVersion"
+            - ".spec.volumeClaimTemplates[].kind"
+  templatePatch: |
+    {{- if .chart.auto_sync }}
+    spec:
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+    {{- end }}

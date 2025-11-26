@@ -1,0 +1,137 @@
+datadog:
+  clusterName: data-prod-eks
+
+  clusterChecks:
+    enabled: true
+
+  # Milvus integration 설정 (Datadog 공식 문서 기반)
+  confd:
+    milvus.yaml: |-
+      ad_identifiers:
+        - milvusdb/milvus
+      init_config:
+      instances:
+        - openmetrics_endpoint: http://%%host%%:9091/metrics
+          namespace: milvus
+          metrics:
+            - ".*"
+
+    # MSK (Amazon Managed Streaming for Apache Kafka) integration 설정
+    amazon_msk.yaml: |-
+      init_config:
+      instances:
+        - cluster_arn: "arn:aws:kafka:ap-northeast-2:123456789012:cluster/data-prod-kafka-msk/be178d06-56c5-40b2-955d-8e71af59e2cd-4"
+          region_name: "ap-northeast-2"
+          use_openmetrics: true
+          tags:
+            - "env:prod"
+            - "cluster:data-prod-eks"
+            - "service:kafka"
+            - "msk_cluster:data-prod-kafka-msk"
+
+  # 로그 수집 활성화
+  logs:
+    enabled: true
+    containerCollectAll: true
+
+  kubelet:
+    useApiServer: true # API 서버를 통해 pod 목록 조회
+    tlsVerify: false
+
+  tags:
+    - "env:prod"
+    - "cluster:data-prod-eks"
+
+  env:
+    # hostname을 노드명으로 설정
+    - name: DD_HOSTNAME
+      valueFrom:
+        fieldRef:
+          fieldPath: spec.nodeName
+    # AWS 자격 증명 (MSK 모니터링용)
+    - name: AWS_REGION
+      value: "ap-northeast-2"
+
+clusterChecksRunner:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 122Mi
+    limits:
+      memory: 122Mi
+
+clusterAgent:
+  image:
+    tag: 7.68.0
+  resources:
+    requests:
+      cpu: 260m
+      memory: 947Mi
+    limits:
+      memory: 947Mi
+
+agents:
+  image:
+    tag: 7.68.0
+  containers:
+    agent:
+      resources:
+        requests:
+          cpu: 350m
+          memory: 367Mi
+        limits:
+          memory: 367Mi
+    traceAgent:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 114Mi
+        limits:
+          memory: 114Mi
+    processAgent:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 168Mi
+        limits:
+          memory: 168Mi
+    systemProbe:
+      resources:
+        requests:
+          cpu: 350m
+          memory: 578Mi
+        limits:
+          memory: 578Mi
+
+  tolerations:
+    - effect: NoSchedule
+      key: mlops-service-bs
+      operator: Equal
+      value: "true"
+    - effect: NoSchedule
+      key: mlops-service-ms
+      operator: Equal
+      value: "true"
+    - effect: NoSchedule
+      key: eks.taints.example-org.data/service
+      operator: Equal
+      value: "mgmt-amd"
+    - effect: NoSchedule
+      key: mlops-service-feast-api
+      value: "true"
+    - effect: NoSchedule
+      key: mlops-milvus
+      operator: Equal
+      value: "true"
+    - effect: NoSchedule
+      key: mlops-milvus-pulsar
+      operator: Equal
+      value: "true"
+    - effect: NoSchedule
+      key: mlops-milvus-querynode
+      operator: Equal
+      value: "true"
+    - operator: Equal
+      key: CoreAddonsOnly
+      value: "true"
+      effect: NoSchedule

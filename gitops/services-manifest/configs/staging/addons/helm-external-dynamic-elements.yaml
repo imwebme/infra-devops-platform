@@ -1,0 +1,71 @@
+key:
+  components:
+    # - chart:
+    #     name: cluster-autoscaler
+    #     release_name: cluster-autoscaler
+    #     repo: https://kubernetes.github.io/autoscaler
+    #     version: 9.29.3
+    #     enable_key: cluster_autoscaler
+    #     values_path: cluster-autoscaler/values.yaml
+    #     namespace: kube-system
+    #     dynamic_values:
+    #       image:
+    #         tag: v1.28.0
+    # - chart:
+    #     name: cert-manager
+    #     release_name: cert-manager
+    #     repo: https://charts.jetstack.io
+    #     version: v1.12.0
+    #     enable_key: cert_manager
+    #     values_path: cert-manager/values.yaml
+    #     namespace: cert-manager
+    #     dynamic_values:
+    #       installCRDs: true
+    # - chart:
+    #     name: external-dns
+    #     release_name: external-dns-public
+    #     repo: https://charts.bitnami.com/bitnami
+    #     version: 8.3.12
+    #     enable_key: external_dns
+    #     values_path: external-dns-v2/public.yaml
+    #     namespace: external-dns
+    #     zone_type: public
+    #     create_sa: false
+    #     zoneIdFilters:
+    #       - Z0746153HPNMQ81JJC82
+    # - chart:
+    #     name: external-dns
+    #     release_name: external-dns-private
+    #     repo: https://charts.bitnami.com/bitnami
+    #     version: 8.3.12
+    #     enable_key: external_dns
+    #     values_path: external-dns-v2/private.yaml
+    #     namespace: external-dns
+    #     zone_type: private
+    #     create_sa: true
+    #     zoneIdFilters:
+    #       - Z07132653AT7O0YBZPDPK
+    # - chart:
+    #     name: external-secrets
+    #     release_name: external-secrets
+    #     repo: https://charts.external-secrets.io
+    #     version: 0.9.5
+    #     enable_key: external_secrets
+    #     values_path: external-secrets/values.yaml
+    #     namespace: external-secrets
+    # - chart:
+    #     name: karpenter
+    #     release_name: karpenter
+    #     repo: public.ecr.aws/karpenter
+    #     version: v0.33.0
+    #     enable_key: karpenter
+    #     values_path: karpenter/values.yaml
+    #     namespace: karpenter
+    # - chart:
+    #     name: aws-load-balancer-controller
+    #     release_name: aws-load-balancer-controller
+    #     repo: https://aws.github.io/eks-charts
+    #     version: 1.6.1
+    #     enable_key: aws_load_balancer_controller
+    #     values_path: aws-load-balancer-controller/values.yaml
+    #     namespace: kube-system

@@ -1,0 +1,34 @@
+# syntax=docker/dockerfile:1.7-labs
+# Base Build Stage
+FROM node:20.19.0-alpine AS base-builder
+RUN apk --no-cache add curl jq && npm install -g npm@9.3.1 && npm install -g pm2
+
+ARG AWS_ACCESS_KEY_ID
+ARG AWS_SECRET_ACCESS_KEY
+ARG ENCRYPT_KEY
+
+WORKDIR /home/alwayz-back
+
+COPY tsconfig.json ./ 
+COPY createEnv.js .
+COPY package.json package-lock.json ./
+RUN npm pkg delete scripts.prepare && npm ci
+
+COPY --exclude=package* ./ ./
+
+RUN npm run build
+
+ARG IMAGE_TAG
+ARG DD_GIT_REPOSITORY_URL
+ARG DD_GIT_COMMIT_SHA
+ENV DD_VERSION=${IMAGE_TAG}
+ENV DD_GIT_REPOSITORY_URL=${DD_GIT_REPOSITORY_URL} 
+ENV DD_GIT_COMMIT_SHA=${DD_GIT_COMMIT_SHA}
+
+RUN response=$(curl -s https://alwayz-config.prod.example.com/env/alwayz-back/prod) && \
+    data=$(echo $response | jq -r '.data') && \
+    node createEnv.js "$data" "$ENCRYPT_KEY"
+
+RUN if [ ! -f .env ]; then echo ".env 파일이 없습니다. 도커 빌드를 중지합니다." && exit 1; fi
+
+CMD [ "node", "dist/index.js" ]

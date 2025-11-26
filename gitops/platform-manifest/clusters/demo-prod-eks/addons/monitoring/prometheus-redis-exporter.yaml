@@ -1,0 +1,12 @@
+replicaCount: 4
+
+priorityClassName: monitoring-addons
+
+nodeSelector:
+  service: monitoring-addons
+
+tolerations:
+  - effect: NoSchedule
+    key: MonitoringAddonsOnly
+    value: "true"
+    operator: Equal

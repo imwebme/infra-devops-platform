@@ -1,0 +1,30 @@
+tolerations:
+  - effect: NoSchedule
+    key: CoreAddonsOnly
+    value: "true"
+    operator: Equal
+
+nodeSelector:
+  service: core-addons
+
+config:
+  argocd:
+    grpcWeb: true
+    serverAddress: "http://argocd-server.argocd"
+    insecure: true
+    plaintext: true
+  logLevel: info
+  registries:
+    - name: ECR
+      api_url: "https://123456789012.dkr.ecr.ap-northeast-2.amazonaws.com"
+      prefix: "123456789012.dkr.ecr.ap-northeast-2.amazonaws.com"
+      ping: true
+      insecure: false
+      credentials: "secret:argocd/ecr-secret#creds"
+      credsexpire: 3h
+
+extraArgs:
+  - --interval=1m
+extraEnvFrom:
+  - secretRef:
+      name: ecr-secret

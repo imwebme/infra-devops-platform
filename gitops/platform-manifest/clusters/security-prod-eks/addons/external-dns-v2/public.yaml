@@ -1,0 +1,6 @@
+aws:
+  zoneType: "public"
+
+logLevel: info
+extraArgs:
+  annotation-filter: "alb.ingress.kubernetes.io/scheme notin (internal)"

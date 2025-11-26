@@ -1,0 +1,163 @@
+apiVersion: psmdb.percona.com/v1
+kind: PerconaServerMongoDB
+metadata:
+  name: dev-crm
+  labels:
+    app.kubernetes.io/name: dev-crm
+  finalizers: null
+spec:
+  crVersion: 1.20.1
+  unmanaged: false
+  updateStrategy: SmartUpdate
+  clusterServiceDNSMode: External
+  
+  image: percona/percona-server-mongodb:6.0.20-17
+  imagePullPolicy: "IfNotPresent"
+  initImage: percona/percona-server-mongodb-operator:1.20.1
+
+  tls:
+    mode: preferTLS
+    allowInvalidCertificates: true
+
+  ## sercret
+  secrets:
+    users: psmdb-user
+    ssl: psmdb-ssl
+    sslInternal: psmdb-ssl-internal
+
+  ## upgrade
+  upgradeOptions:
+    versionServiceEndpoint: https://check.percona.com
+    apply: Never
+    schedule: 0 2 * * *
+    setFCV: false
+
+  ## backup
+  backup:
+    enabled: true
+    image: percona/percona-backup-mongodb:2.8.0-multi
+    storages:
+      daily:
+        s3:
+          bucket: example-org-database-backup-dev
+          prefix: scheduled/dev-crm
+          region: ap-northeast-2
+        type: s3
+    pitr:
+      enabled: true
+    tasks:
+      - compressionLevel: 6
+        compressionType: gzip
+        enabled: true
+        keep: 3
+        name: daily
+        schedule: 30 19 * * *
+        storageName: daily
+        type: physical
+
+  ## replica set
+  replsets:
+    - name: shard01
+      size: 3
+      configuration: |
+        net:
+          tls:
+            allowConnectionsWithoutCertificates: true
+            allowInvalidHostnames: true
+            allowInvalidCertificates: true
+        security:
+          enableEncryption: false
+        systemLog:
+          verbosity: 0
+        setParameter:
+          diagnosticDataCollectionDirectoryPath: "/data/db/diagnostic-mongod.data"
+          diagnosticDataCollectionPeriodMillis: 10000          
+          maxIndexBuildMemoryUsageMegabytes: 250
+      serviceAccountName: mongodb
+      labels: 
+        app.kubernetes.io/role: shardsvr
+      affinity:
+        advanced:
+          podAntiAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+              - podAffinityTerm:
+                  labelSelector:
+                    matchLabels:
+                      app.kubernetes.io/instance: dev-crm
+                      app.kubernetes.io/name: percona-server-mongodb
+                      app.kubernetes.io/replset: shard01 # replsets[].name
+                  topologyKey: failure-domain.beta.kubernetes.io/zone
+                weight: 100
+              - podAffinityTerm:
+                  labelSelector:
+                    matchLabels:
+                      app.kubernetes.io/instance: dev-crm
+                      app.kubernetes.io/name: percona-server-mongodb
+                  topologyKey: kubernetes.io/hostname
+                weight: 1
+            requiredDuringSchedulingIgnoredDuringExecution:
+              - labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/instance: dev-crm
+                    app.kubernetes.io/name: percona-server-mongodb
+                    app.kubernetes.io/replset: shard01 # replsets[].name
+                topologyKey: kubernetes.io/hostname
+      tolerations:
+        - effect: NoSchedule
+          key: MongoDBOnly
+          operator: Equal
+          value: "true"
+      nodeSelector:
+        service: mongodb
+      livenessProbe:
+        failureThreshold: 20
+        initialDelaySeconds: 300
+        periodSeconds: 120
+        startupDelaySeconds: 7200
+        timeoutSeconds: 10
+      readinessProbe:
+        failureThreshold: 10
+        initialDelaySeconds: 60
+        periodSeconds: 10
+        successThreshold: 1
+        timeoutSeconds: 10
+      storage:
+        wiredTiger:
+          collectionConfig:
+            blockCompressor: snappy
+          engineConfig:
+            cacheSizeRatio: 0.6
+            directoryForIndexes: false
+            journalCompressor: snappy
+          indexConfig:
+            prefixCompression: true
+      podDisruptionBudget:
+        maxUnavailable: 1
+      expose:
+        enabled: true
+        type: LoadBalancer
+        annotations: 
+          service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
+          service.beta.kubernetes.io/aws-load-balancer-type: external
+          service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: preserve_client_ip.enabled=false
+      resources:
+        limits:
+          memory: 2Gi
+        requests:
+          cpu: 100m
+      volumeSpec:
+        persistentVolumeClaim:
+          resources:
+            requests:
+              storage: 100Gi
+          storageClassName: xfs
+      nonvoting:
+        enabled: false
+        size: 1
+      arbiter:
+        enabled: false
+        size: 1
+  
+  ## shard cluster
+  sharding:
+    enabled: false

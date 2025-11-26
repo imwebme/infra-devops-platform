@@ -1,0 +1,125 @@
+# Tailscale Kubernetes Operator 설정
+# 공식 문서 기반: https://tailscale.com/kb/1236/kubernetes-operator
+
+# OAuth 설정
+oauth:
+  clientSecretRef:
+    name: operator-oauth
+    clientIdKey: client_id
+    clientSecretKey: client_secret
+  scopes:
+    - "read"
+    - "write"
+  extraParams:
+    response_type: "code"
+
+# ProxyClass 설정 (서브넷 라우터용)
+proxyClass:
+  create: true
+  name: "security-prod-proxy"
+  spec:
+    # 서브넷 라우터 전용 설정
+    tailscale:
+      acceptRoutes: false  # 서브넷 라우터는 라우트를 광고만 함
+    
+    # 메트릭 활성화
+    metrics:
+      enabled: true
+    
+    # 상태 체크 설정
+    statefulSet:
+      labels:
+        app: tailscale-subnet-router
+        purpose: inter-cluster-routing
+      
+      # Pod 템플릿 설정
+      pod:
+        labels:
+          app: tailscale-subnet-router
+          cluster: security-prod-eks
+        
+        # 보안 컨텍스트
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          fsGroup: 1000
+        
+        # 리소스 제한
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+        
+        # 노드 선택자
+        nodeSelector:
+          service: "common-addons"
+        
+        # 톨러레이션
+        tolerations:
+          - key: "CommonAddonsOnly"
+            operator: "Equal"
+            value: "true"
+            effect: "NoSchedule"
+
+# Operator 설정
+operatorConfig:
+  # 로깅 설정
+  logging:
+    level: info
+    format: json
+  
+  # 메트릭 설정
+  metrics:
+    enabled: true
+    addr: ":8080"
+  
+  # 헬스체크 설정
+  healthcheck:
+    addr: ":8081"
+  
+  # OAuth 설정
+  oauth:
+    scopes:
+      - "read"
+      - "write"
+    extraParams:
+      response_type: "code"
+
+# Operator 리소스 설정
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# 노드 선택자
+nodeSelector:
+  service: "common-addons"
+
+# 톨러레이션
+tolerations:
+  - key: "CommonAddonsOnly"
+    operator: "Equal"
+    value: "true"
+    effect: "NoSchedule"
+
+# 서비스 어카운트 설정
+serviceAccount:
+  create: true
+  name: tailscale-operator
+  annotations:
+    eks.amazonaws.com/role-arn: ""  # 필요시 IAM 역할 ARN 추가
+
+# RBAC 설정
+rbac:
+  create: true
+
+# 네임스페이스 설정
+namespace:
+  create: true
+  name: tailscale

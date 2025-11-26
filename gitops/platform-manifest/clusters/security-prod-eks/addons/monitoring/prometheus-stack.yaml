@@ -1,0 +1,517 @@
+# grafana:
+#   enabled: true
+#   fullnameOverride: grafana
+#   replicas: 2
+#   serviceAccount:
+#     create: false
+#   priorityClassName: monitoring-addons
+#   nodeSelector:
+#     service: monitoring-addons
+#   tolerations:
+#     - effect: NoSchedule
+#       key: MonitoringAddonsOnly
+#       value: "true"
+#       operator: Equal
+#   ingress:
+#     enabled: true
+#     ingressClassName: alb
+#     annotations:
+#       alb.ingress.kubernetes.io/scheme: internal
+#       alb.ingress.kubernetes.io/target-type: ip
+#       alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+#       alb.ingress.kubernetes.io/success-codes: 200-399
+#       alb.ingress.kubernetes.io/manage-backend-security-group-rules: "true"
+#       alb.ingress.kubernetes.io/security-groups: sg-0c6c76c707a9c6f5b # edit
+#     hosts:
+#       - grafana.security.prod.iexample-org.com # edit
+#     paths:
+#       - /
+#     pathType: Prefix
+#     tls:
+#       - hosts:
+#           - "grafana.security.prod.iexample-org.com" # edit
+#   defaultDashboardsEnabled: true
+#   grafana.ini:
+#     analytics:
+#       check_for_updates: false
+#     database:
+#       host: staging-my.cluster-c3epvhkyjnng.ap-northeast-2.rds.amazonaws.com # edit
+#       type: mysql
+#     paths:
+#       data: /var/lib/grafana/
+#       logs: /var/log/grafana
+#       plugins: /var/lib/grafana/plugins
+#       provisioning: /etc/grafana/provisioning
+#     server:
+#       domain: grafana.security.prod.iexample-org.com # edit
+#       root_url: https://%(domain)s/
+#     security:
+#       disable_initial_admin_creation: false
+#     unified_alerting:
+#       enabled: true
+#       ha_listen_address: "${POD_IP}:9094"
+#       ha_peers: "grafana-headless.monitoring.svc.cluster.local:9094"
+#       ha_advertise_address: "${POD_IP}:9094"
+#       ha_peer_timeout: 15s
+#       ha_reconnect_timeout: 2m
+#   envValueFrom:
+#     GF_DATABASE_USER:
+#       secretKeyRef:
+#         name: grafana-database-user
+#         key: dbuser
+#     GF_DATABASE_PASSWORD:
+#       secretKeyRef:
+#         name: grafana-database-user
+#         key: dbpwd
+#   serviceMonitor:
+#     enabled: true
+#     scrapeTimeout: 10s
+#     relabelings: []
+#   headlessService: true
+#   sidecar:
+#     datasources:
+#       enabled: true
+#       defaultDatasourceEnabled: true
+#       isDefaultDatasource: true
+#       name: Prometheus
+#       uid: prometheus
+
+#       alertmanager:
+#         enabled: true
+#         name: Alertmanager
+#         uid: alertmanager
+#         handleGrafanaManagedAlerts: true
+#         implementation: prometheus
+
+kubelet:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    https: true
+    insecureSkipVerify: true
+    cAdvisor: true
+    probes: true
+
+nodeExporter:
+  enabled: true
+
+# node-exporter 서브차트 설정
+prometheus-node-exporter:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    limits:
+      memory: 100Mi
+
+## Component scraping kube state metrics
+##
+kubeStateMetrics:
+  enabled: true
+
+## Configuration for kube-state-metrics subchart
+##
+kube-state-metrics:
+  namespaceOverride: ""
+  rbac:
+    create: true
+  releaseLabel: true
+
+  ## Enable scraping via kubernetes-service-endpoints
+  ## Disabled by default as we service monitor is enabled below
+  ##
+  prometheusScrape: false
+
+  prometheus:
+    monitor:
+      ## Enable scraping via service monitor
+      ## Disable to prevent duplication if you enable prometheusScrape above
+      ##
+      enabled: true
+
+      ## Scrape interval. If not set, the Prometheus default scrape interval is used.
+      ##
+      interval: ""
+
+      ## SampleLimit defines per-scrape limit on number of scraped samples that will be accepted.
+      ##
+      sampleLimit: 0
+
+      ## TargetLimit defines a limit on the number of scraped targets that will be accepted.
+      ##
+      targetLimit: 0
+
+      ## Per-scrape limit on number of labels that will be accepted for a sample. Only valid in Prometheus versions 2.27.0 and newer.
+      ##
+      labelLimit: 0
+
+      ## Per-scrape limit on length of labels name that will be accepted for a sample. Only valid in Prometheus versions 2.27.0 and newer.
+      ##
+      labelNameLengthLimit: 0
+
+      ## Per-scrape limit on length of labels value that will be accepted for a sample. Only valid in Prometheus versions 2.27.0 and newer.
+      ##
+      labelValueLengthLimit: 0
+
+      ## Scrape Timeout. If not set, the Prometheus default scrape timeout is used.
+      ##
+      scrapeTimeout: ""
+
+      ## proxyUrl: URL of a proxy that should be used for scraping.
+      ##
+      proxyUrl: ""
+
+      # Keep labels from scraped data, overriding server-side labels
+      ##
+      honorLabels: true
+
+      ## MetricRelabelConfigs to apply to samples after scraping, but before ingestion.
+      ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#relabelconfig
+      ##
+      metricRelabelings: []
+      # - action: keep
+      #   regex: 'kube_(daemonset|deployment|pod|namespace|node|statefulset).+'
+      #   sourceLabels: [__name__]
+
+      ## RelabelConfigs to apply to samples before scraping
+      ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#relabelconfig
+      ##
+      relabelings: []
+      # - sourceLabels: [__meta_kubernetes_pod_node_name]
+      #   separator: ;
+      #   regex: ^(.*)$
+      #   targetLabel: nodename
+      #   replacement: $1
+      #   action: replace
+
+  selfMonitor:
+    enabled: false
+
+prometheusOperator:
+  priorityClassName: monitoring-addons
+  nodeSelector:
+    service: monitoring-addons
+  tolerations:
+    - effect: NoSchedule
+      key: MonitoringAddonsOnly
+      value: "true"
+      operator: Equal
+
+prometheus:
+  enabled: true
+  serviceAccount:
+    create: false
+  replicas: 1
+  ingress:
+    enabled: true
+    ingressClassName: alb
+    annotations:
+      alb.ingress.kubernetes.io/scheme: internal
+      alb.ingress.kubernetes.io/target-type: ip
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+      alb.ingress.kubernetes.io/success-codes: 200-399
+      alb.ingress.kubernetes.io/manage-backend-security-group-rules: "true"
+      alb.ingress.kubernetes.io/security-groups: sg-0c6c76c707a9c6f5b # edit
+    hosts:
+      - prometheus.security.prod.iexample-org.com # edit
+    paths:
+      - /
+    pathType: Prefix
+    tls:
+      - hosts:
+          - "prometheus.security.prod.iexample-org.com" # edit
+  serviceMonitor:
+    selfMonitor: false
+  prometheusSpec:
+    retention: 10d
+    retentionSize: ""
+    replicas: 1
+    priorityClassName: monitoring-addons
+    nodeSelector:
+      service: monitoring-addons
+    tolerations:
+      - effect: NoSchedule
+        key: MonitoringAddonsOnly
+        value: "true"
+        operator: Equal
+    resources:
+      requests:
+        memory: 2Gi
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 500Gi
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    probeSelectorNilUsesHelmValues: false
+    scrapeConfigSelectorNilUsesHelmValues: false
+
+alertmanager:
+  enabled: true
+  serviceAccount:
+    create: false
+  priorityClassName: monitoring-addons
+  nodeSelector:
+    service: monitoring-addons
+  tolerations:
+    - effect: NoSchedule
+      key: MonitoringAddonsOnly
+      value: "true"
+      operator: Equal
+  ingress:
+    enabled: true
+    ingressClassName: alb
+    annotations:
+      alb.ingress.kubernetes.io/scheme: internal
+      alb.ingress.kubernetes.io/target-type: ip
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+      alb.ingress.kubernetes.io/success-codes: 200-399
+      alb.ingress.kubernetes.io/manage-backend-security-group-rules: "true"
+      alb.ingress.kubernetes.io/security-groups: sg-0c6c76c707a9c6f5b # edit
+    hosts:
+      - alertmanager.security.prod.iexample-org.com # edit
+    paths:
+      - /
+    pathType: Prefix
+    tls:
+      - hosts:
+          - "alertmanager.security.prod.iexample-org.com" # edit
+  config:
+    global:
+      resolve_timeout: 5m
+    inhibit_rules:
+      - equal:
+          - namespace
+          - alertname
+        source_matchers:
+          - severity = critical
+        target_matchers:
+          - severity =~ warning|info
+      - equal:
+          - namespace
+          - alertname
+        source_matchers:
+          - severity = warning
+        target_matchers:
+          - severity = info
+      - equal:
+          - namespace
+        source_matchers:
+          - alertname = InfoInhibitor
+        target_matchers:
+          - severity = info
+      - target_matchers:
+          - alertname = InfoInhibitor
+    receivers:
+      - name: "robusta"
+        webhook_configs:
+          - url: "http://robusta-runner.robusta.svc.cluster.local/api/alerts"
+            send_resolved: true
+      - name: slack-db-test
+        slack_configs:
+          - api_url: <SLACK_WEBHOOK_URL_PLACEHOLDER>
+            channel: "C08133K6144"
+            color: '{{ template "slack.color" . }}'
+            text: "```{{ (index .Alerts 0) }}```"
+            title: '{{ template "slack.title" . }}'
+      - name: slack-db
+        slack_configs:
+          - # api_url: <SLACK_WEBHOOK_URL_PLACEHOLDER>
+            # channel: 'C08133K6144'
+            send_resolved: true
+            api_url: <SLACK_WEBHOOK_URL_PLACEHOLDER>
+            channel: "C08133K6144"
+            actions:
+              - text: "Rule :thinking_face:"
+                value: "text"
+                type: button
+                url: "{{ (index .Alerts 0).GeneratorURL }}"
+              - text: "Silence :shushing_face:"
+                value: "text"
+                type: button
+                url: '{{ template "__grafana_alert_silence_link" . }}'
+            color: '{{ template "slack.color" . }}'
+            text: '{{ template "slack.text" . }}'
+            title: '{{ template "slack.title" . }}'
+    route:
+      group_by:
+        - namespace
+      group_interval: 1m
+      group_wait: 10s
+      receiver: slack-db-test
+      repeat_interval: 5m
+      routes:
+        - receiver: "robusta"
+          group_by: ["..."]
+          group_wait: 1s
+          group_interval: 1s
+          matchers:
+            - severity =~ ".*"
+          repeat_interval: 4h
+          continue: true
+        - receiver: slack-db
+          group_interval: 1m
+          group_wait: 30s
+          group_by:
+            - "alertname"
+            - "alertkey"
+            - "instance"
+          matchers:
+            - receiver="slack-db"
+          repeat_interval: 3h
+    templates:
+      - /etc/alertmanager/config/*.tmpl
+  alertmanagerSpec:
+    image:
+      registry: quay.io
+      repository: prometheus/alertmanager
+      tag: v0.27.0
+    replicas: 1
+    priorityClassName: monitoring-addons
+    nodeSelector:
+      service: monitoring-addons
+    tolerations:
+      - effect: NoSchedule
+        key: MonitoringAddonsOnly
+        value: "true"
+        operator: Equal
+  templateFiles:
+    template.tmpl: |
+      {{/* Alertmanager Silence link */}}
+      {{ define "__alert_silence_link" -}}
+          {{ .ExternalURL }}/#/silences/new?filter=%7B
+          {{- range .CommonLabels.SortedPairs -}}
+              {{- if or (eq .Name "__alert_rule_namespace_uid__") (eq .Name "__alert_rule_uid__") (eq .Name "instance") (eq .Name "alertkey") -}}
+                  {{- .Name }}%3D"{{- urlquery .Value | reReplaceAll "\\+" "%20" -}}"%2C%20
+              {{- end -}}
+          {{- end -}}
+          alertname%3D"{{- urlquery .CommonLabels.alertname | reReplaceAll "\\+" "%20" -}}"%7D
+      {{- end }}
+
+      {{ define "__grafana_alert_silence_link" -}}
+          https://grafana.security.prod.iexample-org.com/alerting/silence/new?
+          {{- range .CommonLabels.SortedPairs -}}
+              {{- if or (eq .Name "instance") (eq .Name "alertkey") (eq .Name "alertname") -}}
+                  matcher={{- .Name }}%3D{{- .Value | urlquery -}}&
+              {{- end -}}
+          {{- end -}}
+          alertmanager=Alertmanager
+      {{- end }}
+
+      {{/* Severity of the alert */}}
+      {{ define "__alert_severity" -}}
+          {{- if eq .CommonLabels.severity "critical" -}}
+          Critical
+          {{- else if eq .CommonLabels.severity "warning" -}}
+          Warning
+          {{- else if eq .CommonLabels.severity "info" -}}
+          Info
+          {{- else -}}
+          Unknown
+          {{- end -}}
+      {{- end }}
+
+      {{/* Title of the Slack alert */}}
+      {{ define "slack.title" -}}
+      [{{ .Status | toUpper -}}
+      {{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{- end -}}
+      ] {{ .CommonLabels.alertname }} ({{ template "__alert_severity" . -}})
+      {{- end }}
+
+      {{/* Color of Slack attachment (appears as line next to alert )*/}}
+      {{ define "slack.color" -}}
+          {{ if eq .Status "firing" -}}
+              {{ if eq .CommonLabels.severity "warning" -}}
+                  warning
+              {{- else if eq .CommonLabels.severity "critical" -}}
+                  danger
+              {{- else -}}
+                  #CED4DA
+              {{- end -}}
+          {{ else -}}
+          good
+          {{- end }}
+      {{- end }}
+
+      {{/* The text to display in the mongodb alert */}}
+      {{ define "slack.text" -}}        
+          {{- $alert := (index .Alerts 0) -}}
+
+          {{- if $alert.Annotations.summary }}
+          {{- "\n" -}}
+          *Summary:* _{{ $alert.Annotations.summary }}_
+          {{- end }}
+          
+          {{- if $alert.Annotations.description }}
+          {{- "\n" -}}
+          *Description:* _{{ $alert.Annotations.description }}_
+          {{- end }}
+          
+          {{- if $alert.Labels.cl }}
+          {{- "\n" -}}
+          *Cluster:* _{{ $alert.Labels.cl }}_
+          {{- else if $alert.Labels.rds_cluster }}
+          {{- "\n" -}}
+          *Cluster:* _{{ $alert.Labels.rds_cluster }}_
+          {{- end }}
+          
+          {{- if $alert.Labels.rs_nm }}
+          {{- "\n" -}}
+          *RelicaSet:* _{{ $alert.Labels.rs_nm }}_
+          {{- end }}
+          
+          {{- if $alert.Labels.instance }}
+          {{- "\n" -}}
+          *Instance:* _<empty.co|{{ $alert.Labels.instance }}>_
+          {{- end }}
+
+          {{- if eq $alert.Labels.rds_cluster_writer "true" }}
+          {{- "\n" -}}
+          *Role*: _writer_
+          {{- else if eq $alert.Labels.rds_cluster_writer "false" }}
+          {{- "\n" -}}
+          *Role*: _reader_
+          {{- else if eq $alert.Labels.rs_state "1" }}
+          {{- "\n" -}}
+          *Role*: _primary_
+          {{- else if eq $alert.Labels.rs_state "2" }}
+          {{- "\n" -}}
+          *Role*: _secondary_
+          {{- end }}
+          
+          {{- if $alert.Labels.az }}
+          {{- "\n" -}}
+          *Zone:* _{{ $alert.Labels.az }}_
+          {{- else if $alert.Labels.rds_az }}
+          {{- "\n" -}}
+          *Zone:* _{{ $alert.Labels.rds_az }}_
+          {{- end }}
+          
+          {{- if gt (len .Alerts) 1 }}
+          {{- "\n" -}}
+          *Value*: 
+              {{- range .Alerts -}}
+                  {{- if .Annotations.value -}}
+                  {{- "\n" -}}
+                  - _{{ .Annotations.value }}_
+                  {{- end -}}
+              {{- end }}
+          {{- else -}}
+              {{- if $alert.Annotations.value -}}
+              {{- "\n" -}}
+              *Value*: _{{ $alert.Annotations.value }}_
+              {{- end -}}
+          {{- end }}
+
+          {{- if eq $alert.Status "firing" }}
+          {{- "\n" -}}
+          *StartedAt*: _{{ $alert.StartsAt }}_
+          {{- else }}
+          {{- "\n" -}}
+          *ResolvedAt*: _{{ $alert.EndsAt }}_
+          {{- end }}
+      {{- end }}

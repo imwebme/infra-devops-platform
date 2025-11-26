@@ -1,0 +1,421 @@
+---
+org: "alwayz"
+env: "prod"
+vpc_cidr: "10.2.0.0/16"
+ecr:
+  - "alwayz-commerce-order"
+  - "alwayz-commerce-order-api"
+  - "alwayz-commerce-order-consumer"
+  - "alwayz-commerce-order-batch"
+  - "alwayz-commerce-api"
+  - "alwayz-commerce-connect"
+  - "alwayz-commerce-worker"
+  - "alwayz-product-worker"
+  - "alwayz-commerce-shipping"
+  - "alwayz-commerce-admin"
+  - "alwayz-commerce-order-pay"
+  - "alwayz-bff"
+  - "alwayz-core-api"
+  - "alwayz-core-connect"
+  - "aldocs"
+  - "alwayz-price-api"
+  - "alwayz-product-api"
+  - "alwayz-product-admin"
+  - "alwayz-product-batch"
+  - "alwayz-alfarm-v2-api"
+  - "alwayz-alfarm-v2-admin"
+  - "alwayz-quality-batch"
+  - "alwayz-quality-api"
+  - "alwayz-alfarm-v2-batch"
+  - "alwayz-review-api"
+  - "alwayz-gateway"
+  - "airport"
+  - "alwayz-ads-api"
+  - "alwayz-ads-admin"
+  - "alwayz-ads-partner"
+  - "db-cw-summary"
+  - "shopin-api-legacy"
+  - "shopin-partners-api-legacy"
+  - "albot"
+  - "gureum"
+  - "alwayz-agent-back"
+  - "alwayz-price-agent-backend"
+  - "alwayz-ads-batch"
+
+eks:
+  kms: false
+  auth_config:
+    # Users are now managed by GitOps
+    # See: alwayz-gitops-manifest/clusters/alwayz-prod-eks/administrations/aws-auth/
+    users: []
+    roles:
+      - rolearn: "arn:aws:iam::123456789012:role/aws-reserved/sso.amazonaws.com/ap-northeast-2/AWSReservedSSO_example_devops_xxxxxxxxxxxx"
+        username: "{{SessionName}}"
+        groups: ["system:masters"]
+
+nat_gateway:
+  enabled: true
+  per_az: true
+coredns:
+  replica: 15
+
+vpc_endpoints:
+  enabled: true
+
+datadog_private_link:
+  enabled: true
+
+vpc_peering:
+  enabled: true
+  connections:
+    - name: "to-alwayz-staging"
+      peer_vpc_id: "vpc-0efa9bd5259c1e33c"
+      peer_region: "ap-northeast-2"
+      peer_cidr: "10.8.0.0/16"
+    - name: "to-data-prod"
+      peer_vpc_id: "vpc-0a678205bdfd676f4"
+      peer_region: "ap-northeast-2"
+      peer_cidr: "10.10.0.0/16"
+    - name: "to-data-dev"
+      peer_vpc_id: "vpc-046b03efc179deedc"
+      peer_region: "ap-northeast-2"
+      peer_cidr: "10.14.0.0/16"
+    - name: "to-datadog"
+      peer_vpc_id: "vpc-b52882c8"
+      peer_region: "us-east-1"
+      peer_cidr: "172.31.0.0/16"
+    - name: "to-databricks"
+      peer_vpc_id: "vpc-06a0742941c0ca1f8"
+      peer_region: "ap-northeast-2"
+      peer_cidr: "10.20.0.0/16"
+
+dx_data:
+  "enabled": true
+
+route53_zones:
+  private:
+    - "prod.iexample-org.com"
+  public:
+    - "prod.iexample-org.com"
+
+secretmanagers:
+  alwayz-services: {}
+  alwayz-commerce-api: {}
+  alwayz-commerce-connect: {}
+  alwayz-commerce-worker: {}
+  alwayz-product-worker: {}
+  alwayz-commerce-batch: {}
+  alwayz-commerce-shipping: {}
+  alwayz-commerce-admin: {}
+  alwayz-bff: {}
+  alwayz-core-api: {}
+  alwayz-core-connect: {}
+  alwayz-price-api: {}
+  alwayz-product-api: {}
+  alwayz-product-admin: {}
+  alwayz-product-batch: {}
+  alwayz-alfarm-api: {}
+  alwayz-quality-batch: {}
+  alwayz-quality-api: {}
+  alwayz-ads-batch: {}
+  alwayz-ads-api: {}
+  alwayz-ads-admin: {}
+  alwayz-ads-partner: {}
+  alwayz-commerce-order: {}
+  alwayz-commerce-order-api: {}
+  alwayz-commerce-order-consumer: {}
+  alwayz-commerce-order-batch: {}
+  alwayz-commerce-order-pay: {}
+  alwayz-review-api: {}
+  abwayz: {}
+  albot: {}
+  devops: {}
+  gureum: {}
+  alwayz-lowest-crawler-realtime: {}
+  alwayz-price-agent-backend: {}
+elasticache:
+  "data-redash":
+    description: "This is the cache cluster for the data redash."
+    cluster_mode: "disabled"
+    node_type: "cache.t4g.small"
+    engine: "valkey"
+    engine_version: "7.2"
+    family: "valkey7"
+    maintenance_window: "sat:07:30-sat:08:30"
+    multi_az_enabled: false
+    snapshot_retention_limit: 1
+    snapshot_window: "16:00-17:00"
+    num_node_groups: 1
+    replicas_per_node_group: 1
+  "devops-argocd":
+    description: "This is the cache cluster for the devops argocd."
+    cluster_mode: "disabled"
+    node_type: "cache.t4g.small"
+    engine: "valkey"
+    engine_version: "7.2"
+    family: "valkey7"
+    maintenance_window: "sat:07:30-sat:08:30"
+    multi_az_enabled: false
+    snapshot_retention_limit: 1
+    snapshot_window: "16:00-17:00"
+    num_node_groups: 1
+    replicas_per_node_group: 1
+  "alwayz-services-valkey8":
+    name: "alwayz-prod-alwayz-services-valkey8"
+    description: "This is the cache cluster for the alwayz services."
+    cluster_mode: "enabled"
+    node_type: "cache.m7g.xlarge"
+    engine: "valkey"
+    engine_version: "8.0"
+    family: "valkey8"
+    maintenance_window: "sat:07:30-sat:08:30"
+    multi_az_enabled: true
+    snapshot_retention_limit: 1
+    snapshot_window: "16:00-17:00"
+    num_cache_clusters: 4
+    snapshot_name: automatic.alwayz-prod-redis-alwayz-services-2025-04-09-16-00
+  "alwayz-alfarm-back-valkey8":
+    name: "alwayz-prod-alfarm-back-valkey8"
+    description: "This is the cache cluster for the alwayz-alfarm-back."
+    cluster_mode: "enabled"
+    node_type: "cache.m7g.xlarge"
+    engine: "valkey"
+    engine_version: "8.0"
+    family: "valkey8"
+    maintenance_window: "sat:07:30-sat:08:30"
+    multi_az_enabled: true
+    snapshot_retention_limit: 1
+    snapshot_window: "16:00-17:00"
+    at_rest_encryption_enabled: true
+    num_node_groups: 2
+    snapshot_name: automatic.alwayz-prod-redis-alwayz-alfarm-back-2025-04-09-16-00
+  "alwayz-back-valkey8":
+    name: "alwayz-prod-alwayz-back-valkey8"
+    description: "This is the cache cluster for the alwayz-back."
+    cluster_mode: "enabled"
+    node_type: "cache.m7g.xlarge"
+    engine: "valkey"
+    engine_version: "8.0"
+    family: "valkey8"
+    maintenance_window: "sat:07:30-sat:08:30"
+    multi_az_enabled: true
+    snapshot_retention_limit: 1
+    snapshot_window: "16:00-17:00"
+    num_node_groups: 8
+    replicas_per_node_group: 1
+    snapshot_name: automatic.alwayz-prod-redis-alwayz-back-2025-04-09-16-00
+    # scheduled_scaling:
+    #   enabled: true
+    #   scale_out:
+    #     min_capacity: 8
+    #     max_capacity: 8
+    #     schedule: "cron(0 6 * * ? *)"
+    #     timezone: "Asia/Seoul"
+    #     start_time: "2025-04-13T06:00:00+09:00"
+    #     end_time: "2027-04-13T06:00:00+09:00"
+    #   scale_in:
+    #     min_capacity: 4
+    #     max_capacity: 4
+    #     schedule: "cron(0 10 * * ? *)"
+    #     timezone: "Asia/Seoul"
+    #     start_time: "2025-04-13T10:00:00+09:00"
+    #     end_time: "2027-04-13T10:00:00+09:00"
+  "alwayz-bff-valkey8":
+    name: "alwayz-prod-alwayz-bff-valkey8"
+    description: "This is the cache cluster for the alwayz bff."
+    cluster_mode: "enabled"
+    node_type: "cache.m7g.xlarge"
+    engine: "valkey"
+    engine_version: "8.0"
+    family: "valkey8"
+    maintenance_window: "sat:07:30-sat:08:30"
+    multi_az_enabled: true
+    snapshot_retention_limit: 1
+    snapshot_window: "16:00-17:00"
+    num_node_groups: 6
+    replicas_per_node_group: 1
+    snapshot_name: automatic.alwayz-prod-redis-alwayz-bff3-2025-04-09-16-00
+  "alwayz-price-valkey8":
+    name: "alwayz-prod-alwayz-price-valkey8"
+    description: "This is the cache cluster for the alwayz price."
+    cluster_mode: "enabled"
+    node_type: "cache.m7g.xlarge"
+    engine: "valkey"
+    engine_version: "8.0"
+    family: "valkey8"
+    maintenance_window: "sat:07:30-sat:08:30"
+    multi_az_enabled: true
+    snapshot_retention_limit: 1
+    snapshot_window: "16:00-17:00"
+    num_node_groups: 2
+    replicas_per_node_group: 1
+    snapshot_name: automatic.alwayz-prod-redis-alwayz-price-2025-04-09-16-00
+  "alwayz-core-valkey8":
+    name: "alwayz-prod-alwayz-core-valkey8"
+    description: "This is the cache cluster for the alwayz core."
+    cluster_mode: "enabled"
+    node_type: "cache.m7g.large"
+    engine: "valkey"
+    engine_version: "8.0"
+    family: "valkey8"
+    maintenance_window: "sat:07:30-sat:08:30"
+    multi_az_enabled: true
+    snapshot_retention_limit: 1
+    snapshot_window: "16:00-17:00"
+    num_node_groups: 1
+    replicas_per_node_group: 1
+    snapshot_name: automatic.alwayz-prod-redis-alwayz-core-2025-04-09-16-00
+  "alwayz-ads-valkey8":
+    name: "alwayz-prod-ads-valkey8"
+    description: "This is the cache cluster for the alwayz ads."
+    cluster_mode: "enabled"
+    node_type: "cache.m7g.large"
+    engine: "valkey"
+    engine_version: "8.0"
+    family: "valkey8"
+    maintenance_window: "sat:07:30-sat:08:30"
+    multi_az_enabled: true
+    snapshot_retention_limit: 1
+    snapshot_window: "16:00-17:00"
+    num_node_groups: 1
+    replicas_per_node_group: 1
+  "alwayz-product-valkey8":
+    name: "alwayz-prod-product-valkey8"
+    description: "This is the cache cluster for the alwayz product."
+    cluster_mode: "enabled"
+    node_type: "cache.m7g.large"
+    engine: "valkey"
+    engine_version: "8.0"
+    family: "valkey8"
+    maintenance_window: "sat:07:30-sat:08:30"
+    multi_az_enabled: true
+    snapshot_retention_limit: 1
+    snapshot_window: "16:00-17:00"
+    num_node_groups: 1
+    replicas_per_node_group: 1
+
+service_roles:
+  alwayz_services:
+    name: alwayz_services
+    policies:
+      - name: secretsmanager
+        file: base/secretsmanager-read.json
+      - name: s3GetObject
+        file: base/s3-get-object.json
+      - name: reco-access-resource
+        file: services/reco-access-resource.json
+      - name: price-business
+        file: services/price-business.json
+
+  alwayz_cronjobs:
+    name: alwayz_cronjobs
+    policies:
+      - name: combined-permissions
+        file: roles/cronjob-role.json
+
+  argocd:
+    name: argocd
+    policies:
+      - name: secretsmanager
+        file: base/secretsmanager-read.json
+
+  mongodb:
+    name: mongodb
+    policies:
+      - name: storage-access
+        file: services/storage.json
+      - name: backup-access
+        file: services/mongodb-backup.json
+
+  db_manager:
+    name: db_manager
+    policies:
+      - name: cloudwatch-access
+        file: services/cloudwatch.json
+      - name: ebs-access
+        file: services/ebs.json
+      - name: sts-assume-role-with-web-identity
+        file: services/sts-assume-role-with-web-identity.json
+  db:
+    name: db
+    policies:
+      - name: db-archive-access
+        file: services/db-archive.json
+
+  monitoring:
+    name: monitoring
+    policies:
+      - name: monitoring-access
+        file: services/monitoring.json
+      - name: loki-access
+        file: services/loki.json
+
+managed_policies:
+  eks_nodes:
+    name: eks_nodes
+    policies:
+      - name: ebs-access
+        file: services/ebs.json
+  karpenter:
+    name: karpenter
+    policies:
+      - name: athena-glue-lakeformation-s3-full-access-policy
+        file: base/athena-glue-lakeformation-s3-full-access-policy.json
+
+pod_identity_associations:
+  alwayz_services:
+    namespace: alwayz-services
+    service_account: alwayz-services
+  alwayz_cronjobs:
+    namespace: alwayz-cronjobs
+    service_account: alwayz-cronjobs
+  argocd:
+    namespace: argocd
+    service_account: argo-cd-argocd-repo-server
+  mongodb:
+    namespace: mongodb
+    service_account: mongodb
+  db_manager:
+    namespace: db-manager
+    service_account: db-manager-account
+  db:
+    namespace: db
+    service_account: db
+  monitoring:
+    namespace: monitoring
+    service_account: monitoring
+
+s3:
+  - alwayz-product-images:
+      route53:
+        public: true
+        private: true
+      cloudfront:
+        enabled: true
+      storage_class: "STANDARD"
+  - alwayz-alfarm-assets:
+      route53:
+        public: true
+        private: true
+      cloudfront:
+        enabled: true
+      storage_class: "STANDARD"
+
+rds:
+  databases:
+    - identifier: "pay-postgres"
+      engine: "aurora-postgresql"
+      engine_version: "16"
+      database_name: "payment"
+      instance_class: "db.t4g.medium"
+      instance_count: 2
+      port: 5432
+      backup_retention_period: 7
+      deletion_protection: true
+      skip_final_snapshot: false
+
+loki:
+  enabled: true
+
+gitops:
+  workspace_repo_url: "https://github.com/wetripod/alwayz-gitops-manifest"

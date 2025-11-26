@@ -1,0 +1,48 @@
+{{- range .Values.statefulSets }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .name }}
+  labels:
+    app.kubernetes.io/instance: {{ .name }}
+    {{- include "base-scraper.labels" $ | nindent 4 }}
+  {{- with $.Values.service.annotations }}
+  annotations:
+    {{ . | toYaml | trim | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ $.Values.service.type }}
+  ports:
+    - port: {{ $.Values.service.port }}
+      targetPort: {{ $.Values.service.targetPort | default "http" }}
+      protocol: TCP
+      name: {{ $.Values.service.portName | default "http" }}
+  selector:
+    app.kubernetes.io/instance: {{ .name }}
+    {{- include "base-scraper.selectorLabels" $ | nindent 4 }}
+{{- range $index, $port := $.Values.additionalPorts }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .name }}
+  labels:
+    app.kubernetes.io/instance: {{ .name }}
+    {{- include "base-scraper.labels" $ | nindent 4 }}
+  {{- with $.Values.service.annotations }}
+  annotations:
+    {{ . | toYaml | trim | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ $.Values.service.type }}
+  ports:
+    - port: {{ $port.servicePort }}
+      targetPort: {{ $port.targetPort }}
+      protocol: TCP
+      name: {{ $port.portName }}
+  selector:
+    app.kubernetes.io/instance: {{ .name }}
+    {{- include "base-scraper.selectorLabels" $ | nindent 4 }}
+{{- end }}
+{{- end }}

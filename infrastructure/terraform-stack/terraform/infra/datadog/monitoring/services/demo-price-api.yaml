@@ -1,0 +1,46 @@
+service: alwayz-price-api
+owner:
+  - name: 이상민
+    email: sangmin.lee@iexample-org.com
+slack_channels:
+  - 모니터링_프라이스
+monitors:
+  - monitor_type: error_log
+    threshold: 500
+  - monitor_type: api_latency
+    threshold: 500
+    duration: 1500
+  - monitor_type: alb_5xx
+    threshold: 500
+    loadbalancer: alwayz-price-api-prod
+  - monitor_type: alb_target_5xx
+    threshold: 500
+    loadbalancer: alwayz-price-api-prod
+  - monitor_type: alb_target_4xx
+    threshold: 500
+    loadbalancer: alwayz-price-api-prod
+  - monitor_type: error_tracking_trace
+    threshold: 500
+synthetics:
+  - name: alwayz-price-api가 다운되었습니다.
+    type: api
+    subtype: http
+    status: "live"
+    locations: ["pl:devops-private-location-dc242ec68f6544a123e787d5345b2e06"]
+    request_definition:
+      method: GET
+      url: https://alwayz-price-api.prod.iexample-org.com/actuator/health/readiness
+    assertions:
+      - type: statusCode
+        operator: is
+        target: 200
+      - type: responseTime
+        operator: lessThan
+        target: 3000
+    options_list:
+      tick_every: 60
+      retry:
+        count: 3
+        interval: 1000
+      monitor_options:
+        renotify_interval: 10

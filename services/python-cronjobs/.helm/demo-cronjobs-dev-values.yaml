@@ -1,0 +1,77 @@
+appName: demo-cronjobs-python
+env: dev
+nodeSelector:
+  service: demo-jobs
+tolerations:
+- effect: NoSchedule
+  key: AlwayzJobsOnly
+  value: "true"
+  operator: Equal
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: topology.kubernetes.io/zone
+          operator: NotIn
+          values:
+          - ap-northeast-2d
+datadog:
+  enabled: true
+  profile:
+    enabled: false
+sa:
+  enabled: true
+  shared: true
+  name: demo-cronjobs
+cronJobDefault:
+  failedJobsHistoryLimit: 1
+  successfulJobsHistoryLimit: 3
+  backoffLimit: 0
+  concurrencyPolicy: Forbid
+  labels: {}
+  annotations:
+    ad.datadoghq.com/demo-cronjobs.logs: |-
+      [{
+        "source": "python",
+        "service": "demo-cronjobs-python",
+        "log_processing_rules": [
+          {
+            "type": "exclude_at_match",
+            "name": "exclude_health_check",
+            "pattern" : "health-check"
+          },
+          {
+            "type": "include_at_match",
+            "name": "error_logs",
+            "pattern" : "(?i)ERROR|LOGGER"
+          }
+        ]
+      }]
+  timeZone: Asia/Seoul
+  sa:
+    labels: {}
+    annotations: {}
+  env:
+  - name: DD_SERVICE
+    value: demo-cronjobs-python
+  - name: POD_IP
+    valueFrom:
+      fieldRef:
+        fieldPath: status.podIP
+  image:
+    repository: 123456789012.dkr.ecr.ap-northeast-2.amazonaws.com/demo-dev-ecr_demo-cron-python
+    tag: 13-1.0.0-dev-db54d7
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+    requests:
+      cpu: 1000m
+      memory: 512Mi
+  externalSecrets:
+    enabled: false
+    extractKey: demo/dev/demo-services
+    decodingStrategy: Base64
+cronJobs: null

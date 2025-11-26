@@ -1,0 +1,40 @@
+fullnameOverride: "mysqld-exporter"
+
+image:
+  repository: prometheus/mysqld-exporter
+  tag: "v0.16.0"
+  registry: quay.io
+  pullPolicy: "IfNotPresent"
+
+serviceAccount:
+  create: false
+
+mysql:
+  existingConfigSecret:
+    name: "mysql-exporter-config"
+    key: "my.cnf"
+
+service:
+  labels: {}
+  annotations: {}
+  name: mysql-exporter
+  type: ClusterIP
+  externalPort: 9104
+  internalPort: 9104
+
+serviceMonitor:
+  enabled: false
+
+collectors:
+  auto_increment.columns: true
+  engine_innodb_status: true
+  global_status: true
+  global_variables: true
+  info_schema.innodb_metrics: true
+  info_schema.innodb_tablespaces: true
+  info_schema.processlist: true
+  info_schema.tables: true
+  info_schema.tables.databases: '*'
+
+prometheusRule:
+  enabled: false

@@ -1,0 +1,332 @@
+fullnameOverride: "monitoring"
+
+serviceAccount:
+  create: false
+  name: "monitoring"
+
+rollout_operator:
+  enabled: true
+  serviceAccount:
+    create: false
+    name: "monitoring"
+  fullnameOverride: "monitoring-rollout-operator"
+
+minio:
+  enabled: false
+
+alertmanager:
+  enabled: false
+
+nginx:
+  enabled: false
+
+admin_api:
+  enabled: false
+
+mimir:
+  structuredConfig:
+    limits:
+      compactor_blocks_retention_period: 90d
+      max_label_names_per_series: 60
+      max_global_series_per_user: 90000000
+      ingestion_burst_size: 100000000
+      ingestion_rate: 10000000
+    blocks_storage:
+      backend: s3
+      s3:
+        bucket_name: example-org-monitoring-prod
+        endpoint: s3.ap-northeast-2.amazonaws.com
+        region: ap-northeast-2
+      tsdb:
+        retention_period: 720h
+      bucket_store:
+        ignore_blocks_within: 10h
+    querier:
+      query_store_after: 12h
+    ingester:
+      # autoforget_unhealthy: true
+      ring:
+        replication_factor: 1
+    store_gateway:
+      sharding_ring:
+        replication_factor: 1
+
+runtimeConfig: {}
+
+ingester:
+  enabled: true
+  priorityClassName: monitoring-addons
+  nodeSelector:
+    service: monitoring-addons
+  tolerations:
+    - effect: NoSchedule
+      key: MonitoringAddonsOnly
+      value: "true"
+      operator: Equal
+  replicas: 3
+  resources:
+    requests:
+      cpu: 622m
+      memory: 31186Mi
+    limits:
+      memory: 31186Mi
+  persistentVolume:
+    enabled: true
+    size: 500Gi
+  zoneAwareReplication:
+    enabled: false
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - podAffinityTerm:
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/component: ingester
+                app.kubernetes.io/name: mimir
+            topologyKey: topology.kubernetes.io/zone
+          weight: 100
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/component: ingester
+              app.kubernetes.io/name: mimir
+          topologyKey: kubernetes.io/hostname
+
+store_gateway:
+  enabled: true
+  priorityClassName: monitoring-addons
+  nodeSelector:
+    service: monitoring-addons
+  tolerations:
+    - effect: NoSchedule
+      key: MonitoringAddonsOnly
+      value: "true"
+      operator: Equal
+  replicas: 3
+  resources:
+    requests:
+      cpu: 100m
+      memory: 1659Mi
+    limits:
+      memory: 1659Mi
+  persistentVolume:
+    enabled: true
+    size: 10Gi
+  zoneAwareReplication:
+    enabled: false
+
+compactor:
+  enabled: true
+  priorityClassName: monitoring-addons
+  nodeSelector:
+    service: monitoring-addons
+  tolerations:
+    - effect: NoSchedule
+      key: MonitoringAddonsOnly
+      value: "true"
+      operator: Equal
+  replicas: 2
+  resources:
+    requests:
+      cpu: 1743m
+      memory: 4847Mi
+    limits:
+      memory: 4847Mi
+  persistentVolume:
+    enabled: true
+    size: 10Gi
+  zoneAwareReplication:
+    enabled: false
+
+distributor:
+  enabled: true
+  priorityClassName: monitoring-addons
+  nodeSelector:
+    service: monitoring-addons
+  tolerations:
+    - effect: NoSchedule
+      key: MonitoringAddonsOnly
+      value: "true"
+      operator: Equal
+  replicas: 3
+  resources:
+    requests:
+      cpu: 1500m
+      memory: 3.5Gi
+    limits:
+      memory: 3.5Gi
+
+querier:
+  enabled: true
+  priorityClassName: monitoring-addons
+  nodeSelector:
+    service: monitoring-addons
+  tolerations:
+    - effect: NoSchedule
+      key: MonitoringAddonsOnly
+      value: "true"
+      operator: Equal
+  replicas: 3
+  resources:
+    requests:
+      cpu: 100m
+      memory: 918Mi
+    limits:
+      memory: 918Mi
+
+query_frontend:
+  enabled: true
+  priorityClassName: monitoring-addons
+  nodeSelector:
+    service: monitoring-addons
+  tolerations:
+    - effect: NoSchedule
+      key: MonitoringAddonsOnly
+      value: "true"
+      operator: Equal
+  replicas: 3
+  resources:
+    requests:
+      cpu: 100m
+      memory: 777Mi
+    limits:
+      memory: 777Mi
+
+ruler:
+  enabled: true
+  priorityClassName: monitoring-addons
+  nodeSelector:
+    service: monitoring-addons
+  tolerations:
+    - effect: NoSchedule
+      key: MonitoringAddonsOnly
+      value: "true"
+      operator: Equal
+  replicas: 2
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    limits:
+      memory: 100Mi
+
+query_scheduler:
+  enabled: true
+  priorityClassName: monitoring-addons
+  nodeSelector:
+    service: monitoring-addons
+  tolerations:
+    - effect: NoSchedule
+      key: MonitoringAddonsOnly
+      value: "true"
+      operator: Equal
+  replicas: 3
+
+ingress:
+  enabled: true
+  ingressClassName: alb
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internal
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/success-codes: 200-399
+    alb.ingress.kubernetes.io/manage-backend-security-group-rules: "true"
+    alb.ingress.kubernetes.io/security-groups: sg-0d1b49c3cc4a2feeb
+  hosts:
+    - mimir.prod.iexample-org.com # edit
+  paths:
+    ingester-headless:
+      - path: /ingester
+    distributor-headless:
+      - path: /distributor
+      - path: /api/v1/push
+      - path: /otlp/v1/metrics
+    alertmanager-headless:
+      - path: /alertmanager
+      - path: /multitenant_alertmanager/status
+      - path: /multitenant_alertmanager/configs
+      - path: /api/v1/alerts
+    ruler:
+      - path: /prometheus/config/v1/rules
+      - path: /prometheus/api/v1/rules
+      - path: /prometheus/api/v1/alerts
+    query-frontend:
+      - path: /prometheus
+      - path: /api/v1/status/buildinfo
+    compactor:
+      - path: /api/v1/upload/block/
+  tls:
+    - hosts:
+        - "mimir.prod.iexample-org.com"
+
+chunks-cache:
+  enabled: true
+  priorityClassName: monitoring-addons
+  nodeSelector:
+    service: monitoring-addons
+  tolerations:
+    - effect: NoSchedule
+      key: MonitoringAddonsOnly
+      value: "true"
+      operator: Equal
+  replicas: 2
+  resources:
+    requests:
+      cpu: 100m
+      memory: 1380Mi
+    limits:
+      memory: 1380Mi
+
+index-cache:
+  enabled: true
+  priorityClassName: monitoring-addons
+  nodeSelector:
+    service: monitoring-addons
+  tolerations:
+    - effect: NoSchedule
+      key: MonitoringAddonsOnly
+      value: "true"
+      operator: Equal
+  replicas: 2
+  resources:
+    requests:
+      cpu: 100m
+      memory: 191Mi
+    limits:
+      memory: 191Mi
+
+metadata-cache:
+  enabled: true
+  priorityClassName: monitoring-addons
+  nodeSelector:
+    service: monitoring-addons
+  tolerations:
+    - effect: NoSchedule
+      key: MonitoringAddonsOnly
+      value: "true"
+      operator: Equal
+  replicas: 2
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    limits:
+      memory: 100Mi
+
+results-cache:
+  enabled: true
+  priorityClassName: monitoring-addons
+  nodeSelector:
+    service: monitoring-addons
+  tolerations:
+    - effect: NoSchedule
+      key: MonitoringAddonsOnly
+      value: "true"
+      operator: Equal
+  replicas: 2
+  resources:
+    requests:
+      cpu: 100m
+      memory: 229Mi
+    limits:
+      memory: 229Mi

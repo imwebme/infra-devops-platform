@@ -1,0 +1,40 @@
+# 보일러플레이트 템플릿 - Scraper 서비스용 values 파일
+# 사용법: 이 파일을 복사하여 각 환경(dev/prod/staging)에 맞게 수정
+
+# 기본 설정
+tolerations:
+- effect: NoSchedule
+  key: AlwayzScrapersOnly
+  value: "true"
+  operator: Equal
+
+nodeSelector:
+  service: demo-scrapers
+
+# StatefulSet 설정 (Scraper는 보통 StatefulSet 사용)
+statefulset:
+  image:
+    repository: 123456789012.dkr.ecr.ap-northeast-2.amazonaws.com/demo-{ENV}-ecr_demo-scraper  # {ENV}를 dev/prod로 변경
+    tag: latest  # 실제 태그로 변경
+  resources:
+    requests:
+      cpu: 200m      # dev: 200m, prod: 500m
+      memory: 256Mi  # dev: 256Mi, prod: 512Mi
+    limits:
+      cpu: 200m      # dev: 200m, prod: 500m
+      memory: 256Mi  # dev: 256Mi, prod: 512Mi
+  port: 3000
+  env:
+  - name: DD_SERVICE
+    value: demo-node-scraper  # 서비스명으로 변경
+  - name: DD_ENV
+    value: dev  # 환경에 맞게 변경: dev/prod
+  - name: POD_IP
+    valueFrom:
+      fieldRef:
+        fieldPath: status.podIP
+
+# 서비스 설정
+service:
+  port: 80
+  targetPort: 3000

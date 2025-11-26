@@ -1,0 +1,23 @@
+apiVersion: tailscale.com/v1alpha1
+kind: ProxyGroup
+metadata:
+  name: security-prod-routers
+  namespace: tailscale
+  labels:
+    app: tailscale-proxygroup
+    cluster: security-prod-eks
+    purpose: subnet-router-ha
+    team: infra
+    environment: prod
+spec:
+  # 고가용성을 위한 프록시 그룹 설정
+  type: "subnet-router"
+  
+  # 태그 설정
+  tags:
+    - "tag:k8s-operator"
+    - "tag:subnet-router"
+    - "tag:prod-server"
+  
+  # 프록시 그룹 메타데이터
+  proxyClass: "security-prod-proxy"

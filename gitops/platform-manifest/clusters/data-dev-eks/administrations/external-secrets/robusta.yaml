@@ -1,0 +1,31 @@
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: robusta-secret
+  namespace: robusta
+spec:
+  data:
+    - secretKey: global_signing_key
+      remoteRef:
+        key: demo/dev/devops
+        property: ROBUSTA_GLOBAL_SIGNING_KEY
+    - secretKey: global_account_id
+      remoteRef:
+        key: demo/dev/devops
+        property: ROBUSTA_GLOBAL_ACCOUNT_ID
+    - secretKey: robusta_ui_sink_token
+      remoteRef:
+        key: demo/dev/devops
+        property: ROBUSTA_UI_SINK_TOKEN
+    - secretKey: robusta_main_slack_sink_token
+      remoteRef:
+        key: demo/dev/devops
+        property: ROBUSTA_MAIN_SLACK_SINK_TOKEN
+    - secretKey: robusta_github_token
+      remoteRef:
+        key: demo/dev/devops
+        property: ROBUSTA_GITHUB_TOKEN
+  refreshInterval: 60s
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: aws-cluster-secret-store

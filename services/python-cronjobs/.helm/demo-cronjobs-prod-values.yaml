@@ -1,0 +1,234 @@
+appName: demo-cronjobs-python
+env: prod
+nodeSelector:
+  service: demo-jobs
+tolerations:
+- effect: NoSchedule
+  key: AlwayzJobsOnly
+  value: "true"
+  operator: Equal
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: topology.kubernetes.io/zone
+          operator: NotIn
+          values:
+          - ap-northeast-2d
+datadog:
+  enabled: true
+  profile:
+    enabled: false
+sa:
+  enabled: true
+  shared: true
+  name: demo-cronjobs
+cronJobDefault:
+  failedJobsHistoryLimit: 1
+  successfulJobsHistoryLimit: 3
+  backoffLimit: 0
+  concurrencyPolicy: Forbid
+  labels: {}
+  annotations:
+    ad.datadoghq.com/demo-cronjobs.logs: |-
+      [{
+        "source": "python",
+        "service": "demo-cronjobs-python",
+        "log_processing_rules": [
+          {
+            "type": "exclude_at_match",
+            "name": "exclude_health_check",
+            "pattern" : "health-check"
+          },
+          {
+            "type": "include_at_match",
+            "name": "error_logs",
+            "pattern" : "(?i)ERROR|LOGGER"
+          }
+        ]
+      }]
+  timeZone: Asia/Seoul
+  sa:
+    labels: {}
+    annotations: {}
+  image:
+    repository: 123456789012.dkr.ecr.ap-northeast-2.amazonaws.com/demo-prod-ecr_demo-cron-python
+    tag: 62-1.0.0-prod-1ed1b1
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+    requests:
+      cpu: 1000m
+      memory: 512Mi
+  externalSecrets:
+    enabled: true
+    extractKey: demo/prod/demo-services
+    decodingStrategy: Base64
+  env:
+  - name: ENV
+    value: prod
+  - name: DD_SERVICE
+    value: demo-cronjobs-python
+  - name: POD_IP
+    valueFrom:
+      fieldRef:
+        fieldPath: status.podIP
+  - name: USE_INTERNAL_DB
+    value: "true"
+cronJobs:
+- name: AlfarmTF-Data
+  cronTimeExpression: 10 00 * * *
+  arg:
+  - --name
+  - AlfarmTF Data
+  - --files
+  - AlfarmTF Data.py
+  resources:
+    limits:
+      cpu: "4"
+      memory: 16Gi
+    requests:
+      cpu: "4"
+      memory: 16Gi
+  env:
+  - name: ENV
+    value: prod
+  volumes:
+  - name: google-service-account-key
+    secret:
+      secretName: demo-cronjobs-python
+      items:
+      - key: google_service_account_key
+        path: googlepython.json
+  volumeMounts:
+  - name: google-service-account-key
+    mountPath: /app/googlepython.json
+    subPath: googlepython.json
+- name: reportCostOfAWSResourcesToSlack
+  cronTimeExpression: 30 08 * * *
+  arg:
+  - --name
+  - reportCostOfAWSResourcesToSlack
+  - --files
+  - 00-report_cost_of_aws_resources_to_slack.py
+  env:
+  - name: AWS_REGION
+    value: ap-northeast-2
+  - name: AWS_DEFAULT_REGION
+    value: ap-northeast-2
+  - name: SLACK_CHANNEL_ID
+    value: C07BV72HKEG
+- name: unusedAWSResourcesReportToSlack
+  cronTimeExpression: 00 09 * * *
+  arg:
+  - --name
+  - unusedAWSResourcesReportToSlack
+  - --files
+  - 01-unused_aws_resources_to_slack.py
+  env:
+  - name: AWS_REGION
+    value: ap-northeast-2
+  - name: AWS_DEFAULT_REGION
+    value: ap-northeast-2
+  - name: SLACK_CHANNEL_ID
+    value: C07BV72HKEG
+- name: albLogReportToSlack
+  cronTimeExpression: 10 09 * * *
+  arg:
+  - --name
+  - albLogReportToSlack
+  - --files
+  - 02-alb_log_report_to_slack.py
+  env:
+  - name: AWS_REGION
+    value: ap-northeast-2
+  - name: AWS_DEFAULT_REGION
+    value: ap-northeast-2
+  - name: SLACK_CHANNEL_ID
+    value: C07BV72HKEG
+  - name: ALB_ACCESS_LOG_TABLE
+    value: alb_access_logs_all
+- name: oncallTargetToSlack
+  cronTimeExpression: 00 10 * * *
+  arg:
+  - --name
+  - oncallTargetToSlack
+  - --files
+  - 03-oncall_to_slack.py
+  env:
+  - name: AWS_REGION
+    value: ap-northeast-2
+  - name: AWS_DEFAULT_REGION
+    value: ap-northeast-2
+  - name: SLACK_CHANNEL_ID
+    value: C0793M1NWD9
+- name: cloudfrontLogReportToSlack
+  cronTimeExpression: 10 09 * * *
+  arg:
+  - --name
+  - cloudfrontLogReportToSlack
+  - --files
+  - 04-cloudfront_log_report_to_slack.py
+  env:
+  - name: AWS_REGION
+    value: ap-northeast-2
+  - name: AWS_DEFAULT_REGION
+    value: ap-northeast-2
+  - name: SLACK_CHANNEL_ID
+    value: C07BV72HKEG
+- name: addAlbToAthenaTables
+  cronTimeExpression: 00 06 * * *
+  arg:
+  - --name
+  - addAlbToAthenaTables
+  - --files
+  - 05-add_alb_to_athena_tables.py
+  env:
+  - name: AWS_REGION
+    value: ap-northeast-2
+  - name: AWS_DEFAULT_REGION
+    value: ap-northeast-2
+  - name: SLACK_CHANNEL_ID
+    value: C093LS4945B
+- name: cpmExistCount
+  cronTimeExpression: '* * * * *'
+  arg:
+  - --name
+  - cpm_active_count
+  - --files
+  - cpm_active_count.py
+  env:
+  - name: AWS_REGION
+    value: ap-northeast-2
+  - name: AWS_DEFAULT_REGION
+    value: ap-northeast-2
+- name: eksMemoryMonitor
+  cronTimeExpression: 00 * * * *
+  arg:
+  - --name
+  - eksMemoryMonitor
+  - --files
+  - 06-eks_memory_monitor_and_restart.py
+  env:
+  - name: AWS_REGION
+    value: ap-northeast-2
+  - name: SLACK_CHANNEL_ID
+    value: C093LS4945B
+  - name: EKS_CLUSTER_NAME
+    value: demo-prod-eks
+  - name: EKS_DEPLOYMENTS
+    value: demo-services:demo-alwalk-back,demo-services:demo-almart-back,demo-services:demo-bff
+  - name: MEMORY_THRESHOLD
+    value: "75"
+  - name: DRY_RUN
+    value: "false"
+  resources:
+    limits:
+      cpu: "4"
+      memory: 16Gi
+    requests:
+      cpu: "4"
+      memory: 16Gi

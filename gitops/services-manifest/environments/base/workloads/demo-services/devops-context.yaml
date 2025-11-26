@@ -1,0 +1,14 @@
+deployment:
+  securityContext:
+    readOnlyRootFilesystem: true
+
+  volumeMounts:
+    - name: tmp
+      mountPath: /tmp
+  volumes:
+    - name: tmp
+      emptyDir: {}
+    
+  env:
+    - name: DD_RUNTIME_METRICS_ENABLED
+      value: "true"

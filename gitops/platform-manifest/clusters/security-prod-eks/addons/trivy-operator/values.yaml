@@ -1,0 +1,138 @@
+# Trivy Operator configuration for security-prod-eks cluster
+
+# Global image registry configuration
+global:
+  image:
+    registry: "mirror.gcr.io"
+
+# Target namespaces - empty means all namespaces
+targetNamespaces: ""
+
+# Exclude system namespaces from scanning
+excludeNamespaces: "kube-system,kube-public,kube-node-lease,local-path-storage,trivy-system"
+
+# Target workloads to scan
+targetWorkloads: "pod,replicaset,replicationcontroller,statefulset,daemonset,cronjob,job"
+
+operator:
+  # Replica count
+  replicas: 1
+  
+  # Scan job TTL
+  scanJobTTL: "24h"
+  
+  # Scan secret TTL
+  scanSecretTTL: "24h"
+
+# Service account configuration
+serviceAccount:
+  create: true
+  name: "trivy-operator"
+  annotations:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::123456789012:role/security-prod-eks-trivy-operator"
+
+# Image configuration (operator)
+image:
+  registry: "mirror.gcr.io"
+  repository: "aquasec/trivy-operator"
+  tag: ""
+  pullPolicy: IfNotPresent
+
+# Node selector for common addons
+nodeSelector:
+  kubernetes.io/arch: amd64
+  service: common-addons
+
+# Tolerations for common addons nodes
+tolerations:
+  - operator: Equal
+    key: CommonAddonsOnly
+    value: "true"
+    effect: NoSchedule
+
+# Resource configuration
+resources:
+  requests:
+    cpu: "100m"
+    memory: "120Mi"
+  limits:
+    cpu: "500m"
+    memory: "500Mi"
+
+# Security context
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  privileged: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 65534
+
+# Pod security context
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65534
+  fsGroup: 65534
+
+# Trivy configuration
+trivy:
+  # Image configuration
+  image:
+    registry: "mirror.gcr.io"
+    repository: "aquasec/trivy"
+    tag: "0.65.0"
+  
+  # Storage configuration
+  storageClassName: "gp3"
+  
+  # Resource configuration
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "100Mi"
+    limits:
+      cpu: "500m"
+      memory: "500Mi"
+  
+  # Server configuration
+  serverInsecure: true
+  
+  # Database repositories
+  dbRepository: "ghcr.io/aquasecurity/trivy-db"
+  javaDbRepository: "ghcr.io/aquasecurity/trivy-java-db"
+
+# Compliance configuration
+compliance:
+  # Compliance frameworks
+  failEntriesLimit: 10
+
+# Service monitor for Prometheus
+serviceMonitor:
+  enabled: true
+  labels:
+    app.kubernetes.io/name: trivy-operator
+    app.kubernetes.io/instance: trivy-operator
+  interval: 30s
+  scrapeTimeout: 10s
+
+# Additional labels
+labels:
+  app.kubernetes.io/name: trivy-operator
+  app.kubernetes.io/instance: trivy-operator
+  app.kubernetes.io/component: security-scanner
+
+# Pod annotations
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8080"
+  prometheus.io/path: "/metrics"
+
+# RBAC configuration
+rbac:
+  create: true
+
+# Network policy
+networkPolicy:
+  enabled: false

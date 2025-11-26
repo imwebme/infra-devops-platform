@@ -1,0 +1,22 @@
+apiVersion: karpenter.k8s.aws/v1beta1
+kind: EC2NodeClass
+metadata:
+  name: demo-alfarm-v1
+spec:
+  amiFamily: Bottlerocket
+  blockDeviceMappings: []
+  role: karpenter-demo-prod-eks
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: demo-prod-eks
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: demo-prod-eks
+  tags:
+    Env: demo-prod
+    Group: demo-alfarm-v1
+    KarpenterNodePoolName: demo-alfarm-v1
+    NodeType: alfarm_demo-alfarm-v1_prod_ec2
+    Team: alfarm
+    csmSecurity: "true"
+    karpenter.sh/discovery: demo-prod-eks

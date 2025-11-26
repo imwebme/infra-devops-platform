@@ -1,0 +1,57 @@
+{{- $name := include "prometheus-mongodb-exporter.fullname" . }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "prometheus-mongodb-exporter.labels" $ | nindent 4 }}
+    app.kubernetes.io/name: {{ $name }}
+    {{- range $key, $value := .Values.serviceMonitor.additionalLabels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- if .Values.serviceMonitor.namespace }}
+  namespace: {{ .Values.serviceMonitor.namespace }}
+  {{- end }}
+spec:
+    {{- if .Values.serviceMonitor.namespaceSelector }}
+  namespaceSelector:
+    matchNames:
+      {{- with .Values.serviceMonitor.namespaceSelector }}
+        {{- toYaml . | nindent 6 }}
+      {{- end }}
+    {{- end }}
+  selector:
+    matchLabels:
+      {{- if .Values.serviceMonitor.selectorLabels }}
+        {{- with .Values.serviceMonitor.selectorLabels }}
+          {{- toYaml . | nindent 6 }}
+        {{- end}}
+      {{- else }}
+      {{- include "prometheus-mongodb-exporter.selectorLabels" $ | nindent 6 }}
+      {{- end }}
+  {{- with .Values.serviceMonitor.jobLabel }}
+  jobLabel: {{ . | quote}}
+  {{- end }}
+  {{- with .Values.serviceMonitor.targetLabels }}
+  targetLabels:
+{{ toYaml . | trim | indent 4 -}}
+  {{- end }}
+  {{- with .Values.serviceMonitor.podTargetLabels }}
+  podTargetLabels:
+{{ toYaml . | trim | indent 4 -}}
+  {{- end }}
+  endpoints:
+    - path: /metrics
+  {{- if .Values.serviceMonitor.interval }}
+      interval: {{ .Values.serviceMonitor.interval }}
+  {{- end }}
+  {{- if .Values.serviceMonitor.scrapeTimeout }}
+      scrapeTimeout: {{ .Values.serviceMonitor.scrapeTimeout }}
+  {{- end }}
+      {{- if .Values.serviceMonitor.metricRelabelings -}}
+        {{ toYaml .Values.serviceMonitor.metricRelabelings | nindent 8 }}
+      {{- end }}
+      {{- if .Values.serviceMonitor.relabelings }}
+      relabelings: 
+      {{ toYaml .Values.serviceMonitor.relabelings | nindent 8 }}
+      {{- end }}

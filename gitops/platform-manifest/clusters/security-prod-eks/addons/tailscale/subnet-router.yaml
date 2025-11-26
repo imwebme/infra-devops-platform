@@ -1,0 +1,32 @@
+# Note: This is a Custom Resource for Tailscale operator
+apiVersion: tailscale.com/v1alpha1
+kind: Connector
+metadata:
+  name: security-prod-router
+  labels:
+    app: tailscale-connector
+    cluster: security-prod-eks
+    purpose: subnet-router
+    team: infra
+    environment: prod
+spec:
+  # 서브넷 라우터 기능 활성화
+  # 여러 VPC와 EKS 클러스터 간의 통신을 위한 CIDR 블록들
+  subnetRouter:
+    advertiseRoutes:
+      - "10.2.0.0/16"
+      - "10.0.0.0/16"
+      - "10.24.0.0/16"
+      - "10.14.0.0/16"
+      - "10.6.0.0/16"
+      - "10.20.0.0/16"
+      - "10.10.0.0/16"
+      - "10.8.0.0/16"
+      - "172.20.0.0/16"
+      - "172.31.0.0/16"
+  # 호스트명 설정
+  hostname: "security-prod-eks-subnet-router"
+  # 태그 설정 (ACL에서 자동 승인을 위해)
+  tags:
+    - "tag:k8s-operator"
+    - "tag:prod-server"

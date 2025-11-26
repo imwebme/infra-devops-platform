@@ -1,0 +1,29 @@
+service: alwayz-sweet-tracker
+owner:
+  - name: 이정원
+    email: j@iexample-org.com
+slack_channels:
+  - 모니터링_스윗트래커
+synthetics:
+  - name: alwayz-sweet-tracker가 다운되었습니다.
+    type: api
+    subtype: http
+    status: "live"
+    locations: ["aws:ap-northeast-2"]
+    request_definition:
+      method: GET
+      url: http://43.200.143.77
+    assertions:
+      - type: statusCode
+        operator: is
+        target: 200
+      - type: responseTime
+        operator: lessThan
+        target: 3000
+    options_list:
+      tick_every: 60
+      retry:
+        count: 3
+        interval: 1000
+      monitor_options:
+        renotify_interval: 10

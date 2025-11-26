@@ -1,0 +1,103 @@
+tolerations:
+- effect: NoSchedule
+  key: AlwayzServicesOnly
+  value: "true"
+  operator: Equal
+nodeSelector:
+  service: demo-services
+topologySpreadConstraints: []
+deployment:
+  image:
+    repository: 123456789012.dkr.ecr.ap-northeast-2.amazonaws.com/demo-dev-ecr_demo-back
+    tag: 107-3.3.142-dev-ac8ae7
+  resources:
+    requests:
+      cpu: 400m
+      memory: 750Mi
+    limits:
+      cpu: 400m
+      memory: 750Mi
+  port: 3000
+  readinessProbe:
+    httpGet:
+      path: /health-check
+      port: 3000
+    initialDelaySeconds: 15
+    periodSeconds: 5
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  securityContext:
+    readOnlyRootFilesystem: true
+  env:
+  - name: DD_SERVICE
+    value: demo-back
+  - name: DD_ENV
+    value: dev
+  - name: DD_TRACE_DEBUG
+    value: "true"
+  - name: POD_IP
+    valueFrom:
+      fieldRef:
+        fieldPath: status.podIP
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 4
+  targetCPUUtilizationPercentage: 55
+  targetMemoryUtilizationPercentage: 70
+ingress:
+- name: demo-back
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/security-groups: sg-04cba89f30303e9b6
+    alb.ingress.kubernetes.io/load-balancer-name: demo-back-dev
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: "6"
+    alb.ingress.kubernetes.io/healthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/healthcheck-path: /health-check
+    alb.ingress.kubernetes.io/success-codes: 200-299
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/tags: |
+      Team=ops,
+      Env=demo-dev,
+      Group=demo-back,
+      NodeType=ops_demo-back_dev_alb
+    external-dns.alpha.kubernetes.io/aws-zone-type: public
+    external-dns.alpha.kubernetes.io/hostname: demo-back.dev.iexample-org.com
+    external-dns.alpha.kubernetes.io/set-identifier: demo-back-dev
+    external-dns.alpha.kubernetes.io/aws-weight: "100"
+    external-dns.alpha.kubernetes.io/ingress-hostname-source: defined-hosts-only
+    external-dns-controller: external-dns-public
+  rules:
+  - host: demo-back.dev.iexample-org.com
+    paths:
+    - path: /
+      pathType: Prefix
+- name: demo-back-private
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/load-balancer-name: demo-back-dev-in
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: "6"
+    alb.ingress.kubernetes.io/healthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/healthcheck-path: /health-check
+    alb.ingress.kubernetes.io/success-codes: 200-299
+    alb.ingress.kubernetes.io/scheme: internal
+    alb.ingress.kubernetes.io/tags: |
+      Team=ops,
+      Env=demo-dev,
+      Group=demo-back,
+      NodeType=ops_demo-back_dev_alb_private
+    external-dns.alpha.kubernetes.io/hostname: demo-back.dev.iexample-org.com
+    external-dns.alpha.kubernetes.io/set-identifier: demo-back-dev-private
+    external-dns.alpha.kubernetes.io/aws-weight: "100"
+    external-dns.alpha.kubernetes.io/aws-zone-type: private
+    external-dns.alpha.kubernetes.io/ingress-hostname-source: defined-hosts-only
+    external-dns-controller: external-dns-private
+  rules:
+  - host: demo-back.dev.iexample-org.com
+    paths:
+    - path: /
+      pathType: Prefix
+service:
+  port: 80
+  targetPort: 3000

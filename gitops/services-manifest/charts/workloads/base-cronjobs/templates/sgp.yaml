@@ -1,0 +1,23 @@
+{{- $labels := include "base-cronjobs.labels" . }}
+{{- $fullName := include "base-cronjobs.fullname" . }}
+{{- range .Values.cronJobs }}
+{{- if ge (len ( .sgIds | default "" ) ) 1 }}
+apiVersion: vpcresources.k8s.aws/v1beta1
+kind: SecurityGroupPolicy
+metadata:
+  name: {{ replace "." "-" (lower (trunc 48 .name)) }}
+  namespace: {{ $.Values.namespace }}
+  labels: {{ $labels | nindent 4 }}
+    app.kubernetes.io/instance: {{ $fullName }}
+    app.kubernetes.io/name: {{ replace "." "-" (lower (trunc 48 .name)) }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ $fullName }}
+      app.kubernetes.io/name: {{ replace "." "-" (lower (trunc 48 .name)) }}
+  securityGroups:
+    groupIds:
+    {{- toYaml .sgIds  | nindent 6 }}
+---
+{{- end }}
+{{- end }}

@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  annotations:
+    # notifications.argoproj.io/subscribe.on-deleted.slack: 모니터링_데브옵스_dev
+    # notifications.argoproj.io/subscribe.on-health-degraded.slack: 모니터링_데브옵스_dev
+    # notifications.argoproj.io/subscribe.on-sync-failed.slack: 모니터링_데브옵스_dev
+    # notifications.argoproj.io/subscribe.on-sync-status-unknown.slack: 모니터링_데브옵스_dev
+  name: example-org-app-workspaces
+  namespace: argocd
+spec:
+  clusterResourceBlacklist:
+  - group: ""
+    kind: ""
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  description: Project to manage workspaces
+  destinations:
+  - name: '*'
+    namespace: '*'
+    server: '*'
+  orphanedResources:
+    warn: true
+  sourceNamespaces:
+  - '*'
+  sourceRepos:
+  - '*'

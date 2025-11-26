@@ -1,0 +1,177 @@
+mongodb:
+  - cluster: prod-almart
+    mongod: 
+      - prod-almart-shard01-04.db.prod.iexample-org.com:27017
+      - prod-almart-shard01-05.db.prod.iexample-org.com:27017
+      - prod-almart-shard01-06.db.prod.iexample-org.com:27017
+    tls: false
+  - cluster: prod-alfarm-micro
+    mongod: 
+      - prod-alfarm-micro-shard01-06.db.prod.iexample-org.com:27017
+      - prod-alfarm-micro-shard01-07.db.prod.iexample-org.com:27017
+      - prod-alfarm-micro-shard01-08.db.prod.iexample-org.com:27017
+    tls: false
+  - cluster: prod-allulu
+    mongod: 
+      - prod-allulu-shard01-03.db.prod.iexample-org.com:27017
+      - prod-allulu-shard01-04.db.prod.iexample-org.com:27017
+      - prod-allulu-shard01-05.db.prod.iexample-org.com:27017
+    tls: false
+  - cluster: prod-allulu-log
+    mongod: 
+      - prod-allulu-log-shard01-03.db.prod.iexample-org.com:27017
+      - prod-allulu-log-shard01-04.db.prod.iexample-org.com:27017
+      - prod-allulu-log-shard01-05.db.prod.iexample-org.com:27017
+    tls: false
+  - cluster: prod-pay
+    mongod: 
+      - prod-pay-shard01-04.db.prod.iexample-org.com:27017
+      - prod-pay-shard01-05.db.prod.iexample-org.com:27017
+      - prod-pay-shard01-06.db.prod.iexample-org.com:27017
+    tls: false
+  - cluster: prod-recommendation
+    mongod: 
+      - prod-recommendation-shard01-04.db.prod.iexample-org.com:27017
+      - prod-recommendation-shard01-05.db.prod.iexample-org.com:27017
+      - prod-recommendation-shard01-06.db.prod.iexample-org.com:27017
+    tls: false
+  - cluster: prod-user
+    mongod: 
+      - prod-user-shard01-03.db.prod.iexample-org.com:27017
+      - prod-user-shard01-04.db.prod.iexample-org.com:27017
+      - prod-user-shard01-05.db.prod.iexample-org.com:27017
+    tls: false
+  - cluster: prod-sku-catalog
+    mongod: 
+      - prod-sku-catalog-shard01-03.db.prod.iexample-org.com:27017
+      - prod-sku-catalog-shard01-04.db.prod.iexample-org.com:27017
+      - prod-sku-catalog-shard01-05.db.prod.iexample-org.com:27017
+    tls: false
+  - cluster: prod-log
+    mongod: 
+      - prod-log-shard01-03.db.prod.iexample-org.com:27017
+      - prod-log-shard01-04.db.prod.iexample-org.com:27017
+      - prod-log-shard01-05.db.prod.iexample-org.com:27017
+    tls: false
+  - cluster: prod-external
+    mongod: 
+      - prod-external-shard01-03.db.prod.iexample-org.com:27017
+      - prod-external-shard01-04.db.prod.iexample-org.com:27017
+      - prod-external-shard01-05.db.prod.iexample-org.com:27017
+    tls: false
+  - cluster: prod-crm
+    mongod: 
+      - prod-crm-shard01-04.db.prod.iexample-org.com:27017
+      - prod-crm-shard01-05.db.prod.iexample-org.com:27017
+      - prod-crm-shard01-06.db.prod.iexample-org.com:27017
+    tls: false
+  - cluster: prod-altoon
+    mongod: 
+      - prod-altoon-shard01-04.db.prod.iexample-org.com:27017
+      - prod-altoon-shard01-05.db.prod.iexample-org.com:27017
+      - prod-altoon-shard01-06.db.prod.iexample-org.com:27017
+    tls: false
+  - cluster: prod-alfarm-v2
+    mongod: 
+      - prod-alfarm-v2-shard01-04.db.prod.iexample-org.com:27017
+      - prod-alfarm-v2-shard01-05.db.prod.iexample-org.com:27017
+      - prod-alfarm-v2-shard01-06.db.prod.iexample-org.com:27017
+    tls: false
+  - cluster: prod-alfarm
+    mongod: 
+      - prod-alfarm-shard01-06.db.prod.iexample-org.com:27017
+      - prod-alfarm-shard01-07.db.prod.iexample-org.com:27017
+      - prod-alfarm-shard01-08.db.prod.iexample-org.com:27017
+      - prod-alfarm-shard01-09.db.prod.iexample-org.com:27017
+    tls: false
+  - cluster: prod-checkin
+    mongod: 
+      - prod-checkin-shard01-04.db.prod.iexample-org.com:27017
+      - prod-checkin-shard01-05.db.prod.iexample-org.com:27017
+      - prod-checkin-shard01-06.db.prod.iexample-org.com:27017
+    tls: false
+  - cluster: prod-seller
+    mongod: 
+      - prod-seller-shard01-04.db.prod.iexample-org.com:27017
+      - prod-seller-shard01-07.db.prod.iexample-org.com:27017
+      - prod-seller-shard01-06.db.prod.iexample-org.com:27017
+    tls: false
+  - cluster: prod-incubator
+    mongod: 
+      - prod-incubator-shard01-04.db.prod.iexample-org.com:27017
+      - prod-incubator-shard01-05.db.prod.iexample-org.com:27017
+      - prod-incubator-shard01-06.db.prod.iexample-org.com:27017 
+    tls: false
+  - cluster: prod-cluster0
+    mongod: 
+      - prod-cluster0-shard01-06.db.prod.iexample-org.com:27017
+      - prod-cluster0-shard01-07.db.prod.iexample-org.com:27017
+      - prod-cluster0-shard01-08.db.prod.iexample-org.com:27017
+      - prod-cluster0-shard01-09.db.prod.iexample-org.com:27017
+      - prod-cluster0-shard01-05.db.prod.iexample-org.com:27017
+    tls: false
+  - cluster: prod-alfarm-log
+    mongod: 
+      - prod-alfarm-log-shard01-04.db.prod.iexample-org.com:27017
+      - prod-alfarm-log-shard01-05.db.prod.iexample-org.com:27017
+      - prod-alfarm-log-shard01-06.db.prod.iexample-org.com:27017
+    tls: false
+  - cluster: prod-item
+    mongod: 
+      - prod-item-shard01-04.db.prod.iexample-org.com:27017
+      - prod-item-shard01-05.db.prod.iexample-org.com:27017
+      - prod-item-shard01-06.db.prod.iexample-org.com:27017
+    tls: false
+  - cluster: prod-shorts
+    mongod: 
+      - prod-shorts-shard01-04.db.prod.iexample-org.com:27017
+      - prod-shorts-shard01-05.db.prod.iexample-org.com:27017
+      - prod-shorts-shard01-06.db.prod.iexample-org.com:27017
+    tls: false
+  - cluster: prod-test
+    mongod: 
+      - prod-test-shard01-04.db.prod.iexample-org.com:27017
+      - prod-test-shard01-05.db.prod.iexample-org.com:27017
+      - prod-test-shard01-06.db.prod.iexample-org.com:27017
+      - prod-test-shard01-07.db.prod.iexample-org.com:27017
+    tls: false
+
+serviceMonitor:
+  enabled: true
+  interval: 30s
+  scrapeTimeout: 10s
+  namespace: 
+  namespaceSelector:
+  additionalLabels: 
+  selectorLabels:
+    mongodb.exporter: mongod
+  jobLabel: ""
+  targetLabels: 
+  podTargetLabels: 
+  metricRelabelings: 
+  relabelings:
+    - action: replace
+      sourceLabels: [__meta_kubernetes_service_annotation_mongodb_cluster]
+      targetLabel: cl
+    - action: replace
+      targetLabel: cl_region
+      replacement: 'ap-northeast-2'
+    - action: replace
+      targetLabel: env
+      replacement: 'prod'
+    - action: replace
+      sourceLabels: [__meta_kubernetes_service_annotation_mongodb_instance]
+      targetLabel: instance
+  multipleTarget:
+    enabled: true
+
+priorityClassName: monitoring-addons
+
+nodeSelector:
+  service: monitoring-addons
+
+tolerations:
+  - effect: NoSchedule
+    key: MonitoringAddonsOnly
+    value: "true"
+    operator: Equal

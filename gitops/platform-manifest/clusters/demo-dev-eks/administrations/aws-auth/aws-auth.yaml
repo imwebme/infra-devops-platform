@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aws-auth
+  namespace: kube-system
+data:
+  mapAccounts: |
+    []
+  mapRoles: |
+    - "groups":
+      - "system:bootstrappers"
+      - "system:nodes"
+      "rolearn": "arn:aws:iam::123456789012:role/demo-dev-eks-nodegroup-mgmt"
+      "username": "system:node:{{EC2PrivateDNSName}}"
+    - "groups":
+      - "system:masters"
+      "rolearn": "arn:aws:iam::123456789012:role/aws-reserved/sso.amazonaws.com/ap-northeast-2/AWSReservedSSO_example_devops_xxxxxxxxxxxx"
+      "username": "{{SessionName}}"
+    - "groups":
+      - "system:bootstrappers"
+      - "system:nodes"
+      "rolearn": "arn:aws:iam::123456789012:role/karpenter-demo-dev-eks"
+      "username": "system:node:{{EC2PrivateDNSName}}"
+  mapUsers: |
+    - "groups":
+      - "system:masters"
+      "userarn": "arn:aws:iam::123456789012:user/kyh"
+      "username": "kyh"
+    - "groups":
+      - "system:masters"
+      "userarn": "arn:aws:iam::123456789012:user/yj"
+      "username": "yj"
+    - "groups":
+      - "system:masters"
+      "userarn": "arn:aws:iam::123456789012:user/kjg"
+      "username": "kjg"
+    - "groups":
+      - "system:masters"
+      "userarn": "arn:aws:iam::123456789012:user/younghun.jo@iexample-org.com"
+      "username": "younghun.jo@iexample-org.com"
+    - "groups":
+      - "system:masters"
+      "userarn": "arn:aws:iam::123456789012:user/jeahyun.kim@iexample-org.com"
+      "username": "jeahyun.kim@iexample-org.com"
+    - "groups":
+      - "system:masters"
+      "userarn": "arn:aws:iam::123456789012:user/changbae.ahn@iexample-org.com"
+      "username": "changbae.ahn@iexample-org.com"

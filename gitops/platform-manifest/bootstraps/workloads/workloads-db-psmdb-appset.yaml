@@ -1,0 +1,45 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: devops-workloads-db-psmdb-appset
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=invalid"]
+  syncPolicy:
+    preserveResourcesOnDeletion: true
+  generators:
+    - matrix:
+        generators:
+          - git:
+              repoURL: https://github.com/wetripod/devops-gitops-manifest.git
+              revision: main
+              files:
+                - path: configs/**/workloads/db-psmdb/*.yaml
+          - clusters:
+              selector:
+                matchLabels:
+                  aws_cluster_name: "{{ index .path.segments 1 }}"
+  template:
+    metadata:
+      name: "devops-{{ .metadata.labels.aws_cluster_name }}-workload-db-psmdb-{{.clustername}}"
+    spec:
+      project: devops-core
+      source:
+        repoURL: https://github.com/wetripod/devops-gitops-manifest.git
+        path: "clusters/{{ .metadata.labels.aws_cluster_name }}/workloads/db-psmdb/{{ .clustername }}"
+        targetRevision: main
+      destination:
+        namespace: "mongodb"
+        name: "{{ .name }}"
+      syncPolicy:
+        # automated:
+        #   prune: true
+        #   selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - Validate=false
+          - PrunePropagationPolicy=foreground
+          - PruneLast=false
+          - ApplyOutOfSyncOnly=true
+          # - ServerSideApply=true

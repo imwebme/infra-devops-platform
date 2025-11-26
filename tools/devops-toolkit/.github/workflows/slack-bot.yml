@@ -1,0 +1,282 @@
+name: Slack GitHub Bot - Build and Deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/slack-bot/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/slack-bot/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+
+env:
+  AWS_REGION: ap-northeast-2
+  ECR_REPOSITORY: slack-bot
+  IMAGE_TAG: ${{ github.sha }}
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./apps/slack-bot
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+          cache-dependency-path: apps/slack-bot/go.sum
+
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('apps/slack-bot/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Run tests
+        run: go test -v -race -coverprofile=coverage.out ./...
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./apps/slack-bot/coverage.out
+          flags: slack-bot
+
+      - name: Run go vet
+        run: go vet ./...
+
+      - name: Run staticcheck
+        uses: dominikh/staticcheck-action@v1.3.0
+        with:
+          version: "2023.1.6"
+          install-go: false
+          working-directory: apps/slack-bot
+
+  build:
+    name: Build and Push to ECR
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Create ECR repository if it doesn't exist
+        run: |
+          aws ecr describe-repositories --repository-names $ECR_REPOSITORY 2>/dev/null || \
+          aws ecr create-repository \
+            --repository-name $ECR_REPOSITORY \
+            --image-scanning-configuration scanOnPush=true \
+            --region $AWS_REGION
+
+      - name: Build, tag, and push image to Amazon ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        working-directory: ./apps/slack-bot
+        run: |
+          # Build image
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+
+          # Push images
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+      - name: Scan image for vulnerabilities
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          aws ecr start-image-scan \
+            --repository-name $ECR_REPOSITORY \
+            --image-id imageTag=$IMAGE_TAG \
+            --region $AWS_REGION
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    environment:
+      name: ${{ github.event.inputs.environment || 'dev' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Deploy to ECS/EKS
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ENVIRONMENT: ${{ github.event.inputs.environment || 'dev' }}
+        run: |
+          echo "Deploying to $ENVIRONMENT environment"
+          echo "Image: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          # Add actual deployment logic here (kubectl, aws ecs, etc.)
+
+      - name: Create GitHub deployment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const deployment = await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.sha,
+              environment: '${{ github.event.inputs.environment || 'dev' }}',
+              description: 'Deploy slack-bot',
+              auto_merge: false,
+              required_contexts: []
+            });
+
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: deployment.data.id,
+              state: 'success',
+              description: 'Deployment completed successfully',
+              environment_url: 'https://slack-bot-${{ github.event.inputs.environment || 'dev' }}.example.com'
+            });
+
+  notification:
+    name: Slack Notification
+    runs-on: ubuntu-latest
+    needs: [test, build, deploy]
+    if: always()
+
+    steps:
+      - name: Slack Notification
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#devops'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  datadog-analysis:
+    name: Datadog Static Analysis
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    defaults:
+      run:
+        working-directory: ./apps/slack-bot
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+          cache-dependency-path: apps/slack-bot/go.sum
+
+      - name: Install Datadog CI
+        run: |
+          curl -L --fail "https://github.com/DataDog/datadog-ci/releases/latest/download/datadog-ci_linux-x64" --output "./datadog-ci"
+          chmod +x ./datadog-ci
+
+      - name: Run Datadog Static Analysis
+        env:
+          DATADOG_API_KEY: ${{ secrets.DATADOG_API_KEY }}
+          DATADOG_APP_KEY: ${{ secrets.DATADOG_APP_KEY }}
+        run: |
+          ./datadog-ci static-analysis run \
+            --config .datadog-ci.yml \
+            --working-directory . \
+            --report-format json \
+            --report-output reports/datadog-analysis.json
+
+      - name: Upload Datadog Analysis Report
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: datadog-analysis-report
+          path: reports/
+          retention-days: 30
+
+      - name: Comment PR with Analysis Results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const reportPath = 'reports/datadog-analysis.json';
+
+            if (fs.existsSync(reportPath)) {
+              const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+
+              let comment = '## 🔍 Datadog Static Analysis Results\n\n';
+
+              if (report.security && report.security.issues) {
+                comment += `### 🛡️ Security Issues: ${report.security.issues.length}\n`;
+                report.security.issues.forEach(issue => {
+                  comment += `- **${issue.severity}**: ${issue.message} (${issue.file}:${issue.line})\n`;
+                });
+              }
+
+              if (report.quality && report.quality.issues) {
+                comment += `\n### 📊 Code Quality Issues: ${report.quality.issues.length}\n`;
+                report.quality.issues.forEach(issue => {
+                  comment += `- **${issue.severity}**: ${issue.message} (${issue.file}:${issue.line})\n`;
+                });
+              }
+
+              if (report.coverage) {
+                comment += `\n### 📈 Test Coverage: ${report.coverage.percentage}%\n`;
+              }
+
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            }

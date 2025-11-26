@@ -1,0 +1,29 @@
+# Helm chart values
+tolerations:
+  - effect: NoSchedule
+    key: CoreAddonsOnly
+    value: "true"
+    operator: Equal
+
+nodeSelector:
+  service: core-addons
+
+priorityClassName: system-node-critical
+
+controller:
+  env:
+    - name: DD_SERVICE
+      value: karpenter
+
+podAnnotations:
+  ad.datadoghq.com/controller.checks: |
+    {
+      "karpenter": {
+        "init_config": {},
+        "instances": [
+          {
+            "openmetrics_endpoint": "http://%%host%%:8000/metrics"
+          }
+        ]
+      }
+    }

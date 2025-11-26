@@ -1,0 +1,29 @@
+key:
+  components:
+    - manifest:
+        name: kube-schedule-scaler
+        repo: https://github.com/wetripod/devops-gitops-manifest
+        path: kube-schedule-scaler
+        version: main
+        namespace: kube-schedule-scaler
+        auto_sync: true
+    - manifest:
+        name: snyk-security-scanner
+        repo: https://github.com/wetripod/devops-gitops-manifest
+        path: snyk-security-scanner
+        version: main
+        namespace: snyk-security-scanner
+        auto_sync: true
+    - manifest:
+        name: cve-monitor
+        repo: https://github.com/wetripod/devops-gitops-manifest
+        path: cve-monitor
+        version: main
+        namespace: cve-monitor
+        auto_sync: true
+        ignore_differences:
+          - group: external-secrets.io
+            kind: ExternalSecret
+            json_pointers:
+              - /status/refreshTime
+              - /status/syncedResourceVersion

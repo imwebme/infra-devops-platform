@@ -1,0 +1,7 @@
+jobs: 
+- job: partition
+  valuesFile: partition.yaml
+- job: vacuum
+  valuesFile: vacuum.yaml
+- job: kill-idle-trx
+  valuesFile: kill_idle_trx.yaml

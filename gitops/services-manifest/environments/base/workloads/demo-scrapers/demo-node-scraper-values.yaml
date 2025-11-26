@@ -1,0 +1,34 @@
+tolerations:
+- effect: NoSchedule
+  key: AlwayzScrapersOnly
+  value: "true"
+  operator: Equal
+
+nodeSelector:
+  service: demo-scrapers
+
+statefulset:
+  image:
+    repository: 123456789012.dkr.ecr.ap-northeast-2.amazonaws.com/demo-{ENV}-ecr_demo-scraper
+    tag: latest
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  port: 3000
+  env:
+  - name: DD_SERVICE
+    value: demo-node-scraper
+  - name: DD_ENV
+    value: dev
+  - name: POD_IP
+    valueFrom:
+      fieldRef:
+        fieldPath: status.podIP
+
+service:
+  port: 80
+  targetPort: 3000

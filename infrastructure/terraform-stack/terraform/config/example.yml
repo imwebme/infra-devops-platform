@@ -1,0 +1,245 @@
+---
+# Complete Example Configuration File
+# Copy and modify this configuration for your environment
+
+# Basic Configuration
+org: "alwayz"
+category: "aws"
+env: "example"
+secondary_level_domain: "iexample-org.com"
+github_org: "https://github.com/wetripod"
+vpc_cidr: "10.0.0.0/16"
+
+# VPC Configuration
+vpc_endpoints:
+  enabled: true
+  list:
+    "ap-northeast-2":
+      "custom-endpoint":
+        service_name: "com.amazonaws.ap-northeast-2.custom"
+        type: "Interface"
+        private_dns_enabled: true
+        subnet_ids: []
+
+datadog_private_link:
+  enabled: false
+  associated_vpc_ids: []
+
+vpc_peering:
+  enabled: false
+  connections:
+    - name: "to-other-vpc"
+      peer_vpc_id: "vpc-xxxxxxxxx"
+      peer_region: "ap-northeast-2"
+      peer_cidr: "10.1.0.0/16"
+
+# NAT Gateway Configuration
+nat_gateway:
+  enabled: true
+  per_az: false
+
+# DX Data Configuration
+dx_data:
+  enabled: false
+
+# EKS Configuration
+eks:
+  kms: false
+  auth_config:
+    users:
+      - userarn: "arn:aws:iam::123456789012:user/example-user"
+        username: "example-user"
+        groups: ["system:masters"]
+    roles:
+      - rolearn: "arn:aws:iam::123456789012:role/example-role"
+        username: "{{SessionName}}"
+        groups: ["system:masters"]
+
+# CoreDNS Configuration
+coredns:
+  replica: 2
+
+# CloudFront Configuration
+cloudfront:
+  origin_access_controls: "sign requests"
+
+# ECR Repositories
+ecr:
+  - "example-backend"
+  - "example-frontend"
+  - "example-worker"
+
+# Frontend Applications
+frontend:
+  - "example-web-front"
+  - "example-admin-front"
+  - "example-mobile-front"
+
+# Route53 Zones
+route53_zones:
+  private:
+    - "example.iexample-org.com"
+  public:
+    - "example.iexample-org.com"
+
+# Secrets Manager
+secretmanagers:
+  example-api: {}
+  example-worker: {}
+  example-admin: {}
+  devops: {}
+
+# ElastiCache Configuration
+elasticache:
+  "example-redis":
+    name: "alwayz-example-redis"
+    description: "Example Redis cluster"
+    cluster_mode: "enabled"
+    node_type: "cache.t4g.small"
+    engine: "valkey"
+    engine_version: "8.0"
+    family: "valkey8"
+    maintenance_window: "sat:07:30-sat:08:30"
+    multi_az_enabled: true
+    snapshot_retention_limit: 1
+    snapshot_window: "02:00-03:00"
+    num_node_groups: 1
+    replicas_per_node_group: 1
+    at_rest_encryption_enabled: true
+
+# RDS Configuration
+rds:
+  databases:
+    # PostgreSQL Aurora Cluster
+    - identifier: "platform"
+      engine: "aurora-postgresql"
+      engine_version: "16"
+      database_name: "platform_db"
+      instance_class: "db.t4g.medium"
+      instance_count: 2
+      port: 5432
+      backup_retention_period: 7
+      backup_window: "03:00-04:00"
+      maintenance_window: "sun:04:00-sun:05:00"
+      deletion_protection: true
+      skip_final_snapshot: false
+
+    # PostgreSQL Standalone Instance
+    - identifier: "mlflow"
+      engine: "postgres"
+      engine_version: "16"
+      database_name: "mlflow_db"
+      instance_class: "db.t4g.small"
+      allocated_storage: 200
+      max_allocated_storage: 1000
+      storage_type: "gp3"
+      port: 5432
+      backup_retention_period: 7
+      deletion_protection: true
+      skip_final_snapshot: false
+
+    # MySQL Aurora Cluster
+    - identifier: "analytics"
+      engine: "aurora-mysql"
+      engine_version: "8.0"
+      database_name: "analytics_db"
+      instance_class: "db.t4g.medium"
+      instance_count: 1
+      port: 3306
+      backup_retention_period: 7
+      deletion_protection: true
+      skip_final_snapshot: false
+
+    # Aurora Serverless v2
+    - identifier: "serverless-app"
+      engine: "aurora-postgresql"
+      engine_version: "16"
+      database_name: "app_db"
+      instance_class: "db.serverless"
+      instance_count: 1
+      port: 5432
+      serverless_v2:
+        min_capacity: 0.5
+        max_capacity: 4
+      backup_retention_period: 7
+      deletion_protection: false
+      skip_final_snapshot: true
+
+# S3 Configuration
+s3:
+  - example-assets:
+      route53:
+        public: true
+        private: true
+      cloudfront:
+        enabled: true
+      storage_class: "STANDARD"
+  - example-backups:
+      route53:
+        public: false
+        private: true
+      cloudfront:
+        enabled: false
+      storage_class: "STANDARD_IA"
+
+# Loki Configuration
+loki:
+  enabled: false
+
+# Service Roles
+service_roles:
+  example_services:
+    name: example_services
+    policies:
+      - name: secretsmanager
+        file: base/secretsmanager-read.json
+      - name: s3GetObject
+        file: base/s3-get-object.json
+
+  example_cronjobs:
+    name: example_cronjobs
+    policies:
+      - name: combined-permissions
+        file: roles/cronjob-role.json
+
+  argocd:
+    name: argocd
+    policies:
+      - name: secretsmanager
+        file: base/secretsmanager-read.json
+
+  monitoring:
+    name: monitoring
+    policies:
+      - name: monitoring-access
+        file: services/monitoring.json
+      - name: loki-access
+        file: services/loki.json
+
+# Managed Policies
+managed_policies:
+  eks_nodes:
+    name: eks_nodes
+    policies:
+      - name: ebs-access
+        file: services/ebs.json
+  karpenter:
+    name: karpenter
+    policies:
+      - name: athena-glue-lakeformation-s3-full-access-policy
+        file: base/athena-glue-lakeformation-s3-full-access-policy.json
+
+# Pod Identity Associations
+pod_identity_associations:
+  example_services:
+    namespace: example-services
+    service_account: example-services
+  example_cronjobs:
+    namespace: example-cronjobs
+    service_account: example-cronjobs
+  argocd:
+    namespace: argocd
+    service_account: argo-cd-argocd-repo-server
+  monitoring:
+    namespace: monitoring
+    service_account: monitoring

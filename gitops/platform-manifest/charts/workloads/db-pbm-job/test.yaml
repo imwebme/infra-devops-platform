@@ -1,0 +1,45 @@
+---
+# Source: backup/templates/CronJob.yaml
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: prod-shorts-backup-task
+  labels:
+    app.kubernetes.io/instance: prod-shorts
+spec:
+  schedule: "20 6 * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          name: prod-shorts-backup-task
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: pbm
+              env: 
+                - name: PBM_MONGODB_URI
+                  value: "mongodb://example-org_bak:k73gmbaKNEFaGRFy@prod-shorts-shard01-02.db.prod.iexample-org.com:27017,prod-shorts-shard01-03.db.prod.iexample-org.com:27017,prod-shorts-shard01-01.db.prod.iexample-org.com:27017/admin?replicaSet=shard01"
+              args:
+                - /usr/bin/pbm
+                - backup
+                - --type=physical
+              image: "percona/percona-backup-mongodb:2.5.0"
+              imagePullPolicy: IfNotPresent
+              livenessProbe:
+                exec:
+                  command:
+                  - /usr/bin/pbm
+                  - version
+                initialDelaySeconds: 5
+                periodSeconds: 5
+              resources:
+                {}
+          nodeSelector:
+            service: common-addons
+          tolerations:
+            - effect: NoSchedule
+              key: CommonAddonsOnly
+              operator: Equal
+              value: "true"
+          priorityClassName: common-addons

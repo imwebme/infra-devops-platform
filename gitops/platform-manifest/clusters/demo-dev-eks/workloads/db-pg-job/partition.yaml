@@ -1,0 +1,17 @@
+job: partition
+
+db: 
+- cluster: dev-pg
+  endpoint: dev-pg.cluster-c3epvhkyjnng.ap-northeast-2.rds.amazonaws.com
+  port: 5432
+  database: price
+  schedule: "0 17 * * *"
+  cmd: "CALL partman.run_maintenance_proc();"
+  
+user:
+  secretName: pg-partition-user
+  name: "example-org_admin"
+  password: 
+    secretManager: 
+      key: "demo/dev/db/admin"
+      property: example-org_admin

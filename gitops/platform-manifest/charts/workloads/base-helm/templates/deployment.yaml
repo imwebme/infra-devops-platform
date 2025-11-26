@@ -1,0 +1,49 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ include "base-helm.realname" . }}"
+  labels:
+    {{- include "base-helm.labels" . | nindent 4 }}
+    {{- if .Values.datadog.enabled }}
+    {{- include "base-helm.datadog.labels" . | nindent 4}}
+    {{- end}}
+spec:
+  selector:
+    matchLabels:
+      {{- include "base-helm.selectorLabels" . | nindent 6 }}
+  {{- if not (eq "true" (include "base-helm.hpa.enabled" .)) }}
+  replicas: 0
+  {{- end }}
+  revisionHistoryLimit: {{ .Values.deployment.revisionHistoryLimit | default 4 }}
+  template:
+    metadata:
+      labels:
+        sidecar.istio.io/inject: "true"
+        {{- if .Values.securityGroups.enabled }}
+        role: '{{ include "base-helm.realname" . }}-sg'
+        {{- end }}
+        {{- include "base-helm.selectorLabels" . | nindent 8 }}
+        {{- include "base-helm.deployment.labels" . | nindent 8 }}
+        {{- if .Values.datadog.enabled }}
+        {{- include "base-helm.datadog.labels" . | nindent 8}}
+        admission.datadoghq.com/enabled: "true"
+        {{- end}}
+      annotations:
+        {{- include "base-helm.deployment.annotations" . | nindent 8 }}
+        {{- if .Values.datadog.enabled }}
+        {{- if eq "js" .Values.datadog.type }}
+        admission.datadoghq.com/js-lib.version: {{ .Values.datadog.libVersion | default "v4.22.0" }}
+        {{- else if eq "python" .Values.datadog.type }}
+        admission.datadoghq.com/python-lib.version: {{ .Values.datadog.libVersion | default "v2.4.2" }}
+        {{- end}}
+        {{- end}}
+    spec:
+      {{- include "base-helm.podSpec" . | nindent 6 }}
+      terminationGracePeriodSeconds: {{ .Values.deployment.terminationGracePeriodSeconds | default 90 }}
+      priorityClassName: {{ .Values.deployment.priorityClassName | default "demo-services" }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: {{ int .Values.deployment.maxUnavailable | default 0 }}
+      maxSurge: {{ .Values.deployment.maxSurge | default "25%" }}

@@ -1,0 +1,144 @@
+
+affinity: {}
+
+annotations: {}
+
+namespace: monitoring
+
+## Additional labels to add to all resources
+customLabels: {}
+
+dnsConfig: {}
+
+mongodArgs:
+  - --log.level=fatal
+  - --collector.diagnosticdata
+  - --collector.replicasetstatus
+  - --collector.collstats
+  - --collector.indexstats
+  - --collector.dbstats
+  - --collector.topmetrics
+  #- --collector.collstats-limit=100
+  - --collector.currentopmetrics
+  - --metrics.overridedescendingindex
+  - --discovering-mode
+  - --compatible-mode
+
+mongosArgs:
+  - --log.level=fatal
+  - --collector.diagnosticdata
+
+fullnameOverride: "mongodb-exporter"
+
+image:
+  pullPolicy: IfNotPresent
+  repository: percona/mongodb_exporter
+  tag: 0.40.0
+
+env:
+
+existingSecret:
+  name: mongodb-exporter-user
+
+imagePullSecrets: []
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: metrics
+  initialDelaySeconds: 10
+
+# uri : mongodb[+srv]://host[:port]/[database][?options]
+mongodb:
+
+nameOverride: ""
+
+nodeSelector: {}
+
+podAnnotations: {} 
+#   prometheus.io/scrape: "true"
+#   prometheus.io/port: "9216"
+#   prometheus.io/path: /metrics
+
+podLabels: {}
+
+port: "9216"
+
+priorityClassName: ""
+
+readinessProbe:
+  httpGet:
+    path: /
+    port: metrics
+  initialDelaySeconds: 10
+
+replicas: 1
+
+resources: 
+  requests:
+    memory: 10Mi
+
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: ["all"]
+  readOnlyRootFilesystem: true
+  runAsGroup: 10000
+  runAsNonRoot: true
+  runAsUser: 10000
+
+service:
+  labels: 
+    mongodb.exporter: mongod
+  annotations: {}
+  port: 9216
+  type: ClusterIP
+  portName: metrics
+
+serviceAccount:
+  create: false
+  # If create is true and name is not set, then a name is generated using the
+  # fullname template.
+
+
+serviceMonitor:
+  enabled: true
+  interval: 30s
+  scrapeTimeout: 10s
+  namespace: 
+  namespaceSelector: {}
+  additionalLabels: 
+  selectorLabels:
+    mongodb.exporter: mongod
+  jobLabel: ""
+  targetLabels: 
+  podTargetLabels: 
+  metricRelabelings: 
+  relabelings:
+    - action: replace
+      sourceLabels: [__meta_kubernetes_service_annotation_mongodb_cluster]
+      targetLabel: cl
+    - action: replace
+      targetLabel: cl_region
+      replacement: 'ap-northeast-2'
+    - action: replace
+      targetLabel: env
+      replacement: 'dev'
+    - action: replace
+      sourceLabels: [__meta_kubernetes_service_annotation_mongodb_instance]
+      targetLabel: instance
+  multipleTarget:
+    enabled: true
+
+
+tolerations: []
+
+# Volumes that will be attached to the exporter deployment
+volumes: []
+
+# Volumes that will be mounted into the exporter pod
+volumeMounts: []
+
+
+

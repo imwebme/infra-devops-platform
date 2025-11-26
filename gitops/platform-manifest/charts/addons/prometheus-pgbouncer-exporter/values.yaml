@@ -1,0 +1,159 @@
+replicaCount: 1
+
+nameOverride: "prometheus-pgbouncer-exporter"
+
+image:
+  repository: quay.io/prometheuscommunity/pgbouncer-exporter
+  tag: "v0.10.2"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 9127
+  name: http
+  labels: {}
+  annotations: {}
+
+serviceMonitor:
+  enabled: true
+  path: /metrics
+  interval: 30s
+  scrapeTimeout: 90s
+  namespace: 
+  namespaceSelector: {}
+  additionalLabels: 
+  selectorLabels:
+    app: prometheus-pgbouncer-exporter
+    chart: prometheus-pgbouncer-exporter-0.5.0
+  jobLabel: ""
+  targetLabels: 
+  podTargetLabels: 
+  metricRelabelings: 
+
+prometheusRule:
+  enabled: false
+  additionalLabels: {}
+  namespace: ""
+  rules: []
+
+readinessProbe:
+  httpGet:
+    path: /
+    port: metrics
+  initialDelaySeconds: 10
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: metrics
+  initialDelaySeconds: 10  
+
+resources: {}
+  # limits:
+  #   cpu: 100m
+  #    memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+rbac:
+  # Specifies whether RBAC resources should be created
+  create: false
+
+serviceAccount:
+  create: true
+  name: 
+  annotations: {}
+
+# Add a default ingress to allow namespace access to service.targetPort
+# Helpful if other NetworkPolicies are configured in the namespace
+networkPolicy:
+  # Specifies whether a NetworkPolicy should be created
+  enabled: false
+  # Set labels for the NetworkPolicy
+  labels: {}
+
+podSecurityContext:
+  runAsUser: 1001
+  runAsGroup: 1001
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  runAsUser: 1001
+  runAsGroup: 1001
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: ["ALL"]
+  seccompProfile:
+    type: RuntimeDefault
+
+hostAliases: []
+
+existingSecret:
+  name: prometheus-pgbouncer-exporter-user
+  secretKey: demo/prod/db/pgbouncer-exporter
+
+affinity: {}
+
+annotations: {}
+
+podLabels: {}
+
+extraEnvs: []
+
+initContainers: []
+
+extraContainers: []
+
+extraVolumes: []
+extraVolumeMounts: []
+
+podDisruptionBudget:
+  enabled: false
+  maxUnavailable: 1
+
+config:
+  - name: item-pgbouncer-read
+    host: item-pgbouncer-read.db.prod.iexample-org.com
+    passwordFile: ''
+    passwordSecret: {}
+    port: "6432"
+    database: 'pgbouncer'
+    sslmode: disable
+    extraParams: ''
+    datasourceSecret: {}
+    constantLabels: {}
+    logLevel: ""
+    logFormat: "json"
+    extraArgs: []
+    replicaCount: 1
+  - name: item-pgbouncer-write
+    host: item-pgbouncer-write.db.prod.iexample-org.com
+    passwordFile: ''
+    passwordSecret: {}
+    port: "6432"
+    database: 'pgbouncer'
+    sslmode: disable
+    extraParams: ''
+    datasourceSecret: {}
+    constantLabels: {}
+    logLevel: ""
+    logFormat: "json"
+    extraArgs: []
+    replicaCount: 1
+
+priorityClassName: monitoring-addons
+
+nodeSelector:
+  service: monitoring-addons
+
+tolerations:
+  - effect: NoSchedule
+    key: MonitoringAddonsOnly
+    value: "true"
+    operator: Equal

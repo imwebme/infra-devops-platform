@@ -1,0 +1,48 @@
+service: shopin-api
+owner:
+  - name: 이상민
+    email: sangmin.lee@iexample-org.com
+  - name: 신재용
+    email: jays@iexample-org.com
+slack_channels:
+  - 모니터링_쇼핀
+monitors:
+  - monitor_type: error_log
+    threshold: 50
+  - monitor_type: api_latency
+    threshold: 50
+    duration: 300
+  - monitor_type: alb_5xx
+    threshold: 50
+    loadbalancer: shopin-api-legacy-prod
+  - monitor_type: alb_target_5xx
+    threshold: 50
+    loadbalancer: shopin-api-legacy-prod
+  - monitor_type: alb_target_4xx
+    threshold: 50
+    loadbalancer: shopin-api-legacy-prod
+  - monitor_type: error_tracking_trace
+    threshold: 50
+synthetics:
+  - name: shopin-api가 다운되었습니다.
+    type: api
+    subtype: http
+    status: "live"
+    locations: ["aws:ap-northeast-2"]
+    request_definition:
+      method: GET
+      url: https://shopin-api-legacy.prod.iexample-org.com/health-check
+    assertions:
+      - type: statusCode
+        operator: is
+        target: 204
+      - type: responseTime
+        operator: lessThan
+        target: 3000
+    options_list:
+      tick_every: 60
+      retry:
+        count: 3
+        interval: 1000
+      monitor_options:
+        renotify_interval: 10

@@ -1,0 +1,963 @@
+appName: demo-cronjobs
+env: prod
+nodeSelector:
+  service: demo-jobs
+tolerations:
+- effect: NoSchedule
+  key: AlwayzJobsOnly
+  value: "true"
+  operator: Equal
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: topology.kubernetes.io/zone
+          operator: NotIn
+          values:
+          - ap-northeast-2d
+datadog:
+  enabled: true
+  profile:
+    enabled: false
+sa:
+  enabled: true
+  shared: true
+  name: demo-cronjobs
+cronJobDefault:
+  failedJobsHistoryLimit: 1
+  successfulJobsHistoryLimit: 3
+  backoffLimit: 0
+  concurrencyPolicy: Forbid
+  labels: {}
+  annotations:
+    ad.datadoghq.com/demo-cronjobs.logs: |-
+      [{
+        "source": "nodejs",
+        "service": "demo-cronjobs",
+        "log_processing_rules": [
+          {
+            "type": "exclude_at_match",
+            "name": "exclude_health_check",
+            "pattern" : "health-check"
+          },
+          {
+            "type": "include_at_match",
+            "name": "error_logs",
+            "pattern" : "(?i)ERROR|LOGGER"
+          }
+        ]
+      }]
+  timeZone: Asia/Seoul
+  sa:
+    labels: {}
+    annotations: {}
+  env:
+  - name: DD_SERVICE
+    value: demo-cronjobs
+  - name: POD_IP
+    valueFrom:
+      fieldRef:
+        fieldPath: status.podIP
+  - name: USE_INTERNAL_DB
+    value: "true"
+  image:
+    repository: 123456789012.dkr.ecr.ap-northeast-2.amazonaws.com/demo-prod-ecr_demo-cron
+    name: demo-prod-ecr_demo-cron
+    tag: 529-1.0.57-prod-eb3375
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+    requests:
+      cpu: 1000m
+      memory: 512Mi
+cronJobs:
+- name: OrderService.lookupShippingInfos
+  cronTimeExpression: 2 7-23 * * *
+  arg:
+  - OrderService.lookupShippingInfos()
+  - OrderService.lookupShippingInfos()
+- name: UserService.sendAlfarmDailyUserFeedbacksToSlack
+  cronTimeExpression: 0 3 * * *
+  arg:
+  - 매일 오전 3시에 올팜 유저 피드백 전송
+  - UserService.sendAlfarmDailyUserFeedbacksToSlack()
+- name: OrderService.notifyTeamGatheringFinishedOrders
+  cronTimeExpression: 20,40 7-23 * * *
+  arg:
+  - team gathering orders
+  - OrderService.notifyTeamGatheringFinishedOrders()
+- name: UserService.detectCouponAbuserPerHour
+  cronTimeExpression: 0 * * * *
+  arg:
+  - detected coupon abusing
+  - UserService.detectCouponAbuserPerHour()
+- name: EmailService.sendPriceReportMail
+  cronTimeExpression: 0 21 * * 5
+  arg:
+  - send seller price report mail
+  - EmailService.sendPriceReportMail()
+  resources:
+    limits:
+      cpu: "4"
+      memory: 20Gi
+    requests:
+      cpu: "4"
+      memory: 20Gi
+  env:
+  - name: NODE_OPTIONS
+    value: --max-old-space-size=18000
+- name: SellerService.settlementAlfarmPhotoReview
+  cronTimeExpression: 0 1 * * 5
+  arg:
+  - 매주 금요일 올팜 포토리뷰 정산 추가
+  - SellerService.settlementAlfarmPhotoReview()
+- name: UserService.customerJourneyPush
+  cronTimeExpression: 30 12 * * *
+  arg:
+  - 매일 오후 12시 30분에 customer journey 앱 푸시를 발송하고 User Batch를 배정한다.
+  - UserService.customerJourneyPush()
+- name: UserService.dailyCheckInOnboardingPush
+  cronTimeExpression: 30 9 * * *
+  arg:
+  - 매일 오전 9시 1분에 어제 처음으로 출석체크를 한 사람 중 푸시 알람 동의한 사람에게 앱 푸시를 발송한다.
+  - UserService.dailyCheckInOnboardingPush(true)
+- name: UserService.dailyCheckInPush
+  cronTimeExpression: 3 10 * * *
+  arg:
+  - 매일 정각 3분마다 출석체크 앱 푸시를 발송한다.
+  - UserService.dailyCheckInPush(true)
+- name: UserService.dailyCheckInPush
+  cronTimeExpression: 3 0-9,11-23 * * *
+  arg:
+  - 매 시 10분, 최저가보다 비싼 상품 Flag
+  - UserService.dailyCheckInPush(true)
+- name: UserService.checkInPeriodicPush
+  cronTimeExpression: '*/5 7-20 * * *'
+  arg:
+  - 매일 5분마다 시간 출석체크 앱 푸시를 발송한다.
+  - UserService.checkInPeriodicPush(true)
+- name: DailyCheckInService.expireUnusedPointsInBatches
+  cronTimeExpression: 0 0 * * *
+  arg:
+  - 매달 말에 도는 포인트 소멸로직(마지막날 00시에만 로직이 정상적으로 돌아야함. 다만 지금은 3월 31일만.)
+  - DailyCheckInService.expireUnusedPointsInBatches()
+  resources:
+    limits:
+      cpu: "4"
+      memory: 25Gi
+    requests:
+      cpu: "4"
+      memory: 25Gi
+  env:
+  - name: NODE_OPTIONS
+    value: --max-old-space-size=20000
+- name: SellerService.itemRankDistributionSlack
+  cronTimeExpression: 50 0 * * *
+  arg:
+  - 매일 자정으로부터 50분 지난 시각에 아이템 랭크 Distribution Slack Bot 쏘기.
+  - SellerService.itemRankDistributionSlack()
+- name: AlttoService.dailyAlttoPush
+  cronTimeExpression: 50 11 * * *
+  arg:
+  - 매 점심 12시마다 올또 앱 푸시 발송
+  - AlttoService.dailyAlttoPush(true)
+- name: ToonService.sendToonPush
+  cronTimeExpression: 0,30 * * * *
+  arg:
+  - sending altoon push every 15 minutes
+  - ToonService.sendToonPush()
+- name: ToonService.altoonEventPush
+  cronTimeExpression: 0 16 13 3 *
+  arg:
+  - sending altoon Event app push
+  - ToonService.altoonEventPush()
+- name: ToonService.altoonTimesalePush
+  cronTimeExpression: 50 21 14-31 12 *
+  arg:
+  - sending altoon timesale app push
+  - ToonService.altoonTimesalePush()
+- name: ToonService.altoonTicketPush
+  cronTimeExpression: 0 19 * * *
+  arg:
+  - sending altoon ticket app push
+  - ToonService.altoonTicketPush()
+- name: ToonService.altoonWeeklyTicketPush
+  cronTimeExpression: 0 19 * * *
+  arg:
+  - sending weekly altoon ticket app push
+  - ToonService.altoonWeeklyTicketPush()
+- name: ToonService.createPurchaseLogBasedOnToonId
+  cronTimeExpression: 5 0 * * *
+  arg:
+  - 올툰 작품별 판매 순위 생성(매일 오전 0시 5분에 작업 실행)
+  - ToonService.createPurchaseLogBasedOnToonId()
+- name: ToonService.createViewLogBasedOnToonId
+  cronTimeExpression: 5 0 * * *
+  arg:
+  - 올툰 작품별 조회 순위 생성(매일 오전 0시 5분에 작업 실행)
+  - ToonService.createViewLogBasedOnToonId()
+- name: ToonService.createSalesLogBasedOnProviderId
+  cronTimeExpression: 0 9 * * *
+  arg:
+  - 올툰 CP사별 매출 로그 생성(매일 오전 9시)
+  - ToonService.createSalesLogBasedOnProviderId()
+- name: ToonService.dailyCoinExpiration
+  cronTimeExpression: 0 0 * * *
+  arg:
+  - 올툰 코인 소멸
+  - ToonService.dailyCoinExpiration()
+  resources:
+    limits:
+      cpu: "4"
+      memory: 20Gi
+    requests:
+      cpu: "4"
+      memory: 20Gi
+  env:
+  - name: NODE_OPTIONS
+    value: --max-old-space-size=20000
+- name: ToonService.dailyDataBot
+  cronTimeExpression: 5 0 * * *
+  arg:
+  - 올툰 OKR 데이터를 슬랙 채널로 발송
+  - ToonService.dailyDataBot()
+- name: DramaService.createPurchaseLogBasedOnDramaId
+  cronTimeExpression: 5 0 * * *
+  arg:
+  - 드라마 작품별 판매 순위 생성(매일 오전 0시 5분에 작업 실행)
+  - DramaService.createPurchaseLogBasedOnDramaId()
+- name: DramaService.createViewLogBasedOnDramaId
+  cronTimeExpression: 5 0 * * *
+  arg:
+  - 드라마 작품별 조회 순위 생성(매일 오전 0시 5분에 작업 실행)
+  - DramaService.createViewLogBasedOnDramaId()
+- name: DramaService.DramaDailyPush
+  cronTimeExpression: 0 19 * * *
+  arg:
+  - 드라마 무료 코인 발송 푸시 (매일 오후 7시에 작업 실행)
+  - DramaService.DramaDailyPush(true)
+- name: UserService.reviewCouponNotificationPush
+  cronTimeExpression: 30 19 * * *
+  arg:
+  - 매일 19시 30분에 리뷰 이벤트 푸시
+  - UserService.reviewCouponNotificationPush(true, 0)
+  - UserService.reviewCouponNotificationPush(true, 3)
+- name: CommonService.resetHighscore
+  cronTimeExpression: 5 0 * * 0
+  arg:
+  - 매주 일요일 0시 5분에 양파게임 주간 랭킹 초기화
+  - CommonService.resetHighscore()
+- name: CommonService.brainteaserPush
+  cronTimeExpression: 30 20 * * *
+  arg:
+  - 매일 20:30에 두뇌훈련 앱 푸시를 발송한다.
+  - CommonService.brainteaserPush(true)
+- name: CommonService.brainteaserRequestSummary
+  cronTimeExpression: 0,10,20,30,40,50 * * * *
+  arg:
+  - 매일 10분마다 두뇌훈련 건의사항 개수를 슬랙에 발송한다.
+  - CommonService.brainteaserRequestSummary()
+- name: CommonService.ticketRegenPush
+  cronTimeExpression: 5 17 * * *
+  arg:
+  - 매일 오후 17시 5분에 양파게임 도전권 지급 푸시
+  - CommonService.ticketRegenPush(true, 'Dinner')
+- name: GameService.addDailyLotterWholeData
+  cronTimeExpression: 45 17 * * *
+  arg:
+  - 매일 올팜 타임추첨 데이터 생성 [10일 여유분까지 ]
+  - GameService.addDailyLotterWholeData()
+- name: UserService.alfarmSendEngagementNutrimentPush
+  cronTimeExpression: 5 7 * * *
+  arg:
+  - D0-2일차에 유저에게 앱푸시를 보냄(너 신규구나~ 신규전용 선물 받아보셈~)
+  - UserService.alfarmSendEngagementNutrimentPush(true)
+- name: UserService.alfarmSendEngagementNutrimentPush
+  cronTimeExpression: 5 12 * * *
+  arg:
+  - D0-2일차에 유저에게 앱푸시를 보냄(너 신규구나~ 신규전용 선물 받아보셈~)
+  - UserService.alfarmSendEngagementNutrimentPush(true)
+- name: UserService.alfarmSendEngagementNutrimentPush
+  cronTimeExpression: 5 18 * * *
+  arg:
+  - D0-2일차에 유저에게 앱푸시를 보냄(너 신규구나~ 신규전용 선물 받아보셈~)
+  - UserService.alfarmSendEngagementNutrimentPush(true)
+- name: UserService.newUserConversionNudgePushAfterNdays
+  cronTimeExpression: 55 18 * * *
+  arg:
+  - 미구매 7일차, 14일차, 21일차 신규회원에게 쿠폰 지급
+  - UserService.newUserConversionNudgePushAfterNdays(7, true)
+  - UserService.newUserConversionNudgePushAfterNdays(14, true)
+  - UserService.newUserConversionNudgePushAfterNdays(21, true)
+- name: UserService.alfarmComebackPush
+  cronTimeExpression: 15 12 * * *
+  arg:
+  - 10일 연속 올팜에 들어오지 않은 유저에게 11일 차에 앱푸시를 보냄
+  - UserService.alfarmComebackPush(true)
+- name: UserService.alfarmActiveUserEngage
+  cronTimeExpression: 45 11 * * *
+  arg:
+  - 어제 준 물을 아직 안받은 고객에게 보내는 푸시
+  - UserService.alfarmActiveUserEngage(true)
+- name: AdService.alfarmAdEnds
+  cronTimeExpression: 0 8 * * *
+  arg:
+  - 올팜 광고 종료
+  - AdService.alfarmAdEnds()
+- name: AdService.alfarmAdRejctedByDate
+  cronTimeExpression: 0 7 * * *
+  arg:
+  - 검수를 못한 광고를 반려시켜주자
+  - AdService.alfarmAdRejctedByDate(true)
+- name: SellerService.evaluateItemRank
+  cronTimeExpression: 0 0 * * 1
+  arg:
+  - evaluate items by itemRank
+  - SellerService.evaluateItemRank()
+  resources:
+    limits:
+      cpu: "1"
+      memory: 2Gi
+    requests:
+      cpu: "1"
+      memory: 2Gi
+- name: ItemService.updateGroceryTopReviewItems
+  cronTimeExpression: 0 4 * * *
+  arg:
+  - update grocery top review items
+  - ItemService.updateGroceryTopReviewItems()
+- name: ItemService.checkOptionIdSystem
+  cronTimeExpression: 0 10 * * *
+  arg:
+  - 최근 생성 및 가격 변경이 있었던 상품의 optionId가 정합한지 체크합니다.
+  - ItemService.checkOptionIdSystem()
+- name: ItemService.saveBestItemsPerCategory
+  cronTimeExpression: 55 * * * *
+  arg:
+  - save best items by category
+  - ItemService.saveBestItemsPerCategory()
+- name: ItemService.renewItemRankPerItemCategory
+  cronTimeExpression: 0 0 * * *
+  arg:
+  - save best items by small category
+  - ItemService.renewItemRankPerItemCategory()
+- name: OrderService.makeTeamGatheringFinishedAutomatically
+  cronTimeExpression: 3,33 * * * *
+  arg:
+  - getting team-gathering users
+  - OrderService.makeTeamGatheringFinishedAutomatically()
+- name: OrderService.makeWholeTeamGatheringFinishedAutomatically
+  cronTimeExpression: '*/10 * * * *'
+  arg:
+  - 10분마다 TestGroup의 만들어진지 20~40분 내 팀구매 성사시켜줌
+  - OrderService.makeWholeTeamGatheringFinishedAutomatically()
+- name: OrderService.makeTwentyHourTeamGatheringFinishedAutomatically
+  cronTimeExpression: 45 * * * *
+  arg:
+  - 매시간 45분에 20~21시간 경과된 팀구매 성사시켜줌
+  - OrderService.makeTwentyHourTeamGatheringFinishedAutomatically()
+- name: ItemService.drawLotteryItems
+  cronTimeExpression: 0 * * * *
+  arg:
+  - draw lottery
+  - ItemService.drawLotteryItems()
+- name: ItemService.announceLotteryWinnersRevised
+  cronTimeExpression: 0 * * * *
+  arg:
+  - announceLotteryWinnersRevised
+  - ItemService.announceLotteryWinnersRevised()
+- name: OrderService.getShippingOrdersForSweetTrackerCallBack
+  cronTimeExpression: 0 */4 * * *
+  arg:
+  - 스윗트레커 콜백 응답 데이터 없는 주문건 콜백 때리기
+  - OrderService.getShippingOrdersForSweetTrackerCallBack()
+- name: OrderService.fastArrivalCouponCompensation
+  cronTimeExpression: 30 07 * * *
+  arg:
+  - 매일 바로도착 정시 미배송 주문 추출
+  - OrderService.fastArrivalCouponCompensation()
+  resources:
+    limits:
+      cpu: "4"
+      memory: 16Gi
+    requests:
+      cpu: "4"
+      memory: 16Gi
+  env:
+  - name: NODE_OPTIONS
+    value: --max-old-space-size=14000
+- name: OrderService.setDepartureDeadline
+  cronTimeExpression: 0,30 * * * *
+  arg:
+  - 매 30분 간격 신규 오더건에 대해 발송처리기한 업데이트
+  - OrderService.setDepartureDeadline()
+- name: OrderService.updateRemainedShippingOrders
+  cronTimeExpression: 0 2 28 * *
+  arg:
+  - TrackingDetail 있는 주문건들에 대해 매월 말 자동 배송완료 처리
+  - OrderService.updateRemainedShippingOrders()
+- name: OrderService.recallShippingHistory
+  cronTimeExpression: 0 0 28 * *
+  arg:
+  - TrackingDetail 없는 주문건들에 대해 매월 말 스윗트레커 DB 조회 후 업데이트
+  - OrderService.recallShippingHistory()
+- name: SellerService.notifyGuaranteedOrdersItems
+  cronTimeExpression: 0 16 * * *
+  arg:
+  - notified order guarantee
+  - SellerService.notifyGuaranteedOrdersItems()
+- name: OrderService.setReviewEventEndedOrders
+  cronTimeExpression: 0 3 * * *
+  arg:
+  - make reviewEvent arrived Order unabled after 1week
+  - OrderService.setReviewEventEndedOrders()
+- name: ItemService.updateLureDealVisitedCount
+  cronTimeExpression: 0 * * * *
+  arg:
+  - update luredeals visited counts by hours
+  - ItemService.updateLureDealVisitedCount()
+- name: ItemService.renewAlfarmDealData
+  cronTimeExpression: 55 23 * * *
+  arg:
+  - renewed alfarm deal
+  - ItemService.renewAlfarmDealData()
+- name: ItemService.setDealCompleted
+  cronTimeExpression: 0 3 * * *
+  arg:
+  - setDealCompleted
+  - ItemService.setDealCompleted()
+  env:
+  - name: NODE_OPTIONS
+    value: --max-old-space-size=30000
+  - name: DB_CONNECTION_POOL_SIZE
+    value: "100"
+- name: ItemService.setLimitedQuantityDealItems
+  cronTimeExpression: 0 0 * * 1
+  arg:
+  - set limited quantity deal items
+  - ItemService.setLimitedQuantityDealItems()
+- name: OrderService.lookupTeamDeals
+  cronTimeExpression: 0 0 * * *
+  arg:
+  - 팀모집중 주문건들 중 인원을 다 채웠음에도 주문현황이 상품준비중으로 넘어가지 않는 주문 상품준비중으로 넘겨주는 코드
+  - OrderService.lookupTeamDeals()
+- name: SellerService.saveSellerDashboardData
+  cronTimeExpression: 0 5 * * *
+  arg:
+  - saveSellerDashboardData
+  - SellerService.saveSellerDashboardData()
+  resources:
+    limits:
+      cpu: "4"
+      memory: 16Gi
+    requests:
+      cpu: "4"
+      memory: 16Gi
+  env:
+  - name: NODE_OPTIONS
+    value: --max-old-space-size=14000
+  - name: DB_CONNECTION_POOL_SIZE
+    value: "16"
+- name: ItemService.evaluateAndReleaseV2TestEndedSKUs
+  cronTimeExpression: 1 * * * *
+  arg:
+  - evaluate and release v2 testing skus
+  - ItemService.evaluateAndReleaseV2TestEndedSKUs()
+  resources:
+    limits:
+      cpu: "4"
+      memory: 16Gi
+    requests:
+      cpu: "4"
+      memory: 16Gi
+  env:
+  - name: NODE_OPTIONS
+    value: --max-old-space-size=14000
+  - name: DB_CONNECTION_POOL_SIZE
+    value: "100"
+- name: HealthCheckService.checkItemCollectionMainImageStatus
+  cronTimeExpression: 0 0 * * *
+  arg:
+  - daily item collection health check
+  - HealthCheckService.checkItemCollectionMainImageStatus()
+- name: AdService.sendAdCreditChargeOfferMail
+  cronTimeExpression: 2 11,16 * * *
+  arg:
+  - sendAdCreditChargeOfferMail
+  - AdService.sendAdCreditChargeOfferMail()
+  resources:
+    limits:
+      cpu: "4"
+      memory: 16Gi
+    requests:
+      cpu: "4"
+      memory: 16Gi
+  env:
+  - name: NODE_OPTIONS
+    value: --max-old-space-size=14000
+- name: SellerService.renewBestSelleActivationStatus
+  cronTimeExpression: 0 22 * * *
+  arg:
+  - renew best seller activation status
+  - SellerService.renewBestSelleActivationStatus()
+- name: SellerService.alertNextDaySending
+  cronTimeExpression: 0 3 * * *
+  arg:
+  - 배송 지연 알림톡
+  - SellerService.alertNextDaySending()
+  - SellerService.alertDelayedShipping()
+  resources:
+    limits:
+      cpu: "4"
+      memory: 16Gi
+    requests:
+      cpu: "4"
+      memory: 16Gi
+  env:
+  - name: NODE_OPTIONS
+    value: --max-old-space-size=14000
+- name: SellerService.alertOrder
+  cronTimeExpression: 0 3 * * *
+  arg:
+  - 셀러 주문 알림톡
+  - SellerService.alertOrder()
+  resources:
+    limits:
+      cpu: "4"
+      memory: 16Gi
+    requests:
+      cpu: "4"
+      memory: 16Gi
+  env:
+  - name: NODE_OPTIONS
+    value: --max-old-space-size=14000
+- name: OrderService.deleteTeamDealBotDB
+  cronTimeExpression: 0 3 * * *
+  arg:
+  - 매일 오전 3시에 팀딜 봇 db를 제거한다..
+  - OrderService.deleteTeamDealBotDB()
+- name: ItemService.setAlfarmDealFromAlfarmDealTemp
+  cronTimeExpression: 1 9 * * *
+  arg:
+  - setAlfarmDealFromAlfarmDealTemp
+  - ItemService.setAlfarmDealFromAlfarmDealTemp()
+- name: SellerService.evaluateSellerService
+  cronTimeExpression: 0 0 1 * *
+  arg:
+  - sellerRank and goodService
+  - SellerService.evaluateSellerService()
+  - SellerService.evaluateSellerRank()
+  resources:
+    limits:
+      cpu: "4"
+      memory: 16Gi
+    requests:
+      cpu: "4"
+      memory: 16Gi
+  env:
+  - name: NODE_OPTIONS
+    value: --max-old-space-size=14000
+- name: ItemService.setCrawledItemCheckerNameUpdated
+  cronTimeExpression: 0 23 * * *
+  arg:
+  - 매일 저녁 11시에 가격검수팀 작업물 돌리기
+  - ItemService.setCrawledItemCheckerNameUpdated()
+- name: ItemService.setSampleForItemIdentificationInspection
+  cronTimeExpression: 0 6 * * *
+  arg:
+  - 매일 자정 가격검수를 위해 담당자 별 검수 상품 지정
+  - ItemService.setSampleForItemIdentificationInspection()
+  resources:
+    limits:
+      cpu: "4"
+      memory: 16Gi
+    requests:
+      cpu: "4"
+      memory: 16Gi
+  env:
+  - name: NODE_OPTIONS
+    value: --max-old-space-size=14000
+- name: ItemService.getPhotoReviewItems
+  cronTimeExpression: 0 3 * * *
+  arg:
+  - 매일 새벽 3시에 올팜 사진후기 대상 유저와 정보 넣어줌
+  - ItemService.getPhotoReviewItems()
+  resources:
+    limits:
+      cpu: "4"
+      memory: 16Gi
+    requests:
+      cpu: "4"
+      memory: 16Gi
+  env:
+  - name: NODE_OPTIONS
+    value: --max-old-space-size=14000
+- name: ItemService.setExpensiveItems
+  cronTimeExpression: 10 * * * *
+  arg:
+  - 매 시 10분, 최저가보다 비싼 상품 Flag
+  - ItemService.setExpensiveItems()
+- name: SellerService.sendSellerPenaltyNotification
+  cronTimeExpression: 1 11 * * *
+  arg:
+  - 매일 오전 11시 페널티 부과 채널톡 알림
+  - SellerService.sendSellerPenaltyNotification()
+- name: SellerService.calculateSettlementExceptForFastArrival
+  cronTimeExpression: 0 1 * * 4
+  arg:
+  - 매주 목요일 오전 01시 바로도착 택배운임 정산 업데이트
+  - SellerService.calculateSettlementExceptForFastArrival()
+  resources:
+    limits:
+      cpu: "4"
+      memory: 16Gi
+    requests:
+      cpu: "4"
+      memory: 16Gi
+  env:
+  - name: NODE_OPTIONS
+    value: --max-old-space-size=14000
+- name: SellerService.recallDailyShippingHistory
+  cronTimeExpression: 0 */6 * * *
+  arg:
+  - 6시간 마다 배송정보 추적 및 업데이트
+  - SellerService.recallDailyShippingHistory()
+  - SellerService.recallDailyShippingHistoryForTodayDeparture()
+- name: SellerService.imposeSellerPenalty
+  cronTimeExpression: 0 23 * * *
+  arg:
+  - 매일 오후 11시 판매자 페널티 부과
+  - SellerService.imposeShippingPenalty()
+  - SellerService.imposeRefundPenalty()
+  - SellerService.imposeSellerPenalty()
+  - SellerService.sellerPenaltyStatusCheck()
+  - SellerService.todayDepartureStatusUpdate()
+  resources:
+    limits:
+      cpu: "4"
+      memory: 16Gi
+    requests:
+      cpu: "4"
+      memory: 16Gi
+  env:
+  - name: NODE_OPTIONS
+    value: --max-old-space-size=14000
+- name: ItemService.updateItemQualityManagementData
+  cronTimeExpression: 0 13 * * *
+  arg:
+  - 매일 오후 1시 품질지표 노출제한 데이터 업데이트
+  - ItemService.updateItemQualityManagementData()
+  - ItemService.updateItemQualityDisplayMetrics()
+- name: SellerService.updateDealGmv
+  cronTimeExpression: 0 9 * * *
+  arg:
+  - 매일 오전 9시 메인 베너와 브랜드딜 GMV slack에 쏴주기
+  - SellerService.updateDealGmv()
+- name: SellerService.updateSettlementExceptByRoas
+  cronTimeExpression: 0 9 * * *
+  arg:
+  - 매주 금요일 오전 9시 메인 베너 ROAS 계산
+  - SellerService.updateSettlementExceptByRoas()
+- name: SellerService.updateSettlementExceptByRoasForHalfDayDeal
+  cronTimeExpression: 0 9 * * *
+  arg:
+  - 매주 금요일 오전 9시 1212특가 ROAS 계산
+  - SellerService.updateSettlementExceptByRoasForHalfDayDeal()
+- name: ItemService.itemSearchTrend
+  cronTimeExpression: 0 9 * * *
+  arg:
+  - 매일 오전 9시 이틀 전 대비 전날 검색어 top slack에 쏴주기
+  - ItemService.itemSearchTrend()
+- name: SellerService.superStarPriceChange
+  cronTimeExpression: 0 9 * * *
+  arg:
+  - 매일 오전 9시 슈퍼스타 상품 가격 변동 건
+  - SellerService.superStarPriceChange()
+- name: UserService.pushHealthCheck
+  cronTimeExpression: 0 9 * * *
+  arg:
+  - 매일 오전 9시 onesignal health-check
+  - UserService.pushHealthCheck()
+- name: ItemService.updateDealOrderCount
+  cronTimeExpression: 0 * * * *
+  arg:
+  - 매 시간 브랜드딜과 메인배너딜 최근 3시간 order수 업데이트
+  - ItemService.updateDealOrderCount()
+- name: ItemService.updateMainBannerAd
+  cronTimeExpression: 0 * * * *
+  arg:
+  - 매일 오전 8시 메인배너 데이터 업데이트
+  - ItemService.updateMainBannerAd()
+- name: SellerService.checkDealIntegrity
+  cronTimeExpression: '*/5 * * * *'
+  arg:
+  - 매일 5분마다 메인배너,브랜드딜 데이터 정합성 체크
+  - SellerService.checkDealIntegrity()
+  resources:
+    limits:
+      cpu: "4"
+      memory: 16Gi
+    requests:
+      cpu: "4"
+      memory: 16Gi
+- name: ShortsNotificationService.sendUnsentNotifications
+  cronTimeExpression: 0 8,12,15,19 * * *
+  arg:
+  - Shorts 에서 공유 영상 Notification 을 3시간마다 묶어서 보내준다.
+  - ShortsNotificationService.sendUnsentNotifications()
+- name: AlluluService.sendOpenTodayGiftBoxNotification
+  cronTimeExpression: 30 20 * * *
+  arg:
+  - 올룰루에서 오늘 기프트 박스를 오픈하지 않으면 밤 9시에 푸시로 알려줌
+  - AlluluService.sendOpenTodayGiftBoxNotification()
+- name: AlluluService.sendAlluluAppPushFor3days
+  cronTimeExpression: 0 9 * * *
+  arg:
+  - 올룰루 최근 3일 유저에게 앱푸시
+  - AlluluService.sendAlluluAppPushFor3days(true)
+- name: AlluluService.resetAlluluCoin
+  cronTimeExpression: '0 19 * * * '
+  arg:
+  - 올룰루 30일 이상 미접 코인 초기화
+  - AlluluService.resetAlluluCoin(true)
+- name: ItemService.eraseDealItemFilters
+  cronTimeExpression: 1 * * * *
+  arg:
+  - Get rid of deleted tenMinDeal items itemFilters in item Db
+  - ItemService.eraseDealItemFilters('tenMinDeal')
+- name: ItemService.insertDealOneClickItems
+  cronTimeExpression: 0 * * * *
+  arg:
+  - 딜원클릭 상품 dealOptionsInfo 자동 업데이트
+  - ItemService.insertDealOneClickItems('tenMinDeal', true)
+- name: ItemService.insertInboundItems
+  cronTimeExpression: 5 0 * * *
+  arg:
+  - 내부 상품 dealOptionsInfo 자동 업데이트
+  - ItemService.insertInboundItems('tenMinDeal')
+- name: ItemService.arrangeTenMinDealSKUv3
+  cronTimeExpression: 0 8 * * *
+  arg:
+  - 10분 핫딜 스큐 배치 v3 (review 최근성 반영), 무조건 8시에 돌아야 함
+  - ItemService.arrangeTenMinDealSKUv3()
+- name: ItemService.updateTenMinDealStatus
+  cronTimeExpression: 30 21 * * *
+  arg:
+  - 10분 핫딜 sku status 변경
+  - ItemService.updateTenMinDealStatus()
+- name: ItemService.updateItemOrderQuantity
+  cronTimeExpression: 0 22 * * *
+  arg:
+  - 10분 핫딜 판매량 데이터 업데이트
+  - ItemService.updateItemOrderQuantity('tenMinDeal')
+- name: 10-UserService.sendGeneralDealApplicationPush
+  cronTimeExpression: 5 10 * * *
+  arg:
+  - 오전 10시 딜 푸시
+  - UserService.sendGeneralDealApplicationPush(10, 0, true)
+  resources:
+    limits:
+      cpu: "4"
+      memory: 16Gi
+    requests:
+      cpu: "4"
+      memory: 16Gi
+  env:
+  - name: NODE_OPTIONS
+    value: --max-old-space-size=14000
+- name: 19-UserService.sendGeneralDealApplicationPush
+  cronTimeExpression: 5 19 * * *
+  arg:
+  - 오후 7시 딜 푸시
+  - UserService.sendGeneralDealApplicationPush(19, 0, true)
+  resources:
+    limits:
+      cpu: "4"
+      memory: 16Gi
+    requests:
+      cpu: "4"
+      memory: 16Gi
+  env:
+  - name: NODE_OPTIONS
+    value: --max-old-space-size=14000
+- name: UserService.alfarmDailyAppPushWater
+  cronTimeExpression: 0 9 * * *
+  arg:
+  - 오전 9시 올팜 물주는 앱푸시
+  - UserService.alfarmDailyAppPushWater(true)
+- name: UserService.alfarmDailyAppPushWaterAfternoon
+  cronTimeExpression: 0 15 * * *
+  arg:
+  - 오전 15시 올팜 물주는 앱푸시
+  - UserService.alfarmDailyAppPushWaterAfternoon(true)
+- name: UserService.alfarmDailyAppPushWaterNight
+  cronTimeExpression: 30 19 * * *
+  arg:
+  - 오후 19시 30분 올팜 물주는 앱푸시
+  - UserService.alfarmDailyAppPushWaterNight(true)
+- name: UserService.notOrderedUserCRM
+  cronTimeExpression: 10 19 * * *
+  arg:
+  - 2일 내 미구매자 대상 CRM
+  - UserService.notOrderedUserCRM()
+  resources:
+    limits:
+      cpu: "4"
+      memory: 16Gi
+    requests:
+      cpu: "4"
+      memory: 16Gi
+  env:
+  - name: NODE_OPTIONS
+    value: --max-old-space-size=14000
+- name: AdService.sendSMSAfterAlfarmFreeAdEnds
+  cronTimeExpression: 0 9 * * *
+  arg:
+  - 올팜 무료 광고 종료 대상 퍼포먼스 안내 CRM
+  - AdService.sendSMSAfterAlfarmFreeAdEnds()
+- name: AdService.approveAdCPMItems
+  cronTimeExpression: 0 1 * * *
+  arg:
+  - 매일 새벽 1시 광고 아이템 승인
+  - AdService.approveAdCPMItems()
+- name: AdService.updateAdCPMSets
+  cronTimeExpression: 0 4 * * *
+  arg:
+  - 매일 새벽 4시 광고 세트 업데이트
+  - AdService.updateAdCPMSets()
+- name: AdService.logHourlyAdCPMImpressions
+  cronTimeExpression: 0 */1 * * *
+  arg:
+  - 매 1시간마다 CPM 광고 노출 수 로그 저장(저장만 함)
+  - AdService.logHourlyAdCPMImpressions()
+  resources:
+    limits:
+      cpu: "4"
+      memory: 16Gi
+    requests:
+      cpu: "4"
+      memory: 16Gi
+  env:
+  - name: NODE_OPTIONS
+    value: --max-old-space-size=14000
+- name: AdService.setMissingCPMRedisByBatch
+  cronTimeExpression: 0 */1 * * *
+  arg:
+  - 매 1시간마다 CPM 광고 세트와 아이템 중 누락된 것들을 Redis에 저장
+  - AdService.setMissingCPMRedisByBatch()
+- name: AdService.logExternalAd
+  cronTimeExpression: 55 11 * * *
+  arg:
+  - 매일 오전 11시 55분 Adpopcorn SSP 광고 로그 저장
+  - AdService.logExternalAd()
+- name: CrawlService.renewSkuCatalogDanawaPrice
+  cronTimeExpression: 0 * * * *
+  arg:
+  - sku catalog 다나와 가격정보 크롤링
+  - CrawlService.renewSkuCatalogDanawaPrice()
+  resources:
+    limits:
+      cpu: "4"
+      memory: 16Gi
+    requests:
+      cpu: "4"
+      memory: 16Gi
+- name: UserService.sendKaKaoNotificationToRecentlyDeliveredCustomers
+  cronTimeExpression: 10 9-19 * * *
+  arg:
+  - 9~19시까지 매 10분에 최근 배송 완료 유저에게 카카오톡 알림톡을 세팅한다.
+  - UserService.sendKaKaoNotificationToRecentlyDeliveredCustomers()
+- name: SellerService.cancelFruitLabUserPendingOrdersAndMinusSettlement
+  cronTimeExpression: '*/30 * * * *'
+  arg:
+  - 매시간 과일실험군 주문건 취소 및 정산조정
+  - SellerService.cancelFruitLabUserPendingOrdersAndMinusSettlementForSeller()
+- name: SellerService.cancelFruitPBPendingCancels
+  cronTimeExpression: '*/30 * * * *'
+  arg:
+  - 매 30분마다 과일 PB 환불대기 주문건 취소
+  - SellerService.cancelFruitPBPendingCancels()
+- name: ShopinDataService.dailyShopinDataBot
+  cronTimeExpression: 0 8 * * *
+  arg:
+  - 매일 오전 8시 쇼핀 데일리 데이터 봇
+  - ShopinDataService.dailyShopinDataBot()
+- name: ShopinDataService.weeklyShopinDataBot
+  cronTimeExpression: 10 8 * * 1
+  arg:
+  - 매주 월요일 오전 8시10분 쇼핀 위클리 리포트 봇
+  - ShopinDataService.weeklyShopinDataBot()
+- name: OrderService.notifyFruitLabOrdersWithoutOrderNumber
+  cronTimeExpression: 0 */1 * * *
+  arg:
+  - 매 1시간마다 가격혁명 주문번호 미입력 주문 알림
+  - OrderService.notifyFruitLabOrdersWithoutOrderNumber()
+- name: OrderService.getFruitLabOrdersWithoutShippingNumber
+  cronTimeExpression: 0 18 * * *
+  arg:
+  - 매일 오후 6시 가격혁명 송장번호 미입력 주문 알림
+  - OrderService.getFruitLabOrdersWithoutShippingNumber()
+- name: OrderService.getFruitLabItemExpiredDeliveryDate
+  cronTimeExpression: 0 18 * * *
+  arg:
+  - 매일 오후 6시 가격혁명 송장번호 미입력 주문 알림
+  - OrderService.getFruitLabItemExpiredDeliveryDate()
+- name: OrderService.getFruitLabOrdersThatIsArrivingTooLate
+  cronTimeExpression: 0 8 * * *
+  arg:
+  - 매일 오전 8시 가격혁명 배송 지연 주문 알림
+  - OrderService.getFruitLabOrdersThatIsArrivingTooLate()
+- name: OrderService.getFruitLabOrdersThatArrivedTooLate
+  cronTimeExpression: 0 8 * * *
+  arg:
+  - 매일 오전 8시 가격혁명 배송 도착 지연 주문 알림
+  - OrderService.getFruitLabOrdersThatArrivedTooLate()
+- name: UserService.sendPriceLabPush.prepay.containPrevious
+  cronTimeExpression: 0 7 * * *
+  arg:
+  - 오전 7시에 전날 데이터까지 포함하여 사용자의 prepay 상태인 상품에 대한 푸시알람을 보낸다.
+  - UserService.sendPriceLabPush('priceLabPrepay', 'application', true)
+- name: UserService.sendPriceLabPush.fruitLabCoupon
+  cronTimeExpression: 0 9 * * *
+  arg:
+  - 오전 9시에 이전에 푸시 알림을 받은적 없는 사용자에게 쿠폰 푸시알림을 보낸다.
+  - UserService.sendPriceLabPush('fruitLabCoupon', 'application')
+- name: UserService.sendPriceLabPush.prepay
+  cronTimeExpression: 0 10,13,16,19 * * *
+  arg:
+  - 오전 10시 부터 오후 19시 까지 매 3시간 마다 사용자의 prepay 상태인 상품에 대한 푸시알람을 보낸다.
+  - UserService.sendPriceLabPush('priceLabPrepay', 'application')
+- name: ItemService.updateFruitLabOrderCount
+  cronTimeExpression: 0 3 * * *
+  arg:
+  - 매일 오전 3시에 FruitLab 아이템 order data를 입력해준다
+  - ItemService.updateFruitLabOrderCount()
+- name: ItemService.checkDiscountRateAndSoldOut
+  cronTimeExpression: '*/5 * * * *'
+  arg:
+  - 매 5분 마다 할인율 70% 초과 상품 품절 처리
+  - ItemService.checkDiscountRateAndSoldOut()
+- name: ItemService.getItemSoldOutStatus
+  cronTimeExpression: '*/30 * * * *'
+  arg:
+  - 매 30분 마다 쿠팡/SSG 솔드아웃 상태 체크
+  - ItemService.getItemSoldOutStatus()
+  resources:
+    limits:
+      cpu: "2"
+      memory: 4Gi
+    requests:
+      cpu: "2"
+      memory: 4Gi
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: topology.kubernetes.io/zone
+            operator: In
+            values:
+            - ap-northeast-2a

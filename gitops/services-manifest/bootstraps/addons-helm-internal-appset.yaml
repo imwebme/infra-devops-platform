@@ -1,0 +1,60 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: demo-addons-helm-internal-appset
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=invalid"]
+  syncPolicy:
+    preserveResourcesOnDeletion: true
+  generators:
+    - matrix:
+        generators:
+          - matrix:
+              generators:
+                - git:
+                    repoURL: https://github.com/wetripod/demo-gitops-manifest.git
+                    revision: main
+                    files:
+                      - path: configs/**/addons/helm-internal-elements.yaml
+                - list:
+                    elementsYaml: "{{ .key.components | toJson }}"
+          - clusters:
+              selector:
+                matchLabels:
+                  environment: "{{ index .path.segments 1 }}"
+  template:
+    metadata:
+      name: "example-org-{{ .metadata.labels.aws_cluster_name }}-addon-{{ .chart.name }}"
+    spec:
+      project: example-org-app-workspaces
+      source:
+        repoURL: "{{ .chart.repo }}"
+        targetRevision: "{{ .chart.version }}"
+        path: "charts/addons/{{ .chart.path }}"
+        helm:
+          releaseName: "{{ .chart.name }}"
+          ignoreMissingValueFiles: true
+          valueFiles:
+            - $values/environments/base/addons/{{ .chart.values_path }}
+            - $values/environments/{{ .metadata.labels.environment }}/addons/{{ .chart.values_path }}
+      destination:
+        namespace: "{{ .chart.namespace }}"
+        name: "{{ .name }}"
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true
+          - Validate=false
+          - PrunePropagationPolicy=foreground
+          - PruneLast=false
+          - ApplyOutOfSyncOnly=true
+          - ServerSideApply=true
+  templatePatch: |
+    {{- if .chart.auto_sync }}
+    spec:
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+    {{- end }}

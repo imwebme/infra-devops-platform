@@ -1,0 +1,3 @@
+# Kubecost Open Source 기본 설정
+prometheus:
+  enabled: false # 기존 kube-prometheus-stack 사용

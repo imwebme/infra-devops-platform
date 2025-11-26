@@ -1,0 +1,154 @@
+---
+category: "security"
+env: "prod"
+vpc_cidr: "10.24.0.0/16"
+vpc_endpoints:
+  enabled: true
+
+datadog_private_link:
+  enabled: true
+  associated_vpc_ids:
+    - "vpc-018d6129677cf3d1e" # alwayz-dev-vpc
+    - "vpc-0a246f015bb980c94" # alwayz-prod-vpc
+    - "vpc-0efa9bd5259c1e33c" # alwayz-staging-vpc
+    - "vpc-046b03efc179deedc" # data-dev-vpc
+    - "vpc-0a678205bdfd676f4" # data-prod-vpc
+    - "vpc-0d7c1405695dc666f" # data-dev-alt-vpc
+
+vpc_peering:
+  enabled: true
+  connections:
+    - name: "to-alwayz-prod"
+      peer_vpc_id: "vpc-0a246f015bb980c94"
+      peer_region: "ap-northeast-2"
+      peer_cidr: "10.2.0.0/16"
+    - name: "to-alwayz-staging"
+      peer_vpc_id: "vpc-0efa9bd5259c1e33c"
+      peer_region: "ap-northeast-2"
+      peer_cidr: "10.8.0.0/16"
+    - name: "to-alwayz-dev"
+      peer_vpc_id: "vpc-018d6129677cf3d1e"
+      peer_region: "ap-northeast-2"
+      peer_cidr: "10.6.0.0/16"
+    - name: "to-data-prod"
+      peer_vpc_id: "vpc-0a678205bdfd676f4"
+      peer_region: "ap-northeast-2"
+      peer_cidr: "10.10.0.0/16"
+    - name: "to-data-dev"
+      peer_vpc_id: "vpc-046b03efc179deedc"
+      peer_region: "ap-northeast-2"
+      peer_cidr: "10.14.0.0/16"
+    - name: "to-datadog"
+      peer_vpc_id: "vpc-b52882c8"
+      peer_region: "us-east-1"
+      peer_cidr: "172.31.0.0/16"
+
+cloudfront:
+  origin_access_controls: "sign requests about security"
+gitops:
+  workspace_repo_url: "https://github.com/wetripod/alwayz-gitops-manifest"
+
+frontend: []
+ecr: []
+eks:
+  kms: false
+  version: "1.33"
+  auth_config:
+    # Users are now managed by GitOps
+    # See: alwayz-gitops-manifest/clusters/security-prod-eks/administrations/aws-auth/
+    users: []
+    roles:
+      - rolearn: "arn:aws:iam::123456789012:role/aws-reserved/sso.amazonaws.com/ap-northeast-2/AWSReservedSSO_example_devops_xxxxxxxxxxxx"
+        username: "{{SessionName}}"
+        groups: ["system:masters"]
+nat_gateway:
+  enabled: true
+  per_az: true
+coredns:
+  replica: 4
+route53_zones:
+  private:
+    - "security.prod.iexample-org.com"
+    - "agent-http-intake.logs.datadoghq.com"
+    - "http-intake.logs.datadoghq.com"
+    - "api.datadoghq.com"
+    - "metrics.agent.datadoghq.com"
+    - "orchestrator.datadoghq.com"
+    - "process.datadoghq.com"
+    - "intake.profile.datadoghq.com"
+    - "trace.agent.datadoghq.com"
+    - "dbm-metrics-intake.datadoghq.com"
+    - "config.datadoghq.com"
+  public:
+    - "security.prod.iexample-org.com"
+
+secretmanagers:
+  tailscale-operator: {} # Tailscale OAuth credentials를 위한 secretmanager
+  sonarqube/postgres: {} # SonarQube PostgreSQL 연결 정보 (수동으로 설정)
+  snyk-monitor: {} # Snyk Monitor integration credentials (수동으로 설정)
+  trivy-operator: {} # Trivy Operator configuration secrets (수동으로 설정)
+  security-cronjobs: {} # Security CronJobs credentials
+
+service_roles:
+  argocd:
+    name: argocd
+    policies:
+      - name: secretsmanager
+        file: base/secretsmanager-read.json
+  # external-secrets: # External Secrets를 위한 service role 추가
+  #   name: external-secrets
+  #   policies:
+  #     - name: secretsmanager
+  #       file: base/secretsmanager-read.json
+  trivy-operator: # Trivy Operator를 위한 service role 추가
+    name: trivy-operator
+    policies:
+      - name: secretsmanager
+        file: base/secretsmanager-read.json
+  security-cronjobs: # Security CronJobs를 위한 service role 추가
+    name: security-cronjobs
+    policies:
+      - name: secretsmanager
+        file: base/secretsmanager-read.json
+      - name: ecr-read
+        file: base/ecr-read.json
+
+managed_policies:
+  eks_nodes:
+    name: eks_nodes
+    policies:
+      - name: ebs-access
+        file: services/ebs.json
+  karpenter:
+    name: karpenter
+    policies:
+      - name: athena-glue-lakeformation-s3-full-access-policy
+        file: base/athena-glue-lakeformation-s3-full-access-policy.json
+
+pod_identity_associations:
+  argocd:
+    namespace: argocd
+    service_account: argo-cd-argocd-repo-server
+  # external-secrets: # External Secrets를 위한 pod identity association 추가
+  #   namespace: external-secrets
+  #   service_account: external-secrets-sa
+  trivy-operator: # Trivy Operator를 위한 pod identity association 추가
+    namespace: trivy-system
+    service_account: trivy-operator
+  security-cronjobs: # Security CronJobs를 위한 pod identity association 추가
+    namespace: security-cronjobs
+    service_account: code-scanner
+
+rds:
+  databases:
+    - identifier: "sonarqube"
+      engine: "postgres"
+      engine_version: "15"
+      instance_class: "db.t3.micro"
+      allocated_storage: 20
+      max_allocated_storage: 100
+      database_name: "sonarqube"
+      port: 5432
+      backup_retention_period: 7
+      deletion_protection: false
+      skip_final_snapshot: true

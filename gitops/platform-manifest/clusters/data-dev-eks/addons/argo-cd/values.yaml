@@ -1,0 +1,222 @@
+global:
+  domain: argocd.data.dev.iexample-org.com
+  logging:
+    level: error
+
+server:
+  replicas: 2
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 50
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    limits:
+      memory: 100Mi
+  pdb:
+    enabled: true
+    minAvailable: "1"
+  service:
+    type: "ClusterIP"
+  ingress:
+    enabled: true
+    https: true
+    annotations:
+      alb.ingress.kubernetes.io/scheme: "internal"
+      alb.ingress.kubernetes.io/target-type: "ip"
+      alb.ingress.kubernetes.io/backend-protocol: "HTTPS"
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+      alb.ingress.kubernetes.io/healthcheck-path: /healthz
+      alb.ingress.kubernetes.io/healthcheck-protocol: HTTPS
+      alb.ingress.kubernetes.io/tags: |
+        Environment=dev,
+        Env=data-dev,
+        Team=ops,
+        ManagedBy=YoungJae Kim,
+        Group=argo-cd,
+        NodeType=ops_data-argo-cd_dev_alb_private
+      alb.ingress.kubernetes.io/ssl-redirect: "443"
+      alb.ingress.kubernetes.io/security-groups: sg-0a264a52208874e16
+      alb.ingress.kubernetes.io/manage-backend-security-group-rules: "true"
+    ingressClassName: "alb"
+    hostname: argocd.data.dev.iexample-org.com
+    tls: true
+
+controller:
+  replicas: 5
+  pdb:
+    enabled: true
+    minAvailable: "1"
+  env:
+    - name: ARGOCD_CONTROLLER_SHARD
+      value: "-1"
+    - name: ARGOCD_K8S_CLIENT_QPS
+      value: "150"
+    - name: ARGOCD_K8S_CLIENT_BURST
+      value: "300"
+  resources:
+    requests:
+      cpu: 1313m
+      memory: 1319Mi
+    limits:
+      memory: 1319Mi
+
+applicationSet:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    limits:
+      memory: 100Mi
+  replicas: 2
+  pdb:
+    enabled: true
+    minAvailable: "1"
+
+repoServer:
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 50
+  env:
+    - name: ARGOCD_EXEC_TIMEOUT
+      value: "180"
+    - name: ARGOCD_GIT_ATTEMPTS_COUNT
+      value: "3"
+    - name: ARGOCD_HELM_ALLOW_CONCURRENCY
+      value: "true"
+  resources:
+    requests:
+      cpu: 321m
+      memory: 1176Mi
+    limits:
+      memory: 1176Mi
+
+redis:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    limits:
+      memory: 100Mi
+
+dex:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    limits:
+      memory: 100Mi
+
+configs:
+  cm:
+    url: "https://argocd.data.dev.iexample-org.com"
+    resource.exclusions: |
+      - apiGroups:
+          - autoscaling.k8s.io
+        kinds:
+          - VerticalPodAutoscalerCheckpoint
+          - VerticalPodAutoscaler
+        clusters:
+          - '*'
+      - apiGroups:
+          - psmdb.percona.com
+        kinds:
+          - PerconaServerMongoDBBackup
+        clusters:
+          - '*'
+      - apiGroups:
+          - elbv2.k8s.aws
+        kinds:
+          - TargetGroupBinding
+        clusters:
+          - '*'
+    timeout.reconciliation: "60s"
+  params:
+    server.repo.server.timeout.seconds: "180"
+    controller.status.processors: "600"
+    controller.operation.processors: "300"
+    controller.repo.server.timeout.seconds: "180"
+    controller.kubectl.parallelism.limit: "100"
+    controller.sharding.algorithm: "round-robin"
+    reposerver.parallelism.limit: "100"
+
+crds:
+  # -- Install and upgrade CRDs
+  install: false
+  # -- Keep CRDs on chart uninstall
+  keep: true
+  # -- Annotations to be added to all CRDs
+  annotations: {}
+
+notifications:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    limits:
+      memory: 100Mi
+  notifiers:
+    service.slack: |
+      token: $slack-token
+  context:
+    argocdUrl: "https://argocd.data.dev.iexample-org.com"
+    title: 개발
+    eksClusterName: data-dev-eks
+
+extraObjects:
+  - apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: argo-cd-argocd-server-public
+      namespace: argocd
+      annotations:
+        alb.ingress.kubernetes.io/backend-protocol: HTTPS
+        alb.ingress.kubernetes.io/healthcheck-path: /healthz
+        alb.ingress.kubernetes.io/healthcheck-protocol: HTTPS
+        alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+        alb.ingress.kubernetes.io/manage-backend-security-group-rules: "true"
+        alb.ingress.kubernetes.io/security-groups: sg-0a264a52208874e16
+        alb.ingress.kubernetes.io/ssl-redirect: "443"
+        alb.ingress.kubernetes.io/tags: |
+          Environment=dev,
+          Env=data-dev,
+          Team=ops,
+          ManagedBy=YoungJae Kim,
+          Group=argo-cd,
+          NodeType=ops_data-argo-cd_dev_alb
+        alb.ingress.kubernetes.io/load-balancer-name: argocd-public-data-dev
+        alb.ingress.kubernetes.io/scheme: internet-facing
+        alb.ingress.kubernetes.io/target-type: ip
+        external-dns.alpha.kubernetes.io/aws-zone-type: public
+        external-dns.alpha.kubernetes.io/hostname: argocd-public.data.dev.iexample-org.com
+        external-dns.alpha.kubernetes.io/set-identifier: argocd-public
+        external-dns.alpha.kubernetes.io/aws-weight: "100"
+        external-dns.alpha.kubernetes.io/ingress-hostname-source: defined-hosts-only
+        external-dns-controller: external-dns-public
+    spec:
+      ingressClassName: alb
+      rules:
+        - host: argocd-public.data.dev.iexample-org.com
+          http:
+            paths:
+              - backend:
+                  service:
+                    name: argo-cd-argocd-server
+                    port:
+                      number: 443
+                path: /api/webhook
+                pathType: Prefix
+              - backend:
+                  service:
+                    name: argo-cd-argocd-server
+                    port:
+                      number: 443
+                path: /healthz
+                pathType: Prefix

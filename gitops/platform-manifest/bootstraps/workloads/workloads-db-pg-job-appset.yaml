@@ -1,0 +1,53 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: devops-workloads-db-pg-job-appset
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=invalid"]
+  syncPolicy:
+    preserveResourcesOnDeletion: true
+  generators:
+    - matrix:
+        generators:
+          - matrix:
+              generators:
+                - git:
+                    repoURL: https://github.com/wetripod/devops-gitops-manifest.git
+                    revision: main
+                    files:
+                      - path: configs/**/workloads/db-pg-job/jobs.yaml
+                - list:
+                    elementsYaml: "{{ .jobs | toJson }}"
+          - clusters:
+              selector:
+                matchLabels:
+                  aws_cluster_name: "{{ index .path.segments 1 }}"
+  template:
+    metadata:
+      name: "devops-{{ .metadata.labels.aws_cluster_name }}-workload-db-pg-job-{{ .job }}"
+    spec:
+      project: devops-core
+      source:
+        repoURL: https://github.com/wetripod/devops-gitops-manifest.git
+        targetRevision: main
+        path: "charts/workloads/db-pg-job"
+        helm:
+          releaseName: "db-pg-job-{{ .job }}"
+          ignoreMissingValueFiles: true
+          valueFiles:
+            - $values/environments/base/workloads/db-pg-job/{{ .valuesFile }}
+            - $values/environments/{{ .metadata.labels.environment }}/workloads/db-pg-job/{{ .valuesFile }}
+            - $values/clusters/{{ .metadata.labels.aws_cluster_name }}/workloads/db-pg-job/{{ .valuesFile }}
+      destination:
+        namespace: "db"
+        name: "{{ .name }}"
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true
+          - Validate=false
+          - PrunePropagationPolicy=foreground
+          - PruneLast=false
+          - ApplyOutOfSyncOnly=true
+          # - ServerSideApply=true

@@ -1,0 +1,8 @@
+tolerations:
+  - effect: NoSchedule
+    key: SupportToolsOnly
+    value: "true"
+    operator: Equal
+
+nodeSelector:
+  service: support-tools

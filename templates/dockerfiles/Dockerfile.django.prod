@@ -1,0 +1,59 @@
+FROM python:3.10-slim AS builder
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    ca-certificates \
+    libgomp1 \
+    git \
+    && apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+ENV WORKDIR /app/
+
+WORKDIR ${WORKDIR}
+
+COPY Pipfile Pipfile.lock ${WORKDIR}
+
+RUN pip install pipenv --no-cache-dir && \
+    pipenv install --system --deploy && \
+    pip uninstall -y pipenv virtualenv-clone virtualenv
+
+
+# Config Build Stage
+FROM node:18.16.0-alpine as config-builder
+
+ARG AWS_ACCESS_KEY_ID
+ARG AWS_SECRET_ACCESS_KEY
+ARG GIT_PERSONAL_ACCESS_TOKEN
+
+RUN apk update && apk --no-cache add git
+
+WORKDIR /home/alwayz-config
+ARG CACHEBUST=1
+RUN git clone https://ilevit-dev:${GIT_PERSONAL_ACCESS_TOKEN}@github.com/wetripod/alwayz-config .
+RUN npm install && npm run build
+
+
+FROM python:3.10-slim AS deployer
+
+ARG IMAGE_TAG
+ARG DD_GIT_REPOSITORY_URL
+ARG DD_GIT_COMMIT_SHA
+ENV DD_VERSION=${IMAGE_TAG}
+ENV DD_GIT_REPOSITORY_URL=${DD_GIT_REPOSITORY_URL} 
+ENV DD_GIT_COMMIT_SHA=${DD_GIT_COMMIT_SHA}
+
+COPY --from=builder /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+COPY --from=builder /usr/lib /usr/lib
+COPY --from=config-builder /home/alwayz-config/output/alwayz-recommendation/.env.prod /app/.env  
+COPY --from=builder /app /app
+
+COPY . /app
+
+EXPOSE 5000
+
+WORKDIR /app
+
+ENTRYPOINT ["ddtrace-run", "gunicorn", "app:app"]
+CMD ["--bind", "0.0.0.0:5000", "--workers", "4", "--threads", "1", "--timeout", "300", "--graceful-timeout", "30"]

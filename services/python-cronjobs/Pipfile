@@ -1,0 +1,37 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+pandas = "*"
+pytz = "*"
+pymongo = "*"
+python-dotenv = "*"
+numpy = "*"
+matplotlib = "*"
+apscheduler = "*"
+gspread = "*"
+oauth2client = "*"
+slack-sdk = "*"
+scipy = "*"
+seaborn = "*"
+colorlog = "*"
+boto3 = "*"
+tabulate = "*"
+redis = "*"
+kubernetes = "*"
+pyyaml = "*"
+
+[dev-packages]
+nbconvert = "*"
+jupyter = "*"
+flake8 = "*"
+
+[requires]
+python_version = "3.10"
+
+[scripts]
+install = "pipenv install"
+convert = "bash -c \"jupyter nbconvert --ClearOutputPreprocessor.enabled=True --inplace *.ipynb;jupyter nbconvert --to script *.ipynb\""
+cron = "pipenv run python cron.py"

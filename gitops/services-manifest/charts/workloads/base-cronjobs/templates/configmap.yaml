@@ -1,0 +1,19 @@
+{{- if or (ge ( len .Values.configMap.json ) 1) (ge ( len .Values.configMap.string ) 1) }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "base-cronjobs.fullname" . }}
+  namespace: {{ $.Values.namespace }}
+  labels:
+    {{- include "base-cronjobs.labels" . | nindent 4 }}
+    app.kubernetes.io/instance: {{ include "base-cronjobs.fullname" . }}
+data:
+  {{- range $key,$value := .Values.configMap.json }}
+  {{ $key }}: |-
+    {{ $value | mustToJson }} 
+  {{- end }}
+  {{- range $key,$value := .Values.configMap.string }}
+  {{ $key }}: {{ $value }} 
+  {{- end }}
+---
+{{- end }}

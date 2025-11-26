@@ -1,0 +1,14 @@
+aws:
+  zoneType: "private"
+
+logLevel: info
+
+extraArgs:
+  annotation-filter: "alb.ingress.kubernetes.io/scheme notin (internet-facing)"
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 231Mi
+  limits:
+    memory: 231Mi

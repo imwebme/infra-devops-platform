@@ -1,0 +1,48 @@
+fullnameOverride: "postgres-exporter"
+
+image:  
+  registry: 123456789012.dkr.ecr.ap-northeast-2.amazonaws.com
+  repository: db/postgres-exporter
+  tag: "11.0.0"
+  pullPolicy: IfNotPresent
+  
+replicaCount: 2
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 9187
+  name: http
+  labels: {}
+  annotations: {}
+
+serviceMonitor:
+  enabled: false
+
+config:
+  disableCollectorDatabase: false
+  disableCollectorBgwriter: false
+  disableDefaultMetrics: false
+  disableSettingsMetrics: false
+
+  extraArgs: 
+    - "--no-collector.replication"
+    - "--no-collector.process_idle"
+    - "--no-collector.wal"
+    - "--collector.stat_statements"
+    - "--collector.postmaster"
+    - "--collector.database_wraparound"
+    - "--collector.stat_user_tables"
+  
+  existingSecret:
+    enabled: true
+    name: "postgres-exporter-config"
+
+rbac:
+  create: false
+
+serviceAccount:
+  create: false
+
+prometheusRule:
+  enabled: false

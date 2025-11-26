@@ -1,0 +1,52 @@
+{{- $labels := include "base-cronjobs.labels" . -}}
+{{- $fullName := include "base-cronjobs.fullname" . -}}
+{{- range .Values.cronJobs }}
+{{- if ge (len ( .rbacRules| default $.Values.rbac.rules )) 1 }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ replace "." "-" (lower (trunc 48 .name)) }}
+  namespace: {{ $.Values.namespace }}
+  labels: {{ $labels | nindent 4 }}
+    app.kubernetes.io/instance: {{ $fullName }}
+    app.kubernetes.io/name: {{ .name  }}
+rules:
+  {{- toYaml ( .rbacRules | default $.Values.rbac.rules )| nindent 2 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ replace "." "-" (lower (trunc 48 .name)) }}
+  namespace: {{ $.Values.namespace }}
+  labels: {{ $labels | nindent 4 }}
+    app.kubernetes.io/instance: {{ $fullName }}
+    app.kubernetes.io/name: {{ .name  }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ replace "." "-" (lower (trunc 48 .name)) }}
+    namespace: {{ $.Values.namespace }}
+roleRef:
+  kind: Role
+  name: {{ replace "." "-" (lower (trunc 48 .name)) }}
+  apiGroup: rbac.authorization.k8s.io
+---
+{{- end }}
+{{- if .rbacClusterRole | default $.Values.rbac.clusterRole }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ replace "." "-" (lower (trunc 48 .name)) }}
+  labels: {{ $labels | nindent 4 }}
+    app.kubernetes.io/instance: {{ $fullName }}
+    app.kubernetes.io/name: {{ .name  }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ .rbacClusterRole | default $.Values.rbac.clusterRole }}
+subjects:
+- kind: ServiceAccount
+  name: {{ replace "." "-" (lower (trunc 48 .name)) }}
+  namespace: {{ $.Values.namespace }}
+---
+{{- end }}
+{{- end }}

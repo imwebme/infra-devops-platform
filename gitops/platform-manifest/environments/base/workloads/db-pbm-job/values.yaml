@@ -1,0 +1,44 @@
+labels: {}
+
+mongodb: []
+
+image:
+  repository: percona/percona-backup-mongodb
+  tag: "2.9.1"
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podLabels: {}
+
+resources: {}
+
+livenessProbe:
+  exec:
+    command:
+      - /usr/bin/pbm
+      - status
+  initialDelaySeconds: 5
+  periodSeconds: 60
+
+affinity: {}
+
+priorityClassName: db
+
+nodeSelector:
+  service: db
+
+tolerations:
+  - effect: NoSchedule
+    key: DbOnly
+    value: "true"
+    operator: Equal

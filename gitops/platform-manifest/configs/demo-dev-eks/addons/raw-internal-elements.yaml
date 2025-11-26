@@ -1,0 +1,16 @@
+key:
+  components:
+    - manifest:
+        name: kube-schedule-scaler
+        repo: https://github.com/wetripod/devops-gitops-manifest
+        path: kube-schedule-scaler
+        version: main
+        namespace: kube-schedule-scaler
+        auto_sync: true
+    - manifest:
+        name: psmdb-operator
+        repo: https://github.com/wetripod/devops-gitops-manifest
+        path: psmdb
+        version: main
+        namespace: mongodb
+        auto_sync: false

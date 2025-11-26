@@ -1,0 +1,15 @@
+{{- $labels := include "base-cronjobs.labels" . -}}
+{{- $fullName := include "base-cronjobs.fullname" . -}}
+{{- range .Values.cronJobs }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ replace "." "-" (lower (trunc 48 .name)) }}
+  namespace: {{ $.Values.namespace }}
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.example-org.io/service: {{ replace "." "-" (lower (trunc 48 .name)) }}
+---
+{{- end }}

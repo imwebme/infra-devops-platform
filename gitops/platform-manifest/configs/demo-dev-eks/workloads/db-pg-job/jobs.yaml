@@ -1,0 +1,5 @@
+jobs: 
+- job: partition
+  valuesFile: partition.yaml
+- job: vacuum
+  valuesFile: vacuum.yaml

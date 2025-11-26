@@ -1,0 +1,43 @@
+{{- if not .Values.rollout.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: '{{ include "base-helm.realname" . }}'
+  labels:
+    {{- include "base-helm.labels" . | nindent 4 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{ . | toYaml | trim | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort | default "http" }}
+      protocol: TCP
+      name: {{ .Values.service.portName | default "http" }}
+  selector:
+    {{- include "base-helm.selectorLabels" . | nindent 4 }}
+{{- range $index, $port := .Values.additionalPorts }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: '{{ include "base-helm.realname" $ }}-{{ $port.portName }}'
+  labels:
+    {{- include "base-helm.labels" $ | nindent 4 }}
+  {{- with $.Values.service.annotations }}
+  annotations:
+    {{ . | toYaml | trim | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ $.Values.service.type }}
+  ports:
+    - port: {{ $port.servicePort }}
+      targetPort: {{ $port.targetPort }}
+      protocol: TCP
+      name: {{ $port.portName }}
+  selector:
+    {{- include "base-helm.selectorLabels" $ | nindent 4 }}
+{{- end }}
+{{- end }}

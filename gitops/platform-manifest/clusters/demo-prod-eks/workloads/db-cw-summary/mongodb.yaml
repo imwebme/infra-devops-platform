@@ -1,0 +1,68 @@
+summary: mongodb
+
+config: |
+  region: ap-northeast-2
+  executionInterval: 1h
+
+  in:
+    logGroup: /mongodb/mongod/slow
+    queryString: |
+      fields @timestamp, 
+        @logStream as host, 
+        attr.appName as appName, 
+        attr.docsExamined as docsExamined, 
+        attr.keysExamined as keysExamined, 
+        attr.replanned as replanned, 
+        attr.reslen as reslen, 
+        attr.durationMillis as durationMillis,
+        attr.nreturned as nreturned,
+        attr.type as type,
+        attr.storage.data.bytesRead as diskBytesRead,
+        attr.numYields as numYields
+      | filter ispresent(attr.queryHash)
+      | stats 
+          count(*) as slows, 
+          latest(@timestamp) as lastTime,
+          latest(@message) as lastLog,
+          max(durationMillis) as maxDurationMillis, 
+          max(docsExamined) as maxDocsExamined, 
+          max(keysExamined) as maxKeysExamined,
+          max(diskBytesRead)/1024 as maxDiskKbRead,
+          sum(durationMillis) as sumDurationMillis, 
+          sum(docsExamined) as sumDocsExamined, 
+          sum(keysExamined) as sumKeysExamined,
+          sum(diskBytesRead)/1024 as sumDiskKbRead,
+          avg(durationMillis) as avgDurationMillis, 
+          avg(docsExamined) as avgDocsExamined, 
+          avg(keysExamined) as avgKeysExamined,
+          avg(diskBytesRead)/1024 as avgDiskKbRead,
+          latest(appName) as lastApp
+        by host, 
+          bin(5m) as time,
+          attr.ns as ns, 
+          attr.queryHash as queryHash
+      | order by time, lastTime
+    timestampField: lastTime
+
+  out:
+    logGroup: /mongodb/mongod/slow/summary
+    timestampField: time
+    logStreamField: host
+    retentionDays: 30
+
+
+labels: {}
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccountName: db
+
+podAnnotations: {}
+
+podLabels: {}
+
+resources: {}
+
+affinity: {}
+
