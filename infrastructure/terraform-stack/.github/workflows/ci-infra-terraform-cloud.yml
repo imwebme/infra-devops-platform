@@ -12,7 +12,7 @@ on:
       project_name:
         description: 'Terraform Cloud project name'
         required: true
-        default: 'Alwayz'
+        default: 'Demo'
 
 env:
   TF_CLOUD_ORGANIZATION: "levit"
