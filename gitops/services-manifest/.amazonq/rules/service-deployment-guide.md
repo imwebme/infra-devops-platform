@@ -1,7 +1,7 @@
-# Alwayz 서비스 배포 가이드
+# Demo 서비스 배포 가이드
 
 ## 프로젝트 개요
-- **목적**: Alwayz 서비스 애플리케이션 배포 전용
+- **목적**: Demo 서비스 애플리케이션 배포 전용
 - **환경 구조**: `{env}` (dev, staging, prod)
 - **ApplicationSet**: 환경별 통합 관리
 
@@ -33,7 +33,7 @@ branch_name: main  # 기본값: main
 ```yaml
 tolerations:
   - effect: NoSchedule
-    key: AlwayzServicesOnly
+    key: DemoServicesOnly
     value: "true"
     operator: Equal
 

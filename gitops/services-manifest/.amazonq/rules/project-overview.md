@@ -1,12 +1,12 @@
-# Alwayz GitOps Manifest 프로젝트 개요
+# Demo GitOps Manifest 프로젝트 개요
 
 ## 프로젝트 목적
-- **Alwayz 서비스 애플리케이션 배포 전용**
+- **Demo 서비스 애플리케이션 배포 전용**
 - **환경별 통합 관리**
 - **서비스 중심의 GitOps 워크플로우**
 
 ## 관리 대상
-- **Alwayz 서비스**: API, BFF, Admin 등 비즈니스 애플리케이션
+- **Demo 서비스**: API, BFF, Admin 등 비즈니스 애플리케이션
 - **크론잡**: 배치 작업 및 스케줄링 태스크
 - **스크래퍼**: 데이터 수집 및 처리 워크로드
 

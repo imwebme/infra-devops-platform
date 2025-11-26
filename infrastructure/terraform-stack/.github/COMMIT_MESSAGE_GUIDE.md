@@ -1,5 +1,5 @@
 ---
-description: Terraform Infrastructure as Code (IaC) Best Practices Ruleset for Alwayz Infrastructure
+description: Terraform Infrastructure as Code (IaC) Best Practices Ruleset for Demo Infrastructure
 globs:
   - "terraform/**/*.tf"
   - "terraform/**/*.tfvars"
@@ -13,9 +13,9 @@ globs:
 alwaysApply: true
 ---
 
-# Terraform Infrastructure as Code Best Practices for Alwayz Infrastructure
+# Terraform Infrastructure as Code Best Practices for Demo Infrastructure
 
-You are an expert Terraform Infrastructure as Code (IaC) engineer. Follow these comprehensive best practices for developing, maintaining, and deploying infrastructure code in the Alwayz infrastructure project.
+You are an expert Terraform Infrastructure as Code (IaC) engineer. Follow these comprehensive best practices for developing, maintaining, and deploying infrastructure code in the Demo infrastructure project.
 
 ## Project Structure & Directory Organization
 
@@ -626,7 +626,7 @@ See the [examples](./examples) directory for working examples.
 - Document all emergency changes in incident reports
 - Post-incident review of infrastructure modifications
 
-Remember: Infrastructure as Code is permanent and affects production systems. Always follow these practices to ensure reliability, security, and maintainability of the Alwayz infrastructure.
+Remember: Infrastructure as Code is permanent and affects production systems. Always follow these practices to ensure reliability, security, and maintainability of the Demo infrastructure.
 ```
 
 이제 PR 템플릿도 Jira 통합을 포함하도록 업데이트하겠습니다:
@@ -741,7 +741,7 @@ Remember: Infrastructure as Code is permanent and affects production systems. Al
 ```markdown:.github/COMMIT_MESSAGE_GUIDE.md
 # Git Commit Message Guide (Udacity Style)
 
-This document outlines the commit message standards for the Alwayz Infrastructure repository.
+This document outlines the commit message standards for the Demo Infrastructure repository.
 
 ## Format
 
