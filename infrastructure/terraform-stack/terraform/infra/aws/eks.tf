@@ -87,7 +87,7 @@ module "eks" {
         node = {
           tolerations = [
             {
-              key      = "AlwayzServicesOnly"
+              key      = "DemoServicesOnly"
               value    = "true"
               effect   = "NoSchedule"
               operator = "Equal"
@@ -264,13 +264,13 @@ module "eks" {
             operator = "Equal"
           },
           {
-            key      = "AlwayzRecoOnly"
+            key      = "DemoRecoOnly"
             value    = "true"
             effect   = "NoSchedule"
             operator = "Equal"
           },
           {
-            key      = "AlwayzJobsOnly"
+            key      = "DemoJobsOnly"
             value    = "true"
             effect   = "NoSchedule"
             operator = "Equal"

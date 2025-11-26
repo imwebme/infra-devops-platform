@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-This is a Terraform-based infrastructure-as-code repository that manages AWS infrastructure and Kubernetes resources for the Alwayz platform. It uses Terraform Cloud for state management and GitHub Actions for CI/CD automation.
+This is a Terraform-based infrastructure-as-code repository that manages AWS infrastructure and Kubernetes resources for the Demo platform. It uses Terraform Cloud for state management and GitHub Actions for CI/CD automation.
 
 ## Key Commands
 

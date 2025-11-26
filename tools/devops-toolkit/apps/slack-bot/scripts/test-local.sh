@@ -19,7 +19,7 @@ echo ""
 # 2. curl로 실제 요청을 보냄
 RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "http://localhost:8080/slack/commands" \
   -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "command=/devops-action&text=demo-infrastructure ci-infra-terraform-cloud.yml workspace_name test-workspace-$(date +%s) working_directory terraform/infra/aws project_name Alwayz&user_id=U079GPPGB1P&channel_id=C08133K6144")
+  -d "command=/devops-action&text=demo-infrastructure ci-infra-terraform-cloud.yml workspace_name test-workspace-$(date +%s) working_directory terraform/infra/aws project_name Demo&user_id=U079GPPGB1P&channel_id=C08133K6144")
 
 BODY=$(echo "$RESPONSE" | sed '$d')
 HTTP_CODE=$(echo "$RESPONSE" | tail -n1)

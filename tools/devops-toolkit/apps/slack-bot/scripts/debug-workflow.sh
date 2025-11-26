@@ -36,7 +36,7 @@ RESPONSE=$(curl -s -w "%{http_code}" -o /tmp/workflow_response.txt \
         "inputs": {
             "workspace_name": "test-debug",
             "working_directory": "terraform/infra/aws",
-            "project_name": "Alwayz"
+            "project_name": "Demo"
         }
     }')
 

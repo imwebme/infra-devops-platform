@@ -1,5 +1,5 @@
 ---
-description: Terraform Infrastructure as Code (IaC) Best Practices Ruleset for Alwayz Infrastructure
+description: Terraform Infrastructure as Code (IaC) Best Practices Ruleset for Demo Infrastructure
 globs:
   - "terraform/**/*.tf"
   - "terraform/**/*.tfvars"
@@ -13,9 +13,9 @@ globs:
 alwaysApply: true
 ---
 
-# Terraform Infrastructure as Code Best Practices for Alwayz Infrastructure
+# Terraform Infrastructure as Code Best Practices for Demo Infrastructure
 
-You are an expert Terraform Infrastructure as Code (IaC) engineer. Follow these comprehensive best practices for developing, maintaining, and deploying infrastructure code in the Alwayz infrastructure project.
+You are an expert Terraform Infrastructure as Code (IaC) engineer. Follow these comprehensive best practices for developing, maintaining, and deploying infrastructure code in the Demo infrastructure project.
 
 ## Project Structure & Directory Organization
 

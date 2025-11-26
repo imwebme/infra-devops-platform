@@ -4,7 +4,7 @@ nodeSelector:
   service: demo-jobs
 tolerations:
 - effect: NoSchedule
-  key: AlwayzJobsOnly
+  key: DemoJobsOnly
   value: "true"
   operator: Equal
 affinity:

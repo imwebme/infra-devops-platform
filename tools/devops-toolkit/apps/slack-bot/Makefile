@@ -70,7 +70,7 @@ test-curl: ## Test the bot with a curl command
 	@echo "🧪 Testing Slack GitHub Bot..."
 	@curl -v -X POST "http://localhost:8080/slack/commands" \
 		-H "Content-Type: application/x-www-form-urlencoded" \
-		-d "command=/devops-action&text=wetripod/demo-infrastructure ci-infra-terraform-cloud.yml workspace_name test-workspace-$$(date +%s) working_directory terraform/infra/aws project_name Alwayz&user_id=U123456789&channel_id=C123456789"
+		-d "command=/devops-action&text=wetripod/demo-infrastructure ci-infra-terraform-cloud.yml workspace_name test-workspace-$$(date +%s) working_directory terraform/infra/aws project_name Demo&user_id=U123456789&channel_id=C123456789"
 	@echo ""
 	@echo "📋 Expected: 'Bad credentials' error (mock token) = SUCCESS!"
 
