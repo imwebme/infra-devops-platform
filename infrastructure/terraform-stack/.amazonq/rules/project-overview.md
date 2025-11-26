@@ -1,4 +1,4 @@
-# Alwayz Infrastructure 프로젝트 개요
+# Demo Infrastructure 프로젝트 개요
 
 ## 프로젝트 목적
 - **레브잇 인프라 운영 코드 관리**

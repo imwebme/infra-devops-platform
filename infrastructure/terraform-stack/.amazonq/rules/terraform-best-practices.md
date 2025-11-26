@@ -1,4 +1,4 @@
-# Terraform Infrastructure Best Practices for Alwayz
+# Terraform Infrastructure Best Practices for Demo
 
 ## 코딩 스타일 및 네이밍 규칙
 

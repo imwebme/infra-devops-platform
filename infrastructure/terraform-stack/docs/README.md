@@ -1,6 +1,6 @@
-# Alwayz Infrastructure Documentation
+# Demo Infrastructure Documentation
 
-이 디렉터리는 Alwayz 인프라 관련 문서들을 관리합니다.
+이 디렉터리는 Demo 인프라 관련 문서들을 관리합니다.
 
 ## 📚 문서 목록
 

@@ -1,6 +1,6 @@
-# Alwayz Infrastructure
+# Demo Infrastructure
 
-Terraform-based AWS infrastructure management for the Alwayz platform, providing automated provisioning and management of cloud resources.
+Terraform-based AWS infrastructure management for the Demo platform, providing automated provisioning and management of cloud resources.
 
 ## Overview
 
@@ -166,4 +166,4 @@ Created and maintained by:
 
 ### Acknowledgments
 
-This Alwayz infrastructure codebase was designed and implemented by Kim YongHyun and Kim YoungJae for AWS resource management with Terraform.
+This Demo infrastructure codebase was designed and implemented by Kim YongHyun and Kim YoungJae for AWS resource management with Terraform.

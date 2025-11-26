@@ -56,13 +56,13 @@ make clean-run
 # 기본 테스트 (CI process(TFC) 워크플로우)
 curl -X POST http://localhost:8080/slack/commands \
   -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "command=/devops-action&text=wetripod/demo-infrastructure ci-infra-terraform-cloud.yml workspace_name test-workspace-$(date +%s) working_directory terraform/infra/aws project_name Alwayz&user_id=U123456789&channel_id=C123456789&timestamp=$(date +%s)"
+  -d "command=/devops-action&text=wetripod/demo-infrastructure ci-infra-terraform-cloud.yml workspace_name test-workspace-$(date +%s) working_directory terraform/infra/aws project_name Demo&user_id=U123456789&channel_id=C123456789&timestamp=$(date +%s)"
 
 # 또는 URL 인코딩된 형태
 curl -X POST "http://localhost:8080/slack/commands" \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "command=/devops-action" \
-  -d "text=wetripod/demo-infrastructure ci-infra-terraform-cloud.yml workspace_name test-workspace working_directory terraform/infra/aws project_name Alwayz" \
+  -d "text=wetripod/demo-infrastructure ci-infra-terraform-cloud.yml workspace_name test-workspace working_directory terraform/infra/aws project_name Demo" \
   -d "user_id=U123456789" \
   -d "channel_id=C123456789"
 ```
@@ -72,7 +72,7 @@ curl -X POST "http://localhost:8080/slack/commands" \
 ### 1. 성공적인 워크플로우 트리거
 **명령어:**
 ```bash
-/devops-action wetripod/demo-infrastructure ci-infra-terraform-cloud.yml workspace_name my-test-workspace working_directory terraform/infra/aws project_name Alwayz
+/devops-action wetripod/demo-infrastructure ci-infra-terraform-cloud.yml workspace_name my-test-workspace working_directory terraform/infra/aws project_name Demo
 ```
 
 **예상 결과:**
@@ -197,7 +197,7 @@ Error: 404 Not Found
    curl -X POST "http://localhost:8080/slack/commands" \
      -H "Content-Type: application/x-www-form-urlencoded" \
      -d "command=/devops-action" \
-     -d "text=wetripod/demo-infrastructure ci-infra-terraform-cloud.yml workspace_name test-workspace working_directory terraform/infra/aws project_name Alwayz" \
+     -d "text=wetripod/demo-infrastructure ci-infra-terraform-cloud.yml workspace_name test-workspace working_directory terraform/infra/aws project_name Demo" \
      -d "user_id=U123456789" \
      -d "channel_id=C123456789"
    ```
