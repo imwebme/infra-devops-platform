@@ -5,7 +5,7 @@ data:
     queryLimit: 2000
     archiveCheckInterval: 10
     collection: coin_history
-    database: ALWAYZ
+    database: DEMO
     archiveField: createdAt
     s3:
       bucket: example-org-database-archive-prod/shorts/coin_history/
@@ -65,7 +65,7 @@ data:
     queryLimit: 800
     archiveCheckInterval: 10
     collection: alfarm_usage_log
-    database: ALWAYZ
+    database: DEMO
     archiveField: createdAt
     s3:
       bucket: example-org-database-archive-prod/alfarm-log/alfarm_usage_log/
@@ -77,7 +77,7 @@ data:
     queryLimit: 800
     archiveCheckInterval: 10
     collection: alfarm_social_history
-    database: ALWAYZ
+    database: DEMO
     archiveField: createdAt
     s3:
       bucket: example-org-database-archive-prod/alfarm/alfarm_social_history/
@@ -281,7 +281,7 @@ data:
     queryLimit: 2000
     archiveCheckInterval: 12
     collection: coupon
-    database: ALWAYZ
+    database: DEMO
     archiveField: expiresAt
     s3:
       bucket: example-org-database-archive-prod/user/coupon/
@@ -293,7 +293,7 @@ data:
     queryLimit: 4000
     archiveCheckInterval: 10
     collection: user_item_visit
-    database: ALWAYZ
+    database: DEMO
     archiveField: enteredAt
     s3:
       bucket: example-org-database-archive-prod/user/user_item_visit/
@@ -305,7 +305,7 @@ data:
     queryLimit: 4000
     archiveCheckInterval: 10
     collection: appLovin_event_log
-    database: ALWAYZ
+    database: DEMO
     archiveField: createdAt
     s3:
       bucket: example-org-database-archive-prod/incubator/applovin_event_log/
@@ -317,7 +317,7 @@ data:
     queryLimit: 4000
     archiveCheckInterval: 13
     collection: appLovin_impression_log
-    database: ALWAYZ
+    database: DEMO
     archiveField: createdAt
     s3:
       bucket: example-org-database-archive-prod/incubator/applovin_impression_log/
@@ -329,7 +329,7 @@ data:
     queryLimit: 4000
     archiveCheckInterval: 11
     collection: appLovin_revenue_log
-    database: ALWAYZ
+    database: DEMO
     archiveField: createdAt
     s3:
       bucket: example-org-database-archive-prod/incubator/applovin_revenue_log/
@@ -341,7 +341,7 @@ data:
     queryLimit: 4000
     archiveCheckInterval: 15
     collection: adMob_event_log
-    database: ALWAYZ
+    database: DEMO
     archiveField: createdAt
     s3:
       bucket: example-org-database-archive-prod/incubator/admob_event_log/
@@ -353,7 +353,7 @@ data:
     queryLimit: 4000
     archiveCheckInterval: 12
     collection: appLovin_callback_log
-    database: ALWAYZ
+    database: DEMO
     archiveField: createdAt
     s3:
       bucket: example-org-database-archive-prod/incubator/applovin_callback_log/
@@ -365,7 +365,7 @@ data:
     queryLimit: 2000
     archiveCheckInterval: 9
     collection: offerwall_event_log
-    database: ALWAYZ
+    database: DEMO
     archiveField: createdAt
     s3:
       bucket: example-org-database-archive-prod/incubator/offerwall_event_log/
