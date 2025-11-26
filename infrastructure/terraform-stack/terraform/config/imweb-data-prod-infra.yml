@@ -1,0 +1,113 @@
+---
+category: "data"
+env: "prod"
+vpc_cidr: "172.22.0.0/16"
+vpc_endpoints:
+  enabled: true
+
+datadog_private_link:
+  enabled: true
+  associated_vpc_ids:
+    # TODO: Add imweb VPC IDs after peering setup
+
+vpc_peering:
+  enabled: true
+  connections:
+    - name: "to-imweb-prod"
+      peer_vpc_id: "vpc-xxxxxxxxx"  # TODO: imweb-vpc (prod) ID
+      peer_region: "ap-northeast-2"
+      peer_cidr: "172.31.0.0/16"
+    - name: "to-imweb-security-prod"
+      peer_vpc_id: "vpc-xxxxxxxxx"  # TODO: Created after security-prod VPC
+      peer_region: "ap-northeast-2"
+      peer_cidr: "172.20.0.0/16"
+    - name: "to-imweb-data-dev"
+      peer_vpc_id: "vpc-xxxxxxxxx"  # TODO: Created after data-dev VPC
+      peer_region: "ap-northeast-2"
+      peer_cidr: "172.23.0.0/16"
+
+cloudfront:
+  origin_access_controls: "sign requests about data"
+gitops:
+  workspace_repo_url: "https://github.com/imwebme/imweb-gitops-manifest"
+
+frontend: []
+ecr: []
+eks:
+  kms: false
+  version: "1.33"
+  auth_config:
+    users: []
+    roles:
+      - rolearn: "arn:aws:iam::XXXXXXXXXXXX:role/aws-reserved/sso.amazonaws.com/ap-northeast-2/AWSReservedSSO_imweb_devops_xxxxxxxxxxxx"
+        username: "{{SessionName}}"
+        groups: ["system:masters"]
+nat_gateway:
+  enabled: true
+  per_az: true
+coredns:
+  replica: 4
+route53_zones:
+  private:
+    - "data.prod.imweb.me"
+    - "agent-http-intake.logs.datadoghq.com"
+    - "http-intake.logs.datadoghq.com"
+    - "api.datadoghq.com"
+    - "metrics.agent.datadoghq.com"
+  public:
+    - "data.prod.imweb.me"
+
+secretmanagers:
+  data-services: {}
+  data-pipelines: {}
+  airflow: {}
+
+service_roles:
+  argocd:
+    name: argocd
+    policies:
+      - name: secretsmanager
+        file: base/secretsmanager-read.json
+  data-pipelines:
+    name: data-pipelines
+    policies:
+      - name: secretsmanager
+        file: base/secretsmanager-read.json
+      - name: s3-full
+        file: base/s3-full-access.json
+      - name: glue-full
+        file: base/glue-full-access.json
+
+managed_policies:
+  eks_nodes:
+    name: eks_nodes
+    policies:
+      - name: ebs-access
+        file: services/ebs.json
+  karpenter:
+    name: karpenter
+    policies:
+      - name: athena-glue-lakeformation-s3-full-access-policy
+        file: base/athena-glue-lakeformation-s3-full-access-policy.json
+
+pod_identity_associations:
+  argocd:
+    namespace: argocd
+    service_account: argo-cd-argocd-repo-server
+  data-pipelines:
+    namespace: data-pipelines
+    service_account: data-pipelines-sa
+
+rds:
+  databases:
+    - identifier: "airflow"
+      engine: "postgres"
+      engine_version: "15"
+      instance_class: "db.t3.medium"
+      allocated_storage: 50
+      max_allocated_storage: 200
+      database_name: "airflow"
+      port: 5432
+      backup_retention_period: 7
+      deletion_protection: true
+      skip_final_snapshot: false

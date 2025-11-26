@@ -1,0 +1,88 @@
+---
+category: "security"
+env: "dev"
+vpc_cidr: "172.21.0.0/16"
+vpc_endpoints:
+  enabled: true
+
+datadog_private_link:
+  enabled: false  # Dev environment uses direct connection
+
+vpc_peering:
+  enabled: true
+  connections:
+    - name: "to-imweb-test"
+      peer_vpc_id: "vpc-xxxxxxxxx"  # TODO: imweb-test-vpc ID (192.168.0.0/16)
+      peer_region: "ap-northeast-2"
+      peer_cidr: "192.168.0.0/16"
+    - name: "to-imweb-security-prod"
+      peer_vpc_id: "vpc-xxxxxxxxx"  # TODO: Created after security-prod VPC
+      peer_region: "ap-northeast-2"
+      peer_cidr: "172.20.0.0/16"
+    - name: "to-imweb-data-dev"
+      peer_vpc_id: "vpc-xxxxxxxxx"  # TODO: Created after data-dev VPC
+      peer_region: "ap-northeast-2"
+      peer_cidr: "172.23.0.0/16"
+
+cloudfront:
+  origin_access_controls: "sign requests about security"
+gitops:
+  workspace_repo_url: "https://github.com/imwebme/imweb-gitops-manifest"
+
+frontend: []
+ecr: []
+eks:
+  kms: false
+  version: "1.33"
+  auth_config:
+    users: []
+    roles:
+      - rolearn: "arn:aws:iam::XXXXXXXXXXXX:role/aws-reserved/sso.amazonaws.com/ap-northeast-2/AWSReservedSSO_imweb_devops_xxxxxxxxxxxx"
+        username: "{{SessionName}}"
+        groups: ["system:masters"]
+nat_gateway:
+  enabled: true
+  per_az: false  # Dev environment uses single NAT for cost savings
+coredns:
+  replica: 2
+route53_zones:
+  private:
+    - "security.dev.imweb.me"
+  public:
+    - "security.dev.imweb.me"
+
+secretmanagers:
+  tailscale-operator: {}
+  sonarqube/postgres: {}
+
+service_roles:
+  argocd:
+    name: argocd
+    policies:
+      - name: secretsmanager
+        file: base/secretsmanager-read.json
+  trivy-operator:
+    name: trivy-operator
+    policies:
+      - name: secretsmanager
+        file: base/secretsmanager-read.json
+
+managed_policies:
+  eks_nodes:
+    name: eks_nodes
+    policies:
+      - name: ebs-access
+        file: services/ebs.json
+  karpenter:
+    name: karpenter
+    policies:
+      - name: athena-glue-lakeformation-s3-full-access-policy
+        file: base/athena-glue-lakeformation-s3-full-access-policy.json
+
+pod_identity_associations:
+  argocd:
+    namespace: argocd
+    service_account: argo-cd-argocd-repo-server
+  trivy-operator:
+    namespace: trivy-system
+    service_account: trivy-operator

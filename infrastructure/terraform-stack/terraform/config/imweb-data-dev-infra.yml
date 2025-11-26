@@ -1,0 +1,90 @@
+---
+category: "data"
+env: "dev"
+vpc_cidr: "172.23.0.0/16"
+vpc_endpoints:
+  enabled: true
+
+datadog_private_link:
+  enabled: false  # Dev environment uses direct connection
+
+vpc_peering:
+  enabled: true
+  connections:
+    - name: "to-imweb-test"
+      peer_vpc_id: "vpc-xxxxxxxxx"  # TODO: imweb-test-vpc ID (192.168.0.0/16)
+      peer_region: "ap-northeast-2"
+      peer_cidr: "192.168.0.0/16"
+    - name: "to-imweb-security-dev"
+      peer_vpc_id: "vpc-xxxxxxxxx"  # TODO: Created after security-dev VPC
+      peer_region: "ap-northeast-2"
+      peer_cidr: "172.21.0.0/16"
+    - name: "to-imweb-data-prod"
+      peer_vpc_id: "vpc-xxxxxxxxx"  # TODO: Created after data-prod VPC
+      peer_region: "ap-northeast-2"
+      peer_cidr: "172.22.0.0/16"
+
+cloudfront:
+  origin_access_controls: "sign requests about data"
+gitops:
+  workspace_repo_url: "https://github.com/imwebme/imweb-gitops-manifest"
+
+frontend: []
+ecr: []
+eks:
+  kms: false
+  version: "1.33"
+  auth_config:
+    users: []
+    roles:
+      - rolearn: "arn:aws:iam::XXXXXXXXXXXX:role/aws-reserved/sso.amazonaws.com/ap-northeast-2/AWSReservedSSO_imweb_devops_xxxxxxxxxxxx"
+        username: "{{SessionName}}"
+        groups: ["system:masters"]
+nat_gateway:
+  enabled: true
+  per_az: false  # Dev environment uses single NAT for cost savings
+coredns:
+  replica: 2
+route53_zones:
+  private:
+    - "data.dev.imweb.me"
+  public:
+    - "data.dev.imweb.me"
+
+secretmanagers:
+  data-services: {}
+  data-pipelines: {}
+
+service_roles:
+  argocd:
+    name: argocd
+    policies:
+      - name: secretsmanager
+        file: base/secretsmanager-read.json
+  data-pipelines:
+    name: data-pipelines
+    policies:
+      - name: secretsmanager
+        file: base/secretsmanager-read.json
+      - name: s3-full
+        file: base/s3-full-access.json
+
+managed_policies:
+  eks_nodes:
+    name: eks_nodes
+    policies:
+      - name: ebs-access
+        file: services/ebs.json
+  karpenter:
+    name: karpenter
+    policies:
+      - name: athena-glue-lakeformation-s3-full-access-policy
+        file: base/athena-glue-lakeformation-s3-full-access-policy.json
+
+pod_identity_associations:
+  argocd:
+    namespace: argocd
+    service_account: argo-cd-argocd-repo-server
+  data-pipelines:
+    namespace: data-pipelines
+    service_account: data-pipelines-sa
