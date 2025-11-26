@@ -1,11 +1,11 @@
-# Alwayz GitOps Manifest
+# Demo GitOps Manifest
 
-GitOps repository for managing Alwayz service applications across multiple environments with automated deployment and configuration management.
+GitOps repository for managing Demo service applications across multiple environments with automated deployment and configuration management.
 
 ## Overview
 
 This repository provides:
-- **Application Deployment**: Automated deployment of Alwayz services (API, BFF, Admin)
+- **Application Deployment**: Automated deployment of Demo services (API, BFF, Admin)
 - **Environment Management**: Unified configuration across dev, staging, and prod
 - **ECR Integration**: Automatic image updates via ArgoCD Image Updater
 - **Slack Notifications**: Real-time deployment status alerts
@@ -21,7 +21,7 @@ Built on the [GitOps Bridge](https://github.com/gitops-bridge-dev/gitops-bridge)
   - `workloads-demo-scrapers-helm-appset.yaml` - Data collection services
   - `workloads-demo-cronjobs-helm-appset.yaml` - Batch jobs and scheduled tasks
 
-* **charts/** - Helm charts for Alwayz applications
+* **charts/** - Helm charts for Demo applications
   - `workloads/` - Service deployment templates and common configuration patterns
 
 * **environments/** - Environment-specific configurations
@@ -155,4 +155,4 @@ Created and maintained by:
 
 ### Acknowledgments
 
-This Alwayz service GitOps manifest was designed and implemented by Kim YongHyun and Kim YoungJae for application deployment and management.
+This Demo service GitOps manifest was designed and implemented by Kim YongHyun and Kim YoungJae for application deployment and management.
