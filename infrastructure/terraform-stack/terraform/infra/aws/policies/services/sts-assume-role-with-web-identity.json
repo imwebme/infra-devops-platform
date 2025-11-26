@@ -4,7 +4,7 @@
     {
       "Action": "sts:AssumeRoleWithWebIdentity",
       "Effect": "Allow",
-      "Resource": "arn:aws:iam::123456789012:role/alwayz-prod-eks-pod-identity-db_manager"
+      "Resource": "arn:aws:iam::123456789012:role/demo-prod-eks-pod-identity-db_manager"
     }
   ]
 }

@@ -1,6 +1,6 @@
 project:
-  name: alwayz-games-front
-  slug: alwayz-games-front
+  name: demo-games-front
+  slug: demo-games-front
   teams: ["example-org"]
   platform: javascript-react
   resolve_age: 720
@@ -15,7 +15,7 @@ owner:
     email: yj@iexample-org.com
 alerts:
   - type: issue
-    name: "alwayz-games-front Alert"
+    name: "demo-games-front Alert"
     action_match: "all"
     filter_match: "all"
     frequency: 5

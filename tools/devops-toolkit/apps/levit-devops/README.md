@@ -8,8 +8,8 @@ DevOps 팀을 위한 통합 CLI 도구
 ```bash
 # 컨텍스트 관리
 example-org-devops k8s context                    # kubectl config get-contexts
-example-org-devops k8s context alwayz-dev-eks     # kubectl config use-context alwayz-dev-eks
-example-org-devops k8s view alwayz-dev-eks        # k9s --context alwayz-dev-eks
+example-org-devops k8s context demo-dev-eks     # kubectl config use-context demo-dev-eks
+example-org-devops k8s view demo-dev-eks        # k9s --context demo-dev-eks
 
 # 클러스터 정보
 example-org-devops k8s nodes                      # kubectl get nodes
@@ -21,7 +21,7 @@ example-org-devops k8s logs <pod> <namespace>     # kubectl logs <pod> -n <names
 ```bash
 # 프로파일 관리
 example-org-devops aws profile                    # aws configure list-profiles
-example-org-devops aws profile alwayz-prod       # aws configure set profile alwayz-prod
+example-org-devops aws profile demo-prod       # aws configure set profile demo-prod
 
 # 리소스 조회
 example-org-devops aws ec2                        # aws ec2 describe-instances (formatted)
@@ -132,11 +132,11 @@ alias example-org-devops='$(pwd)/bin/example-org-devops'
 ```yaml
 # ~/.example-org-devops/config.yaml
 clusters:
-  - name: alwayz-dev-eks
-    context: alwayz-dev-eks
+  - name: demo-dev-eks
+    context: demo-dev-eks
     environment: dev
-  - name: alwayz-prod-eks
-    context: alwayz-prod-eks
+  - name: demo-prod-eks
+    context: demo-prod-eks
     environment: prod
   - name: data-dev-eks
     context: data-dev-eks
@@ -146,10 +146,10 @@ clusters:
     environment: prod
 
 aws_profiles:
-  - name: alwayz-dev
-    profile: alwayz-dev
-  - name: alwayz-prod
-    profile: alwayz-prod
+  - name: demo-dev
+    profile: demo-dev
+  - name: demo-prod
+    profile: demo-prod
 
 tools:
   k9s: /usr/local/bin/k9s

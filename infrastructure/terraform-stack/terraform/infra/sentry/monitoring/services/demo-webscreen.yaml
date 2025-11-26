@@ -1,6 +1,6 @@
 project:
-  name: alwayz-webscreen
-  slug: alwayz-webscreen
+  name: demo-webscreen
+  slug: demo-webscreen
   teams: ["example-org"]
   platform: javascript-react
   resolve_age: 720
@@ -15,7 +15,7 @@ owner:
     email: chris@iexample-org.com
 alerts:
   - type: issue
-    name: "alwayz-webscreen Alert"
+    name: "demo-webscreen Alert"
     action_match: "all"
     filter_match: "all"
     frequency: 5

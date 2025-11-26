@@ -11,8 +11,8 @@ This is a Terraform-based infrastructure-as-code repository that manages AWS inf
 ### Terraform Operations
 ```bash
 # Set workspace before any operations (REQUIRED)
-export TF_WORKSPACE=alwayz-aws-{ENVIRONMENT}-infra
-# Examples: alwayz-aws-dev-infra, alwayz-aws-staging-infra, alwayz-aws-prod-infra
+export TF_WORKSPACE=demo-aws-{ENVIRONMENT}-infra
+# Examples: demo-aws-dev-infra, demo-aws-staging-infra, demo-aws-prod-infra
 
 # Initialize Terraform
 terraform -chdir=terraform/infra/aws init
@@ -75,7 +75,7 @@ terraform -chdir=terraform/infra/aws console
 
 ### Terraform Cloud Integration
 - Organization: `example-org`
-- Workspaces tagged with: `["alwayz", "aws", "devops"]`
+- Workspaces tagged with: `["demo", "aws", "devops"]`
 - Remote state management
 - PR-based workflow:
   1. Create feature branch
@@ -85,9 +85,9 @@ terraform -chdir=terraform/infra/aws console
 
 ### Environment Management
 Environments are managed through Terraform Cloud workspaces:
-- Development: `alwayz-aws-dev-infra`
-- Staging: `alwayz-aws-staging-infra`
-- Production: `alwayz-aws-prod-infra`
+- Development: `demo-aws-dev-infra`
+- Staging: `demo-aws-staging-infra`
+- Production: `demo-aws-prod-infra`
 - Security: `security-aws-core-infra`, `security-aws-prod-infra`
 - Data: `aws-data-dev-infra`, `aws-data-prod-infra`
 

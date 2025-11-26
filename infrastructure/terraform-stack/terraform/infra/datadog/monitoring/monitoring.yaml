@@ -141,7 +141,7 @@ owners:
               interval: 1000
             monitor_options:
               renotify_interval: 10
-    - service: alwayz-admin-back
+    - service: demo-admin-back
       owner:
         - name: 이상민
           email: sangmin.lee@iexample-org.com
@@ -157,17 +157,17 @@ owners:
           duration: 1000
         - monitor_type: alb_5xx
           threshold: 50
-          loadbalancer: alwayz-admin-back-prod
+          loadbalancer: demo-admin-back-prod
         - monitor_type: alb_target_5xx
           threshold: 50
-          loadbalancer: alwayz-admin-back-prod
+          loadbalancer: demo-admin-back-prod
         - monitor_type: alb_target_4xx
           threshold: 50
-          loadbalancer: alwayz-admin-back-prod
+          loadbalancer: demo-admin-back-prod
         - monitor_type: error_tracking_trace
           threshold: 50
       synthetics:
-        - name: alwayz-admin-back이 다운되었습니다.
+        - name: demo-admin-back이 다운되었습니다.
           type: api
           subtype: http
           status: live
@@ -175,7 +175,7 @@ owners:
             - aws:ap-northeast-2
           request_definition:
             method: GET
-            url: https://alwayz-admin-back.prod.iexample-org.com/health-check
+            url: https://demo-admin-back.prod.iexample-org.com/health-check
           assertions:
             - type: statusCode
               operator: is
@@ -190,7 +190,7 @@ owners:
               interval: 1000
             monitor_options:
               renotify_interval: 10
-    - service: alwayz-ads-admin
+    - service: demo-ads-admin
       owner:
         - name: 박상우
           email: sangwoo.park@iexample-org.com
@@ -204,17 +204,17 @@ owners:
           duration: 300
         - monitor_type: alb_5xx
           threshold: 20
-          loadbalancer: alwayz-ads-admin-prod
+          loadbalancer: demo-ads-admin-prod
         - monitor_type: alb_target_5xx
           threshold: 20
-          loadbalancer: alwayz-ads-admin-prod
+          loadbalancer: demo-ads-admin-prod
         - monitor_type: alb_target_4xx
           threshold: 20
-          loadbalancer: alwayz-ads-admin-prod
+          loadbalancer: demo-ads-admin-prod
         - monitor_type: error_tracking_trace
           threshold: 20
       synthetics:
-        - name: alwayz-ads-admin이 다운되었습니다.
+        - name: demo-ads-admin이 다운되었습니다.
           type: api
           subtype: http
           status: live
@@ -223,7 +223,7 @@ owners:
           request_definition:
             method: GET
             url: 
-              https://alwayz-ads-admin.prod.iexample-org.com/actuator/health/readiness
+              https://demo-ads-admin.prod.iexample-org.com/actuator/health/readiness
           assertions:
             - type: statusCode
               operator: is
@@ -238,7 +238,7 @@ owners:
               interval: 1000
             monitor_options:
               renotify_interval: 10
-    - service: alwayz-ads-api
+    - service: demo-ads-api
       owner:
         - name: 박상우
           email: sangwoo.park@iexample-org.com
@@ -252,17 +252,17 @@ owners:
           duration: 300
         - monitor_type: alb_5xx
           threshold: 500
-          loadbalancer: alwayz-ads-api-prod
+          loadbalancer: demo-ads-api-prod
         - monitor_type: alb_target_5xx
           threshold: 500
-          loadbalancer: alwayz-ads-api-prod
+          loadbalancer: demo-ads-api-prod
         - monitor_type: alb_target_4xx
           threshold: 500
-          loadbalancer: alwayz-ads-api-prod
+          loadbalancer: demo-ads-api-prod
         - monitor_type: error_tracking_trace
           threshold: 500
       synthetics:
-        - name: alwayz-ads-api이 다운되었습니다.
+        - name: demo-ads-api이 다운되었습니다.
           type: api
           subtype: http
           status: live
@@ -271,7 +271,7 @@ owners:
           request_definition:
             method: GET
             url: 
-              https://alwayz-ads-api.prod.iexample-org.com/actuator/health/readiness
+              https://demo-ads-api.prod.iexample-org.com/actuator/health/readiness
           assertions:
             - type: statusCode
               operator: is
@@ -286,7 +286,7 @@ owners:
               interval: 1000
             monitor_options:
               renotify_interval: 10
-    - service: alwayz-alfarm-back
+    - service: demo-alfarm-back
       owner:
         - name: 홍종근
           email: jongkeun.hong@iexample-org.com
@@ -300,25 +300,25 @@ owners:
           duration: 1000
         - monitor_type: alb_5xx
           threshold: 50
-          loadbalancer: alwayz-alfarm-back-prod
+          loadbalancer: demo-alfarm-back-prod
         - monitor_type: alb_target_5xx
           threshold: 50
-          loadbalancer: alwayz-alfarm-back-prod
+          loadbalancer: demo-alfarm-back-prod
         - monitor_type: alb_target_4xx
           threshold: 8000
-          loadbalancer: alwayz-alfarm-back-prod
+          loadbalancer: demo-alfarm-back-prod
         - monitor_type: error_tracking_trace
           threshold: 5
         - monitor_type: custom_alert
           name: 올팜 서비스 기프티콘 발급에 문제가 발생했습니다!
           type: trace-analytics alert
           query: trace-analytics("resource_name:\"PUT /games/gifticon\" 
-            service:alwayz-alfarm* env:prod 
+            service:demo-alfarm* env:prod 
             @http.status_code:500").rollup("count").by("service,resource_name").last("1m")
             > 10
           message_template: alfarm-back/monitor_gifticon.tpl
       synthetics:
-        - name: alwayz-alfarm-back-prod가 다운되었습니다.
+        - name: demo-alfarm-back-prod가 다운되었습니다.
           type: api
           subtype: http
           status: live
@@ -326,7 +326,7 @@ owners:
             - pl:devops-private-location-dc242ec68f6544a123e787d5345b2e06
           request_definition:
             method: GET
-            url: https://alwayz-alfarm-back.prod.iexample-org.com/health-check
+            url: https://demo-alfarm-back.prod.iexample-org.com/health-check
           assertions:
             - type: statusCode
               operator: is
@@ -341,7 +341,7 @@ owners:
               interval: 1000
             monitor_options:
               renotify_interval: 10
-    - service: alwayz-almart-back
+    - service: demo-almart-back
       owner:
         - name: 안석민
           email: chris@iexample-org.com
@@ -355,17 +355,17 @@ owners:
           duration: 300
         - monitor_type: alb_5xx
           threshold: 5
-          loadbalancer: alwayz-almart-back-prod
+          loadbalancer: demo-almart-back-prod
         - monitor_type: alb_target_5xx
           threshold: 5
-          loadbalancer: alwayz-almart-back-prod
+          loadbalancer: demo-almart-back-prod
         - monitor_type: alb_target_4xx
           threshold: 5
-          loadbalancer: alwayz-almart-back-prod
+          loadbalancer: demo-almart-back-prod
         - monitor_type: error_tracking_trace
           threshold: 5
       synthetics:
-        - name: alwayz-almart-back이 다운되었습니다.
+        - name: demo-almart-back이 다운되었습니다.
           type: api
           subtype: http
           status: live
@@ -373,7 +373,7 @@ owners:
             - aws:ap-northeast-2
           request_definition:
             method: GET
-            url: https://alwayz-almart-back.prod.iexample-org.com/health-check
+            url: https://demo-almart-back.prod.iexample-org.com/health-check
           assertions:
             - type: statusCode
               operator: is
@@ -388,7 +388,7 @@ owners:
               interval: 1000
             monitor_options:
               renotify_interval: 10
-    - service: alwayz-altoon-back
+    - service: demo-altoon-back
       owner:
         - name: 안석민
           email: chris@iexample-org.com
@@ -402,17 +402,17 @@ owners:
           duration: 300
         - monitor_type: alb_5xx
           threshold: 5
-          loadbalancer: alwayz-altoon-back-prod
+          loadbalancer: demo-altoon-back-prod
         - monitor_type: alb_target_5xx
           threshold: 5
-          loadbalancer: alwayz-altoon-back-prod
+          loadbalancer: demo-altoon-back-prod
         - monitor_type: alb_target_4xx
           threshold: 5
-          loadbalancer: alwayz-altoon-back-prod
+          loadbalancer: demo-altoon-back-prod
         - monitor_type: error_tracking_trace
           threshold: 5
       synthetics:
-        - name: alwayz-altoon-back이 다운되었습니다.
+        - name: demo-altoon-back이 다운되었습니다.
           type: api
           subtype: http
           status: live
@@ -420,7 +420,7 @@ owners:
             - aws:ap-northeast-2
           request_definition:
             method: GET
-            url: https://alwayz-altoon-back.prod.iexample-org.com/health-check
+            url: https://demo-altoon-back.prod.iexample-org.com/health-check
           assertions:
             - type: statusCode
               operator: is
@@ -435,7 +435,7 @@ owners:
               interval: 1000
             monitor_options:
               renotify_interval: 10
-    - service: alwayz-alwalk-back-prod
+    - service: demo-alwalk-back-prod
       owner:
         - name: 안석민
           email: chris@iexample-org.com
@@ -449,17 +449,17 @@ owners:
           duration: 1000
         - monitor_type: alb_5xx
           threshold: 5
-          loadbalancer: alwayz-alwalk-back-prod
+          loadbalancer: demo-alwalk-back-prod
         - monitor_type: alb_target_5xx
           threshold: 5
-          loadbalancer: alwayz-alwalk-back-prod
+          loadbalancer: demo-alwalk-back-prod
         - monitor_type: alb_target_4xx
           threshold: 5
-          loadbalancer: alwayz-alwalk-back-prod
+          loadbalancer: demo-alwalk-back-prod
         - monitor_type: error_tracking_trace
           threshold: 5
       synthetics:
-        - name: alwayz-alwalk-back이 다운되었습니다.
+        - name: demo-alwalk-back이 다운되었습니다.
           type: api
           subtype: http
           status: live
@@ -467,7 +467,7 @@ owners:
             - aws:ap-northeast-2
           request_definition:
             method: GET
-            url: https://alwayz-alwalk-back.prod.iexample-org.com/health-check
+            url: https://demo-alwalk-back.prod.iexample-org.com/health-check
           assertions:
             - type: statusCode
               operator: is
@@ -482,14 +482,14 @@ owners:
               interval: 1000
             monitor_options:
               renotify_interval: 10
-    - service: alwayz-assignment-front
+    - service: demo-assignment-front
       owner:
         - name: Developer 2
           email: yj@iexample-org.com
       slack_channels:
         - 모니터링_프론트_과제
       synthetics:
-        - name: alwayz-assignment-front가 다운되었습니다.
+        - name: demo-assignment-front가 다운되었습니다.
           type: api
           subtype: http
           status: live
@@ -512,7 +512,7 @@ owners:
               interval: 1000
             monitor_options:
               renotify_interval: 10
-    - service: alwayz-back
+    - service: demo-back
       owner:
         - name: Developer 2
           email: yj@iexample-org.com
@@ -530,21 +530,21 @@ owners:
           duration: 1000
         - monitor_type: alb_5xx
           threshold: 5
-          loadbalancer: alwayz-back-prod
+          loadbalancer: demo-back-prod
         - monitor_type: alb_target_5xx
           threshold: 100
-          loadbalancer: alwayz-back-prod
+          loadbalancer: demo-back-prod
         - monitor_type: custom_alert
-          name: alwayz-back alb_target_4xx
+          name: demo-back alb_target_4xx
           type: trace-analytics alert
-          query: trace-analytics("service:alwayz-back* env:prod 
+          query: trace-analytics("service:demo-back* env:prod 
             @http.status_code:4**").rollup("count").by("@http.url,@http.method").last("1m")
             > 1000
           message_template: monitor_alb_target_4xx.tpl
         - monitor_type: error_tracking_trace
           threshold: 50
       synthetics:
-        - name: alwayz-back이 다운되었습니다.
+        - name: demo-back이 다운되었습니다.
           type: api
           subtype: http
           status: live
@@ -552,7 +552,7 @@ owners:
             - aws:ap-northeast-2
           request_definition:
             method: GET
-            url: https://alwayzshop.iexample-org.com/health-check
+            url: https://demoshop.iexample-org.com/health-check
           assertions:
             - type: statusCode
               operator: is
@@ -567,7 +567,7 @@ owners:
               interval: 1000
             monitor_options:
               renotify_interval: 10
-        - name: alwayz-back 내부 서버 테스트
+        - name: demo-back 내부 서버 테스트
           type: api
           subtype: http
           status: live
@@ -575,7 +575,7 @@ owners:
             - pl:devops-private-location-dc242ec68f6544a123e787d5345b2e06
           request_definition:
             method: GET
-            url: https://alwayz-back.prod.iexample-org.com/health-check
+            url: https://demo-back.prod.iexample-org.com/health-check
           assertions:
             - type: statusCode
               operator: is
@@ -590,7 +590,7 @@ owners:
               interval: 1000
             monitor_options:
               renotify_interval: 10
-    - service: alwayz-bff
+    - service: demo-bff
       owner:
         - name: 이상민
           email: sangmin.lee@iexample-org.com
@@ -608,17 +608,17 @@ owners:
           duration: 1000
         - monitor_type: alb_5xx
           threshold: 50
-          loadbalancer: alwayz-bff
+          loadbalancer: demo-bff
         - monitor_type: alb_target_5xx
           threshold: 50
-          loadbalancer: alwayz-bff
+          loadbalancer: demo-bff
         - monitor_type: alb_target_4xx
           threshold: 2000
-          loadbalancer: alwayz-bff
+          loadbalancer: demo-bff
         - monitor_type: error_tracking_trace
           threshold: 50
       synthetics:
-        - name: alwayz-bff가 다운되었습니다.
+        - name: demo-bff가 다운되었습니다.
           type: api
           subtype: http
           status: live
@@ -626,7 +626,7 @@ owners:
             - aws:ap-northeast-2
           request_definition:
             method: GET
-            url: https://alwayz-bff.prod.iexample-org.com/health
+            url: https://demo-bff.prod.iexample-org.com/health
           assertions:
             - type: statusCode
               operator: is
@@ -641,7 +641,7 @@ owners:
               interval: 1000
             monitor_options:
               renotify_interval: 10
-    - service: alwayz-commerce-api
+    - service: demo-commerce-api
       owner:
         - name: 이상민
           email: sangmin.lee@iexample-org.com
@@ -657,17 +657,17 @@ owners:
           duration: 300
         - monitor_type: alb_5xx
           threshold: 50
-          loadbalancer: alwayz-commerce-api
+          loadbalancer: demo-commerce-api
         - monitor_type: alb_target_5xx
           threshold: 50
-          loadbalancer: alwayz-commerce-api
+          loadbalancer: demo-commerce-api
         - monitor_type: alb_target_4xx
           threshold: 50
-          loadbalancer: alwayz-commerce-api
+          loadbalancer: demo-commerce-api
         - monitor_type: error_tracking_trace
           threshold: 50
       synthetics:
-        - name: alwayz-commerce-api가 다운되었습니다.
+        - name: demo-commerce-api가 다운되었습니다.
           type: api
           subtype: http
           status: live
@@ -676,7 +676,7 @@ owners:
           request_definition:
             method: GET
             url: 
-              https://alwayz-commerce-api.prod.iexample-org.com/actuator/health/readiness
+              https://demo-commerce-api.prod.iexample-org.com/actuator/health/readiness
           assertions:
             - type: statusCode
               operator: is
@@ -691,7 +691,7 @@ owners:
               interval: 1000
             monitor_options:
               renotify_interval: 10
-    - service: alwayz-commerce-shipping
+    - service: demo-commerce-shipping
       owner:
         - name: 이상민
           email: sangmin.lee@iexample-org.com
@@ -705,17 +705,17 @@ owners:
           duration: 1000
         - monitor_type: alb_5xx
           threshold: 50
-          loadbalancer: alwayz-commerce-shipping-prod
+          loadbalancer: demo-commerce-shipping-prod
         - monitor_type: alb_target_5xx
           threshold: 50
-          loadbalancer: alwayz-commerce-shipping-prod
+          loadbalancer: demo-commerce-shipping-prod
         - monitor_type: alb_target_4xx
           threshold: 50
-          loadbalancer: alwayz-commerce-shipping-prod
+          loadbalancer: demo-commerce-shipping-prod
         - monitor_type: error_tracking_trace
           threshold: 50
       synthetics:
-        - name: alwayz-commerce-shipping이 다운되었습니다.
+        - name: demo-commerce-shipping이 다운되었습니다.
           type: api
           subtype: http
           status: live
@@ -724,7 +724,7 @@ owners:
           request_definition:
             method: GET
             url: 
-              https://alwayz-commerce-shipping.prod.iexample-org.com/actuator/health/readiness
+              https://demo-commerce-shipping.prod.iexample-org.com/actuator/health/readiness
           assertions:
             - type: statusCode
               operator: is
@@ -739,7 +739,7 @@ owners:
               interval: 1000
             monitor_options:
               renotify_interval: 10
-    - service: alwayz-config
+    - service: demo-config
       owner:
         - name: Developer 2
           email: yj@iexample-org.com
@@ -753,17 +753,17 @@ owners:
           duration: 1000
         - monitor_type: alb_5xx
           threshold: 5
-          loadbalancer: alwayz-config-prod
+          loadbalancer: demo-config-prod
         - monitor_type: alb_target_5xx
           threshold: 5
-          loadbalancer: alwayz-config-prod
+          loadbalancer: demo-config-prod
         - monitor_type: alb_target_4xx
           threshold: 5
-          loadbalancer: alwayz-config-prod
+          loadbalancer: demo-config-prod
         - monitor_type: error_tracking_trace
           threshold: 5
       synthetics:
-        - name: alwayz-config-prod가 다운되었습니다.
+        - name: demo-config-prod가 다운되었습니다.
           type: api
           subtype: http
           status: live
@@ -771,7 +771,7 @@ owners:
             - aws:ap-northeast-2
           request_definition:
             method: GET
-            url: https://alwayz-config.prod.iexample-org.com/health-check
+            url: https://demo-config.prod.iexample-org.com/health-check
           assertions:
             - type: statusCode
               operator: is
@@ -786,7 +786,7 @@ owners:
               interval: 1000
             monitor_options:
               renotify_interval: 10
-    - service: alwayz-core-api
+    - service: demo-core-api
       owner:
         - name: 이상민
           email: sangmin.lee@iexample-org.com
@@ -800,17 +800,17 @@ owners:
           duration: 300
         - monitor_type: alb_5xx
           threshold: 50
-          loadbalancer: alwayz-core-api-prod
+          loadbalancer: demo-core-api-prod
         - monitor_type: alb_target_5xx
           threshold: 50
-          loadbalancer: alwayz-core-api-prod
+          loadbalancer: demo-core-api-prod
         - monitor_type: alb_target_4xx
           threshold: 50
-          loadbalancer: alwayz-core-api-prod
+          loadbalancer: demo-core-api-prod
         - monitor_type: error_tracking_trace
           threshold: 50
       synthetics:
-        - name: alwayz-core-api가 다운되었습니다.
+        - name: demo-core-api가 다운되었습니다.
           type: api
           subtype: http
           status: live
@@ -819,7 +819,7 @@ owners:
           request_definition:
             method: GET
             url: 
-              https://alwayz-core-api.prod.iexample-org.com/actuator/health/readiness
+              https://demo-core-api.prod.iexample-org.com/actuator/health/readiness
           assertions:
             - type: statusCode
               operator: is
@@ -834,7 +834,7 @@ owners:
               interval: 1000
             monitor_options:
               renotify_interval: 10
-    - service: alwayz-drama-back
+    - service: demo-drama-back
       owner:
         - name: 안석민
           email: chris@iexample-org.com
@@ -848,17 +848,17 @@ owners:
           duration: 300
         - monitor_type: alb_5xx
           threshold: 5
-          loadbalancer: alwayz-drama-back-prod
+          loadbalancer: demo-drama-back-prod
         - monitor_type: alb_target_5xx
           threshold: 5
-          loadbalancer: alwayz-drama-back-prod
+          loadbalancer: demo-drama-back-prod
         - monitor_type: alb_target_4xx
           threshold: 5
-          loadbalancer: alwayz-drama-back-prod
+          loadbalancer: demo-drama-back-prod
         - monitor_type: error_tracking_trace
           threshold: 5
       synthetics:
-        - name: alwayz-drama-back이 다운되었습니다.
+        - name: demo-drama-back이 다운되었습니다.
           type: api
           subtype: http
           status: live
@@ -866,7 +866,7 @@ owners:
             - aws:ap-northeast-2
           request_definition:
             method: GET
-            url: https://alwayz-drama-back.prod.iexample-org.com/health-check
+            url: https://demo-drama-back.prod.iexample-org.com/health-check
           assertions:
             - type: statusCode
               operator: is
@@ -881,14 +881,14 @@ owners:
               interval: 1000
             monitor_options:
               renotify_interval: 10
-    - service: alwayz-front-code-push-console
+    - service: demo-front-code-push-console
       owner:
         - name: 유건
           email: yugun@iexample-org.com
       slack_channels:
         - 모니터링_코드푸시_콘솔
       synthetics:
-        - name: alwayz-front-code-push-console이 다운되었습니다.
+        - name: demo-front-code-push-console이 다운되었습니다.
           type: api
           subtype: http
           status: live
@@ -896,7 +896,7 @@ owners:
             - pl:devops-private-location-dc242ec68f6544a123e787d5345b2e06
           request_definition:
             method: GET
-            url: https://alwayz-code-push-console.prod.iexample-org.com/health-check
+            url: https://demo-code-push-console.prod.iexample-org.com/health-check
           assertions:
             - type: statusCode
               operator: is
@@ -911,7 +911,7 @@ owners:
               interval: 1000
             monitor_options:
               renotify_interval: 10
-    - service: alwayz-games-back
+    - service: demo-games-back
       owner:
         - name: 손경국
           email: son@iexample-org.com
@@ -925,17 +925,17 @@ owners:
           duration: 1000
         - monitor_type: alb_5xx
           threshold: 5
-          loadbalancer: alwayz-games-back-prod
+          loadbalancer: demo-games-back-prod
         - monitor_type: alb_target_5xx
           threshold: 5
-          loadbalancer: alwayz-games-back-prod
+          loadbalancer: demo-games-back-prod
         - monitor_type: alb_target_4xx
           threshold: 5
-          loadbalancer: alwayz-games-back-prod
+          loadbalancer: demo-games-back-prod
         - monitor_type: error_tracking_trace
           threshold: 5
       synthetics:
-        - name: alwayz-games-back-prod이 다운되었습니다.
+        - name: demo-games-back-prod이 다운되었습니다.
           type: api
           subtype: http
           status: live
@@ -943,7 +943,7 @@ owners:
             - pl:devops-private-location-dc242ec68f6544a123e787d5345b2e06
           request_definition:
             method: GET
-            url: https://alwayz-games-back.prod.iexample-org.com/health-check
+            url: https://demo-games-back.prod.iexample-org.com/health-check
           assertions:
             - type: statusCode
               operator: is
@@ -958,7 +958,7 @@ owners:
               interval: 1000
             monitor_options:
               renotify_interval: 10
-    - service: alwayz-gateway
+    - service: demo-gateway
       owner:
         - name: 이상민
           email: sangmin.lee@iexample-org.com
@@ -974,21 +974,21 @@ owners:
           duration: 1000
         - monitor_type: alb_5xx
           threshold: 50
-          loadbalancer: alwayz-gateway-prod
+          loadbalancer: demo-gateway-prod
         - monitor_type: alb_target_5xx
           threshold: 50
-          loadbalancer: alwayz-gateway-prod
+          loadbalancer: demo-gateway-prod
         - monitor_type: error_tracking_trace
           threshold: 50
         - monitor_type: custom_alert
-          name: alwayz-gateway alb_target_4xx
+          name: demo-gateway alb_target_4xx
           type: trace-analytics alert
-          query: trace-analytics("service:alwayz-gateway* env:prod 
+          query: trace-analytics("service:demo-gateway* env:prod 
             @http.status_code:4**").rollup("count").by("@http.url,@http.method").last("1m")
             > 1000
           message_template: monitor_alb_target_4xx.tpl
       synthetics:
-        - name: alwayz-gateway가 다운되었습니다.
+        - name: demo-gateway가 다운되었습니다.
           type: api
           subtype: http
           status: live
@@ -1011,7 +1011,7 @@ owners:
               interval: 1000
             monitor_options:
               renotify_interval: 10
-    - service: alwayz-price-api
+    - service: demo-price-api
       owner:
         - name: 이상민
           email: sangmin.lee@iexample-org.com
@@ -1025,17 +1025,17 @@ owners:
           duration: 1500
         - monitor_type: alb_5xx
           threshold: 500
-          loadbalancer: alwayz-price-api-prod
+          loadbalancer: demo-price-api-prod
         - monitor_type: alb_target_5xx
           threshold: 500
-          loadbalancer: alwayz-price-api-prod
+          loadbalancer: demo-price-api-prod
         - monitor_type: alb_target_4xx
           threshold: 500
-          loadbalancer: alwayz-price-api-prod
+          loadbalancer: demo-price-api-prod
         - monitor_type: error_tracking_trace
           threshold: 500
       synthetics:
-        - name: alwayz-price-api가 다운되었습니다.
+        - name: demo-price-api가 다운되었습니다.
           type: api
           subtype: http
           status: live
@@ -1044,7 +1044,7 @@ owners:
           request_definition:
             method: GET
             url: 
-              https://alwayz-price-api.prod.iexample-org.com/actuator/health/readiness
+              https://demo-price-api.prod.iexample-org.com/actuator/health/readiness
           assertions:
             - type: statusCode
               operator: is
@@ -1059,7 +1059,7 @@ owners:
               interval: 1000
             monitor_options:
               renotify_interval: 10
-    - service: alwayz-reco-back
+    - service: demo-reco-back
       owner:
         - name: 조영훈
           email: younghun.jo@iexample-org.com
@@ -1073,17 +1073,17 @@ owners:
           duration: 1000
         - monitor_type: alb_5xx
           threshold: 5
-          loadbalancer: alwayz-reco-back-prod
+          loadbalancer: demo-reco-back-prod
         - monitor_type: alb_target_5xx
           threshold: 5
-          loadbalancer: alwayz-reco-back-prod
+          loadbalancer: demo-reco-back-prod
         - monitor_type: alb_target_4xx
           threshold: 5
-          loadbalancer: alwayz-reco-back-prod
+          loadbalancer: demo-reco-back-prod
         - monitor_type: error_tracking_trace
           threshold: 5
       synthetics:
-        - name: alwayz-reco-back이 다운되었습니다.
+        - name: demo-reco-back이 다운되었습니다.
           type: api
           subtype: http
           status: live
@@ -1091,7 +1091,7 @@ owners:
             - pl:devops-private-location-dc242ec68f6544a123e787d5345b2e06
           request_definition:
             method: GET
-            url: https://alwayz-reco-back.prod.iexample-org.com/health-check
+            url: https://demo-reco-back.prod.iexample-org.com/health-check
           assertions:
             - type: statusCode
               operator: is
@@ -1106,7 +1106,7 @@ owners:
               interval: 1000
             monitor_options:
               renotify_interval: 10
-    - service: alwayz-reco-related
+    - service: demo-reco-related
       owner:
         - name: 조영훈
           email: younghun.jo@iexample-org.com
@@ -1120,14 +1120,14 @@ owners:
           duration: 5000
         - monitor_type: alb_5xx
           threshold: 5
-          loadbalancer: alwayz-reco-related-prod
+          loadbalancer: demo-reco-related-prod
         - monitor_type: alb_target_5xx
           threshold: 5
-          loadbalancer: alwayz-reco-related-prod
+          loadbalancer: demo-reco-related-prod
         - monitor_type: error_tracking_trace
           threshold: 10
       synthetics:
-        - name: alwayz-reco-related-prod가 다운되었습니다.
+        - name: demo-reco-related-prod가 다운되었습니다.
           type: api
           subtype: http
           status: live
@@ -1135,7 +1135,7 @@ owners:
             - pl:devops-private-location-dc242ec68f6544a123e787d5345b2e06
           request_definition:
             method: GET
-            url: https://alwayz-reco-related.prod.iexample-org.com/health-check
+            url: https://demo-reco-related.prod.iexample-org.com/health-check
           assertions:
             - type: statusCode
               operator: is
@@ -1150,7 +1150,7 @@ owners:
               interval: 1000
             monitor_options:
               renotify_interval: 10
-    - service: alwayz-search-back
+    - service: demo-search-back
       owner:
         - name: 이상민
           email: sangmin.lee@iexample-org.com
@@ -1164,17 +1164,17 @@ owners:
           duration: 1000
         - monitor_type: alb_5xx
           threshold: 50
-          loadbalancer: alwayz-search-back-prod
+          loadbalancer: demo-search-back-prod
         - monitor_type: alb_target_5xx
           threshold: 50
-          loadbalancer: alwayz-search-back-prod
+          loadbalancer: demo-search-back-prod
         - monitor_type: alb_target_4xx
           threshold: 50
-          loadbalancer: alwayz-search-back-prod
+          loadbalancer: demo-search-back-prod
         - monitor_type: error_tracking_trace
           threshold: 50
       synthetics:
-        - name: alwayz-search-back이 다운되었습니다.
+        - name: demo-search-back이 다운되었습니다.
           type: api
           subtype: http
           status: live
@@ -1182,7 +1182,7 @@ owners:
             - pl:devops-private-location-dc242ec68f6544a123e787d5345b2e06
           request_definition:
             method: GET
-            url: https://alwayz-search-back.prod.iexample-org.com/health-check
+            url: https://demo-search-back.prod.iexample-org.com/health-check
           assertions:
             - type: statusCode
               operator: is
@@ -1197,7 +1197,7 @@ owners:
               interval: 1000
             monitor_options:
               renotify_interval: 10
-    - service: alwayz-seller-back
+    - service: demo-seller-back
       owner:
         - name: 이상민
           email: sangmin.lee@iexample-org.com
@@ -1211,25 +1211,25 @@ owners:
           duration: 1000
         - monitor_type: alb_5xx
           threshold: 50
-          loadbalancer: alwayz-seller-back-prod
+          loadbalancer: demo-seller-back-prod
         - monitor_type: alb_target_5xx
           threshold: 50
-          loadbalancer: alwayz-seller-back-prod
+          loadbalancer: demo-seller-back-prod
         - monitor_type: custom_alert
-          name: alwayz-seller-back alb_target_4xx
+          name: demo-seller-back alb_target_4xx
           type: trace-analytics alert
-          query: trace-analytics("service:alwayz-seller-back* env:prod 
+          query: trace-analytics("service:demo-seller-back* env:prod 
             @http.status_code:4** 
-            -(@http.url:\"http://alwayz-seller-back.iexample-org.com/sellers/orders/status\"
+            -(@http.url:\"http://demo-seller-back.iexample-org.com/sellers/orders/status\"
             AND 
             @http.method:GET)").rollup("count").by("@http.url,@http.method").last("1m")
             > 1000
           message_template: monitor_alb_target_4xx.tpl
-          loadbalancer: alwayz-seller-back-prod
+          loadbalancer: demo-seller-back-prod
         - monitor_type: error_tracking_trace
           threshold: 50
       synthetics:
-        - name: alwayz-seller-back이 다운되었습니다.
+        - name: demo-seller-back이 다운되었습니다.
           type: api
           subtype: http
           status: live
@@ -1237,7 +1237,7 @@ owners:
             - aws:ap-northeast-2
           request_definition:
             method: GET
-            url: https://alwayz-seller-back.prod.iexample-org.com/health-check
+            url: https://demo-seller-back.prod.iexample-org.com/health-check
           assertions:
             - type: statusCode
               operator: is
@@ -1252,7 +1252,7 @@ owners:
               interval: 1000
             monitor_options:
               renotify_interval: 10
-    - service: alwayz-shorts-back
+    - service: demo-shorts-back
       owner:
         - name: 안석민
           email: chris@iexample-org.com
@@ -1266,17 +1266,17 @@ owners:
           duration: 1000
         - monitor_type: alb_5xx
           threshold: 5
-          loadbalancer: alwayz-shorts-back-prod
+          loadbalancer: demo-shorts-back-prod
         - monitor_type: alb_target_5xx
           threshold: 5
-          loadbalancer: alwayz-shorts-back-prod
+          loadbalancer: demo-shorts-back-prod
         - monitor_type: alb_target_4xx
           threshold: 5
-          loadbalancer: alwayz-shorts-back-prod
+          loadbalancer: demo-shorts-back-prod
         - monitor_type: error_tracking_trace
           threshold: 5
       synthetics:
-        - name: alwayz-shorts-back이 다운되었습니다.
+        - name: demo-shorts-back이 다운되었습니다.
           type: api
           subtype: http
           status: live
@@ -1284,7 +1284,7 @@ owners:
             - pl:devops-private-location-dc242ec68f6544a123e787d5345b2e06
           request_definition:
             method: GET
-            url: https://alwayz-shorts-back.prod.iexample-org.com/health-check
+            url: https://demo-shorts-back.prod.iexample-org.com/health-check
           assertions:
             - type: statusCode
               operator: is
@@ -1299,7 +1299,7 @@ owners:
               interval: 1000
             monitor_options:
               renotify_interval: 10
-    - service: alwayz-shorts-reco-back
+    - service: demo-shorts-reco-back
       owner:
         - name: 안석민
           email: chris@iexample-org.com
@@ -1313,17 +1313,17 @@ owners:
           duration: 1000
         - monitor_type: alb_5xx
           threshold: 5
-          loadbalancer: alwayz-shorts-reco-back-prod
+          loadbalancer: demo-shorts-reco-back-prod
         - monitor_type: alb_target_5xx
           threshold: 5
-          loadbalancer: alwayz-shorts-reco-back-prod
+          loadbalancer: demo-shorts-reco-back-prod
         - monitor_type: alb_target_4xx
           threshold: 5
-          loadbalancer: alwayz-shorts-reco-back-prod
+          loadbalancer: demo-shorts-reco-back-prod
         - monitor_type: error_tracking_trace
           threshold: 5
       synthetics:
-        - name: alwayz-shrots-reco-back이 다운되었습니다.
+        - name: demo-shrots-reco-back이 다운되었습니다.
           type: api
           subtype: http
           status: live
@@ -1331,7 +1331,7 @@ owners:
             - pl:devops-private-location-dc242ec68f6544a123e787d5345b2e06
           request_definition:
             method: GET
-            url: https://alwayz-shorts-reco-back.prod.iexample-org.com/health-check
+            url: https://demo-shorts-reco-back.prod.iexample-org.com/health-check
           assertions:
             - type: statusCode
               operator: is
@@ -1346,7 +1346,7 @@ owners:
               interval: 1000
             monitor_options:
               renotify_interval: 10
-    - service: alwayz-strategy-back
+    - service: demo-strategy-back
       owner:
         - name: 민준수
           email: junsu.min@iexample-org.com
@@ -1360,17 +1360,17 @@ owners:
           duration: 300
         - monitor_type: alb_5xx
           threshold: 5
-          loadbalancer: alwayz-strategy-back-prod
+          loadbalancer: demo-strategy-back-prod
         - monitor_type: alb_target_5xx
           threshold: 5
-          loadbalancer: alwayz-strategy-back-prod
+          loadbalancer: demo-strategy-back-prod
         - monitor_type: alb_target_4xx
           threshold: 5
-          loadbalancer: alwayz-strategy-back-prod
+          loadbalancer: demo-strategy-back-prod
         - monitor_type: error_tracking_trace
           threshold: 5
       synthetics:
-        - name: alwayz-strategy-back이 다운되었습니다.
+        - name: demo-strategy-back이 다운되었습니다.
           type: api
           subtype: http
           status: live
@@ -1378,7 +1378,7 @@ owners:
             - aws:ap-northeast-2
           request_definition:
             method: GET
-            url: https://alwayz-strategy-back.prod.iexample-org.com/health-check
+            url: https://demo-strategy-back.prod.iexample-org.com/health-check
           assertions:
             - type: statusCode
               operator: is
@@ -1393,14 +1393,14 @@ owners:
               interval: 1000
             monitor_options:
               renotify_interval: 10
-    - service: alwayz-sweet-tracker
+    - service: demo-sweet-tracker
       owner:
         - name: 이정원
           email: j@iexample-org.com
       slack_channels:
         - 모니터링_스윗트래커
       synthetics:
-        - name: alwayz-sweet-tracker가 다운되었습니다.
+        - name: demo-sweet-tracker가 다운되었습니다.
           type: api
           subtype: http
           status: live

@@ -69,14 +69,14 @@ func Load() (*Config, error) {
 func createDefaultConfig(configPath string) (*Config, error) {
 	config := &Config{
 		Clusters: []Cluster{
-			{Name: "alwayz-dev-eks", Context: "alwayz-dev-eks", Environment: "dev"},
-			{Name: "alwayz-prod-eks", Context: "alwayz-prod-eks", Environment: "prod"},
+			{Name: "demo-dev-eks", Context: "demo-dev-eks", Environment: "dev"},
+			{Name: "demo-prod-eks", Context: "demo-prod-eks", Environment: "prod"},
 			{Name: "data-dev-eks", Context: "data-dev-eks", Environment: "dev"},
 			{Name: "data-prod-eks", Context: "data-prod-eks", Environment: "prod"},
 		},
 		AWSProfiles: []AWSProfile{
-			{Name: "alwayz-dev", Profile: "alwayz-dev"},
-			{Name: "alwayz-prod", Profile: "alwayz-prod"},
+			{Name: "demo-dev", Profile: "demo-dev"},
+			{Name: "demo-prod", Profile: "demo-prod"},
 		},
 		Tools: Tools{
 			K9s:     "k9s",

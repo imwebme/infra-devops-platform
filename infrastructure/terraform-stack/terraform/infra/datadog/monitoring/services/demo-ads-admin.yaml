@@ -1,4 +1,4 @@
-service: alwayz-ads-admin
+service: demo-ads-admin
 owner:
   - name: 박상우
     email: sangwoo.park@iexample-org.com
@@ -12,24 +12,24 @@ monitors:
     duration: 300
   - monitor_type: alb_5xx
     threshold: 20
-    loadbalancer: alwayz-ads-admin-prod
+    loadbalancer: demo-ads-admin-prod
   - monitor_type: alb_target_5xx
     threshold: 20
-    loadbalancer: alwayz-ads-admin-prod
+    loadbalancer: demo-ads-admin-prod
   - monitor_type: alb_target_4xx
     threshold: 20
-    loadbalancer: alwayz-ads-admin-prod
+    loadbalancer: demo-ads-admin-prod
   - monitor_type: error_tracking_trace
     threshold: 20
 synthetics:
-  - name: alwayz-ads-admin이 다운되었습니다.
+  - name: demo-ads-admin이 다운되었습니다.
     type: api
     subtype: http
     status: "live"
     locations: ["aws:ap-northeast-2"]
     request_definition:
       method: GET
-      url: https://alwayz-ads-admin.prod.iexample-org.com/actuator/health/readiness
+      url: https://demo-ads-admin.prod.iexample-org.com/actuator/health/readiness
     assertions:
       - type: statusCode
         operator: is

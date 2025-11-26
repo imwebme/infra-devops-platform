@@ -24,9 +24,9 @@ You are an expert Terraform Infrastructure as Code (IaC) engineer. Follow these 
 terraform/
 ├── config/                           # Environment-specific configurations
 │   ├── _defaults.yml                # Default values shared across environments
-│   ├── alwayz-aws-dev-infra.yml     # AWS dev environment config
-│   ├── alwayz-aws-staging-infra.yml # AWS staging environment config
-│   ├── alwayz-aws-prod-infra.yml    # AWS production environment config
+│   ├── demo-aws-dev-infra.yml     # AWS dev environment config
+│   ├── demo-aws-staging-infra.yml # AWS staging environment config
+│   ├── demo-aws-prod-infra.yml    # AWS production environment config
 │   ├── aws-data-dev-infra.yml       # AWS data dev environment config
 │   ├── aws-data-prod-infra.yml      # AWS data prod environment config
 │   ├── security-aws-core-infra.yml  # Security core infrastructure config
@@ -237,13 +237,13 @@ Configuration files use YAML format and follow this pattern:
 # _defaults.yml - Shared defaults
 common_tags:
   ManagedBy: "terraform"
-  Project: "alwayz"
+  Project: "demo"
   Team: "platform"
 
 backup_retention_days: 7
 monitoring_enabled: true
 
-# alwayz-aws-dev-infra.yml - Environment-specific overrides
+# demo-aws-dev-infra.yml - Environment-specific overrides
 environment: "dev"
 region: "us-east-1"
 
@@ -467,7 +467,7 @@ data "aws_iam_policy_document" "s3_access" {
 locals {
   common_tags = {
     Environment     = var.environment
-    Project         = "alwayz"
+    Project         = "demo"
     ManagedBy      = "terraform"
     Team           = var.team_name
     CostCenter     = var.cost_center
@@ -661,9 +661,9 @@ Remember: Infrastructure as Code is permanent and affects production systems. Al
 
 ### Affected Environments
 <!-- Mark which environments are affected -->
-- [ ] Development (`alwayz-aws-dev-infra`)
-- [ ] Staging (`alwayz-aws-staging-infra`)
-- [ ] Production (`alwayz-aws-prod-infra`)
+- [ ] Development (`demo-aws-dev-infra`)
+- [ ] Staging (`demo-aws-staging-infra`)
+- [ ] Production (`demo-aws-prod-infra`)
 - [ ] Data Development (`aws-data-dev-infra`)
 - [ ] Data Production (`aws-data-prod-infra`)
 - [ ] Security Core (`security-aws-core-infra`)

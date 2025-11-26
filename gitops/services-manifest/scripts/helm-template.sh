@@ -16,9 +16,9 @@ if [ $# -lt 1 ]; then
     print_usage
 fi
 
-# 스크립트가 alwayz-gitops-manifest 루트 디렉토리에서 실행되는지 확인
+# 스크립트가 demo-gitops-manifest 루트 디렉토리에서 실행되는지 확인
 if [ ! -d "charts" ]; then
-    echo "Error: This script must be run from the alwayz-gitops-manifest root directory"
+    echo "Error: This script must be run from the demo-gitops-manifest root directory"
     exit 1
 fi
 

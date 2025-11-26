@@ -15,7 +15,7 @@ RUN apk add --no-cache \
     libgcc \
     libstdc++
 
-WORKDIR /home/alwayz-cron
+WORKDIR /home/demo-cron
 
 COPY createEnv.js .
 COPY package.json package-lock.json ./
@@ -27,7 +27,7 @@ ARG IMAGE_TAG
 ENV NODE_ENV=prod
 ENV DD_VERSION=${IMAGE_TAG}
 
-RUN response=$(curl -s https://config.prod.example.com/env/alwayz-cron/prod) && \
+RUN response=$(curl -s https://config.prod.example.com/env/demo-cron/prod) && \
     data=$(echo $response | jq -r '.data') && \
     node createEnv.js "$data" "$ENCRYPT_KEY"
 

@@ -1,4 +1,4 @@
-service: alwayz-commerce-api
+service: demo-commerce-api
 owner:
   - name: 이상민
     email: sangmin.lee@iexample-org.com
@@ -14,24 +14,24 @@ monitors:
     duration: 300
   - monitor_type: alb_5xx
     threshold: 50
-    loadbalancer: alwayz-commerce-api
+    loadbalancer: demo-commerce-api
   - monitor_type: alb_target_5xx
     threshold: 50
-    loadbalancer: alwayz-commerce-api
+    loadbalancer: demo-commerce-api
   - monitor_type: alb_target_4xx
     threshold: 50
-    loadbalancer: alwayz-commerce-api
+    loadbalancer: demo-commerce-api
   - monitor_type: error_tracking_trace
     threshold: 50
 synthetics:
-  - name: alwayz-commerce-api가 다운되었습니다.
+  - name: demo-commerce-api가 다운되었습니다.
     type: api
     subtype: http
     status: "live"
     locations: ["pl:devops-private-location-dc242ec68f6544a123e787d5345b2e06"]
     request_definition:
       method: GET
-      url: https://alwayz-commerce-api.prod.iexample-org.com/actuator/health/readiness
+      url: https://demo-commerce-api.prod.iexample-org.com/actuator/health/readiness
     assertions:
       - type: statusCode
         operator: is

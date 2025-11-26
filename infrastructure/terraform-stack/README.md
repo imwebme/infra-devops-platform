@@ -33,8 +33,8 @@ terraform/
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/wetripod/alwayz-infrastructure.git
-cd alwayz-infrastructure
+git clone https://github.com/wetripod/demo-infrastructure.git
+cd demo-infrastructure
 ```
 
 <br>
@@ -68,10 +68,10 @@ more ~/.terraform.d/credentials.tfrc.json
 ### 4. Configure Workspace
 
 ```bash
-export TF_WORKSPACE=alwayz-aws-{ENVIRONMENT}-infra
+export TF_WORKSPACE=demo-aws-{ENVIRONMENT}-infra
 
 # example
-# export TF_WORKSPACE=alwayz-aws-beta-infra
+# export TF_WORKSPACE=demo-aws-beta-infra
 ```
 
 <br>

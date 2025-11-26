@@ -1,18 +1,18 @@
-service: alwayz-front-code-push-console
+service: demo-front-code-push-console
 owner:
   - name: 유건
     email: yugun@iexample-org.com
 slack_channels:
   - 모니터링_코드푸시_콘솔
 synthetics:
-  - name: alwayz-front-code-push-console이 다운되었습니다.
+  - name: demo-front-code-push-console이 다운되었습니다.
     type: api
     subtype: http
     status: "live"
     locations: ["pl:devops-private-location-dc242ec68f6544a123e787d5345b2e06"]
     request_definition:
       method: GET
-      url: https://alwayz-code-push-console.prod.iexample-org.com/health-check
+      url: https://demo-code-push-console.prod.iexample-org.com/health-check
     assertions:
       - type: statusCode
         operator: is

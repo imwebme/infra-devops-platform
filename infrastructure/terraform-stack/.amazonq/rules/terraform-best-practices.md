@@ -2,7 +2,7 @@
 
 ## 코딩 스타일 및 네이밍 규칙
 
-- 리소스명은 의미있게 작성: `alwayz_vpc_public_subnet` (O), `subnet_1` (X)
+- 리소스명은 의미있게 작성: `demo_vpc_public_subnet` (O), `subnet_1` (X)
 - 변수명은 snake_case 사용
 - 태그는 일관성 있게 적용 (Environment, Project, Owner)
 - 모든 리소스에 description 추가

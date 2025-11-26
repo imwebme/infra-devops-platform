@@ -23,26 +23,26 @@
 ### Git 설정
 ```bash
 git config --global user.name "Your Name"
-git config --global user.email "your.email@alwayz.com"
+git config --global user.email "your.email@demo.com"
 ```
 
 ### 저장소 클론
 ```bash
 # 작업 디렉터리 생성
-mkdir -p ~/workspace/alwayz/devops
-cd ~/workspace/alwayz/devops
+mkdir -p ~/workspace/demo/devops
+cd ~/workspace/demo/devops
 
 # DevOps 저장소들 클론
-git clone https://github.com/alwayz/devops-monorepo.git
-git clone https://github.com/alwayz/devops-gitops-manifest.git
-git clone https://github.com/alwayz/alwayz-infrastructure.git
+git clone https://github.com/demo/devops-monorepo.git
+git clone https://github.com/demo/devops-gitops-manifest.git
+git clone https://github.com/demo/demo-infrastructure.git
 ```
 
 ## 2️⃣ example-org-devops CLI 설치
 
 ### 자동 설치 (권장)
 ```bash
-cd ~/workspace/alwayz/devops/devops-monorepo/apps/example-org-devops
+cd ~/workspace/demo/devops/devops-monorepo/apps/example-org-devops
 make build
 ./install.sh
 ```
@@ -94,10 +94,10 @@ aws configure
 ### 프로파일 설정 (멀티 계정)
 ```bash
 # 개발 환경
-aws configure --profile alwayz-dev
+aws configure --profile demo-dev
 
 # 프로덕션 환경
-aws configure --profile alwayz-prod
+aws configure --profile demo-prod
 ```
 
 ### AWS 연결 테스트
@@ -111,13 +111,13 @@ example-org-devops aws ec2
 ### EKS 클러스터 연결
 ```bash
 # 개발 클러스터
-aws eks update-kubeconfig --region ap-northeast-2 --name alwayz-dev-eks --profile alwayz-dev
+aws eks update-kubeconfig --region ap-northeast-2 --name demo-dev-eks --profile demo-dev
 
 # 프로덕션 클러스터 (권한 확인 후)
-aws eks update-kubeconfig --region ap-northeast-2 --name alwayz-prod-eks --profile alwayz-prod
+aws eks update-kubeconfig --region ap-northeast-2 --name demo-prod-eks --profile demo-prod
 
 # 데이터 클러스터
-aws eks update-kubeconfig --region ap-northeast-2 --name data-dev-eks --profile alwayz-dev
+aws eks update-kubeconfig --region ap-northeast-2 --name data-dev-eks --profile demo-dev
 ```
 
 ### 클러스터 연결 확인
@@ -128,7 +128,7 @@ example-org-devops k8s nodes
 
 ### k9s로 클러스터 탐색
 ```bash
-example-org-devops k8s view alwayz-dev-eks
+example-org-devops k8s view demo-dev-eks
 ```
 
 ## 6️⃣ ArgoCD 설정
@@ -139,7 +139,7 @@ example-org-devops k8s view alwayz-dev-eks
 example-org-devops argocd login
 
 # 또는 특정 서버
-example-org-devops argocd login argocd.alwayz.io
+example-org-devops argocd login argocd.demo.io
 ```
 
 ### ArgoCD 앱 확인
@@ -205,7 +205,7 @@ kubectl cluster-info
 #### 4. ArgoCD 로그인 문제
 ```bash
 # 수동 로그인
-argocd login argocd.alwayz.io --sso
+argocd login argocd.demo.io --sso
 
 # 컨텍스트 확인
 argocd context

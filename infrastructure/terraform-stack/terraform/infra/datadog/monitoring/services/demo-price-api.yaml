@@ -1,4 +1,4 @@
-service: alwayz-price-api
+service: demo-price-api
 owner:
   - name: 이상민
     email: sangmin.lee@iexample-org.com
@@ -12,24 +12,24 @@ monitors:
     duration: 1500
   - monitor_type: alb_5xx
     threshold: 500
-    loadbalancer: alwayz-price-api-prod
+    loadbalancer: demo-price-api-prod
   - monitor_type: alb_target_5xx
     threshold: 500
-    loadbalancer: alwayz-price-api-prod
+    loadbalancer: demo-price-api-prod
   - monitor_type: alb_target_4xx
     threshold: 500
-    loadbalancer: alwayz-price-api-prod
+    loadbalancer: demo-price-api-prod
   - monitor_type: error_tracking_trace
     threshold: 500
 synthetics:
-  - name: alwayz-price-api가 다운되었습니다.
+  - name: demo-price-api가 다운되었습니다.
     type: api
     subtype: http
     status: "live"
     locations: ["pl:devops-private-location-dc242ec68f6544a123e787d5345b2e06"]
     request_definition:
       method: GET
-      url: https://alwayz-price-api.prod.iexample-org.com/actuator/health/readiness
+      url: https://demo-price-api.prod.iexample-org.com/actuator/health/readiness
     assertions:
       - type: statusCode
         operator: is

@@ -17,52 +17,52 @@ github_org: "https://github.com/wetripod"
 cloudfront:
   origin_access_controls: "sign requests"
 ecr:
-  - "alwayz-back"
-  - "alwayz-alwalk-back"
-  - "alwayz-seller-back"
-  - "alwayz-admin-back"
-  - "alwayz-shorts-back"
+  - "demo-back"
+  - "demo-alwalk-back"
+  - "demo-seller-back"
+  - "demo-admin-back"
+  - "demo-shorts-back"
   - "alfarm-back"
-  - "alwayz-games-back"
-  - "alwayz-square-back"
-  - "alwayz-shorts-reco-back"
-  - "alwayz-reco-back"
-  - "alwayz-drama-back"
-  - "alwayz-altoon-back"
-  - "alwayz-almart-back"
-  - "alwayz-garden-back"
-  - "alwayz-pollcom-back"
-  - "alwayz-cron"
-  - "alwayz-cron-pay"
-  - "alwayz-cron-python"
-  - "alwayz-assignment-front"
-  - "alwayz-config"
-  - "alwayz-ml-business-back"
-  - "alwayz-algarden-back"
+  - "demo-games-back"
+  - "demo-square-back"
+  - "demo-shorts-reco-back"
+  - "demo-reco-back"
+  - "demo-drama-back"
+  - "demo-altoon-back"
+  - "demo-almart-back"
+  - "demo-garden-back"
+  - "demo-pollcom-back"
+  - "demo-cron"
+  - "demo-cron-pay"
+  - "demo-cron-python"
+  - "demo-assignment-front"
+  - "demo-config"
+  - "demo-ml-business-back"
+  - "demo-algarden-back"
   - "db-dbm"
-  - "alwayz-node-scraper"
-  - "alwayz-search-back"
-  - "alwayz-front-code-push-console"
-  - "alwayz-strategy-back"
+  - "demo-node-scraper"
+  - "demo-search-back"
+  - "demo-front-code-push-console"
+  - "demo-strategy-back"
   - "abwayz"
-  - "alwayz-lowest-crawler-realtime"
+  - "demo-lowest-crawler-realtime"
 
 frontend:
   [
-    "alwayz-shop-front",
-    "alwayz-altto-front",
-    "alwayz-brainteaser-front",
-    "alwayz-storybook",
-    "alwayz-admin-front",
-    "alwayz-ads-front",
-    "alwayz-price-front",
-    "alwayz-altoon-web-front",
-    "alwayz-alfarm-v2-front",
+    "demo-shop-front",
+    "demo-altto-front",
+    "demo-brainteaser-front",
+    "demo-storybook",
+    "demo-admin-front",
+    "demo-ads-front",
+    "demo-price-front",
+    "demo-altoon-web-front",
+    "demo-alfarm-v2-front",
     "shopin-front",
     "shopin-partners-front",
     "price-csx-front",
-    "alwayz-events-front",
-    "alwayz-grocery-assitant-front",
+    "demo-events-front",
+    "demo-grocery-assitant-front",
   ]
 
 loki:

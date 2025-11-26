@@ -12,13 +12,13 @@ if [ -z "$GITHUB_TOKEN" ]; then
     exit 1
 fi
 
-echo "🔍 Checking wetripod/alwayz-infrastructure workflows..."
+echo "🔍 Checking wetripod/demo-infrastructure workflows..."
 echo ""
 
 # List all workflows
 echo "📋 Available workflows:"
 curl -s -H "Authorization: token $GITHUB_TOKEN" \
-    https://api.github.com/repos/wetripod/alwayz-infrastructure/actions/workflows | \
+    https://api.github.com/repos/wetripod/demo-infrastructure/actions/workflows | \
     jq -r '.workflows[] | "- Name: \(.name)\n  Path: \(.path)\n  ID: \(.id)\n"' 2>/dev/null
 
 echo ""
@@ -30,7 +30,7 @@ RESPONSE=$(curl -s -w "%{http_code}" -o /tmp/workflow_response.txt \
     -X POST \
     -H "Authorization: token $GITHUB_TOKEN" \
     -H "Accept: application/vnd.github.v3+json" \
-    https://api.github.com/repos/wetripod/alwayz-infrastructure/actions/workflows/ci-infra-terraform-cloud.yml/dispatches \
+    https://api.github.com/repos/wetripod/demo-infrastructure/actions/workflows/ci-infra-terraform-cloud.yml/dispatches \
     -d '{
         "ref": "main",
         "inputs": {

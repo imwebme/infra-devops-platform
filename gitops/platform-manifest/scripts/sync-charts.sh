@@ -4,8 +4,8 @@
 set -e
 
 # 소스와 타겟 저장소 설정
-SOURCE_REPO="alwayz-gitops"
-SOURCE_URL="https://wetripod.github.io/alwayz-gitops-manifest"
+SOURCE_REPO="demo-gitops"
+SOURCE_URL="https://wetripod.github.io/demo-gitops-manifest"
 TARGET_BRANCH="gh-pages"
 
 # 동기화할 차트 목록
@@ -118,7 +118,7 @@ if [[ $auto_upload =~ ^[Yy]$ ]]; then
     echo "🔄 gh-pages 브랜치로 자동 업로드 중..."
     
     # 현재 저장소 디렉토리로 돌아가기
-    ORIGINAL_DIR="/Users/example-org/workspace/alwayz/devops/devops-gitops-manifest"
+    ORIGINAL_DIR="/Users/example-org/workspace/demo/devops/devops-gitops-manifest"
     cd $ORIGINAL_DIR
     
     # 현재 브랜치 저장
@@ -169,9 +169,9 @@ if [[ $auto_upload =~ ^[Yy]$ ]]; then
         
         # 커밋 메시지 생성
         if [ ${#SELECTED_CHARTS[@]} -eq 1 ]; then
-            COMMIT_MSG="chore: sync ${SELECTED_CHARTS[0]} helm chart from alwayz-gitops-manifest"
+            COMMIT_MSG="chore: sync ${SELECTED_CHARTS[0]} helm chart from demo-gitops-manifest"
         else
-            COMMIT_MSG="chore: sync multiple helm charts from alwayz-gitops-manifest
+            COMMIT_MSG="chore: sync multiple helm charts from demo-gitops-manifest
 
 - 동기화된 차트들: $(printf '%s, ' "${SELECTED_CHARTS[@]}" | sed 's/, $//')"
         fi

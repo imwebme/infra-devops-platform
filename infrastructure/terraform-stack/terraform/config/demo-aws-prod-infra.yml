@@ -1,52 +1,52 @@
 ---
-org: "alwayz"
+org: "demo"
 env: "prod"
 vpc_cidr: "10.2.0.0/16"
 ecr:
-  - "alwayz-commerce-order"
-  - "alwayz-commerce-order-api"
-  - "alwayz-commerce-order-consumer"
-  - "alwayz-commerce-order-batch"
-  - "alwayz-commerce-api"
-  - "alwayz-commerce-connect"
-  - "alwayz-commerce-worker"
-  - "alwayz-product-worker"
-  - "alwayz-commerce-shipping"
-  - "alwayz-commerce-admin"
-  - "alwayz-commerce-order-pay"
-  - "alwayz-bff"
-  - "alwayz-core-api"
-  - "alwayz-core-connect"
+  - "demo-commerce-order"
+  - "demo-commerce-order-api"
+  - "demo-commerce-order-consumer"
+  - "demo-commerce-order-batch"
+  - "demo-commerce-api"
+  - "demo-commerce-connect"
+  - "demo-commerce-worker"
+  - "demo-product-worker"
+  - "demo-commerce-shipping"
+  - "demo-commerce-admin"
+  - "demo-commerce-order-pay"
+  - "demo-bff"
+  - "demo-core-api"
+  - "demo-core-connect"
   - "aldocs"
-  - "alwayz-price-api"
-  - "alwayz-product-api"
-  - "alwayz-product-admin"
-  - "alwayz-product-batch"
-  - "alwayz-alfarm-v2-api"
-  - "alwayz-alfarm-v2-admin"
-  - "alwayz-quality-batch"
-  - "alwayz-quality-api"
-  - "alwayz-alfarm-v2-batch"
-  - "alwayz-review-api"
-  - "alwayz-gateway"
+  - "demo-price-api"
+  - "demo-product-api"
+  - "demo-product-admin"
+  - "demo-product-batch"
+  - "demo-alfarm-v2-api"
+  - "demo-alfarm-v2-admin"
+  - "demo-quality-batch"
+  - "demo-quality-api"
+  - "demo-alfarm-v2-batch"
+  - "demo-review-api"
+  - "demo-gateway"
   - "airport"
-  - "alwayz-ads-api"
-  - "alwayz-ads-admin"
-  - "alwayz-ads-partner"
+  - "demo-ads-api"
+  - "demo-ads-admin"
+  - "demo-ads-partner"
   - "db-cw-summary"
   - "shopin-api-legacy"
   - "shopin-partners-api-legacy"
   - "albot"
   - "gureum"
-  - "alwayz-agent-back"
-  - "alwayz-price-agent-backend"
-  - "alwayz-ads-batch"
+  - "demo-agent-back"
+  - "demo-price-agent-backend"
+  - "demo-ads-batch"
 
 eks:
   kms: false
   auth_config:
     # Users are now managed by GitOps
-    # See: alwayz-gitops-manifest/clusters/alwayz-prod-eks/administrations/aws-auth/
+    # See: demo-gitops-manifest/clusters/demo-prod-eks/administrations/aws-auth/
     users: []
     roles:
       - rolearn: "arn:aws:iam::123456789012:role/aws-reserved/sso.amazonaws.com/ap-northeast-2/AWSReservedSSO_example_devops_xxxxxxxxxxxx"
@@ -68,7 +68,7 @@ datadog_private_link:
 vpc_peering:
   enabled: true
   connections:
-    - name: "to-alwayz-staging"
+    - name: "to-demo-staging"
       peer_vpc_id: "vpc-0efa9bd5259c1e33c"
       peer_region: "ap-northeast-2"
       peer_cidr: "10.8.0.0/16"
@@ -99,40 +99,40 @@ route53_zones:
     - "prod.iexample-org.com"
 
 secretmanagers:
-  alwayz-services: {}
-  alwayz-commerce-api: {}
-  alwayz-commerce-connect: {}
-  alwayz-commerce-worker: {}
-  alwayz-product-worker: {}
-  alwayz-commerce-batch: {}
-  alwayz-commerce-shipping: {}
-  alwayz-commerce-admin: {}
-  alwayz-bff: {}
-  alwayz-core-api: {}
-  alwayz-core-connect: {}
-  alwayz-price-api: {}
-  alwayz-product-api: {}
-  alwayz-product-admin: {}
-  alwayz-product-batch: {}
-  alwayz-alfarm-api: {}
-  alwayz-quality-batch: {}
-  alwayz-quality-api: {}
-  alwayz-ads-batch: {}
-  alwayz-ads-api: {}
-  alwayz-ads-admin: {}
-  alwayz-ads-partner: {}
-  alwayz-commerce-order: {}
-  alwayz-commerce-order-api: {}
-  alwayz-commerce-order-consumer: {}
-  alwayz-commerce-order-batch: {}
-  alwayz-commerce-order-pay: {}
-  alwayz-review-api: {}
+  demo-services: {}
+  demo-commerce-api: {}
+  demo-commerce-connect: {}
+  demo-commerce-worker: {}
+  demo-product-worker: {}
+  demo-commerce-batch: {}
+  demo-commerce-shipping: {}
+  demo-commerce-admin: {}
+  demo-bff: {}
+  demo-core-api: {}
+  demo-core-connect: {}
+  demo-price-api: {}
+  demo-product-api: {}
+  demo-product-admin: {}
+  demo-product-batch: {}
+  demo-alfarm-api: {}
+  demo-quality-batch: {}
+  demo-quality-api: {}
+  demo-ads-batch: {}
+  demo-ads-api: {}
+  demo-ads-admin: {}
+  demo-ads-partner: {}
+  demo-commerce-order: {}
+  demo-commerce-order-api: {}
+  demo-commerce-order-consumer: {}
+  demo-commerce-order-batch: {}
+  demo-commerce-order-pay: {}
+  demo-review-api: {}
   abwayz: {}
   albot: {}
   devops: {}
   gureum: {}
-  alwayz-lowest-crawler-realtime: {}
-  alwayz-price-agent-backend: {}
+  demo-lowest-crawler-realtime: {}
+  demo-price-agent-backend: {}
 elasticache:
   "data-redash":
     description: "This is the cache cluster for the data redash."
@@ -160,9 +160,9 @@ elasticache:
     snapshot_window: "16:00-17:00"
     num_node_groups: 1
     replicas_per_node_group: 1
-  "alwayz-services-valkey8":
-    name: "alwayz-prod-alwayz-services-valkey8"
-    description: "This is the cache cluster for the alwayz services."
+  "demo-services-valkey8":
+    name: "demo-prod-demo-services-valkey8"
+    description: "This is the cache cluster for the demo services."
     cluster_mode: "enabled"
     node_type: "cache.m7g.xlarge"
     engine: "valkey"
@@ -173,10 +173,10 @@ elasticache:
     snapshot_retention_limit: 1
     snapshot_window: "16:00-17:00"
     num_cache_clusters: 4
-    snapshot_name: automatic.alwayz-prod-redis-alwayz-services-2025-04-09-16-00
-  "alwayz-alfarm-back-valkey8":
-    name: "alwayz-prod-alfarm-back-valkey8"
-    description: "This is the cache cluster for the alwayz-alfarm-back."
+    snapshot_name: automatic.demo-prod-redis-demo-services-2025-04-09-16-00
+  "demo-alfarm-back-valkey8":
+    name: "demo-prod-alfarm-back-valkey8"
+    description: "This is the cache cluster for the demo-alfarm-back."
     cluster_mode: "enabled"
     node_type: "cache.m7g.xlarge"
     engine: "valkey"
@@ -188,10 +188,10 @@ elasticache:
     snapshot_window: "16:00-17:00"
     at_rest_encryption_enabled: true
     num_node_groups: 2
-    snapshot_name: automatic.alwayz-prod-redis-alwayz-alfarm-back-2025-04-09-16-00
-  "alwayz-back-valkey8":
-    name: "alwayz-prod-alwayz-back-valkey8"
-    description: "This is the cache cluster for the alwayz-back."
+    snapshot_name: automatic.demo-prod-redis-demo-alfarm-back-2025-04-09-16-00
+  "demo-back-valkey8":
+    name: "demo-prod-demo-back-valkey8"
+    description: "This is the cache cluster for the demo-back."
     cluster_mode: "enabled"
     node_type: "cache.m7g.xlarge"
     engine: "valkey"
@@ -203,7 +203,7 @@ elasticache:
     snapshot_window: "16:00-17:00"
     num_node_groups: 8
     replicas_per_node_group: 1
-    snapshot_name: automatic.alwayz-prod-redis-alwayz-back-2025-04-09-16-00
+    snapshot_name: automatic.demo-prod-redis-demo-back-2025-04-09-16-00
     # scheduled_scaling:
     #   enabled: true
     #   scale_out:
@@ -220,9 +220,9 @@ elasticache:
     #     timezone: "Asia/Seoul"
     #     start_time: "2025-04-13T10:00:00+09:00"
     #     end_time: "2027-04-13T10:00:00+09:00"
-  "alwayz-bff-valkey8":
-    name: "alwayz-prod-alwayz-bff-valkey8"
-    description: "This is the cache cluster for the alwayz bff."
+  "demo-bff-valkey8":
+    name: "demo-prod-demo-bff-valkey8"
+    description: "This is the cache cluster for the demo bff."
     cluster_mode: "enabled"
     node_type: "cache.m7g.xlarge"
     engine: "valkey"
@@ -234,10 +234,10 @@ elasticache:
     snapshot_window: "16:00-17:00"
     num_node_groups: 6
     replicas_per_node_group: 1
-    snapshot_name: automatic.alwayz-prod-redis-alwayz-bff3-2025-04-09-16-00
-  "alwayz-price-valkey8":
-    name: "alwayz-prod-alwayz-price-valkey8"
-    description: "This is the cache cluster for the alwayz price."
+    snapshot_name: automatic.demo-prod-redis-demo-bff3-2025-04-09-16-00
+  "demo-price-valkey8":
+    name: "demo-prod-demo-price-valkey8"
+    description: "This is the cache cluster for the demo price."
     cluster_mode: "enabled"
     node_type: "cache.m7g.xlarge"
     engine: "valkey"
@@ -249,10 +249,10 @@ elasticache:
     snapshot_window: "16:00-17:00"
     num_node_groups: 2
     replicas_per_node_group: 1
-    snapshot_name: automatic.alwayz-prod-redis-alwayz-price-2025-04-09-16-00
-  "alwayz-core-valkey8":
-    name: "alwayz-prod-alwayz-core-valkey8"
-    description: "This is the cache cluster for the alwayz core."
+    snapshot_name: automatic.demo-prod-redis-demo-price-2025-04-09-16-00
+  "demo-core-valkey8":
+    name: "demo-prod-demo-core-valkey8"
+    description: "This is the cache cluster for the demo core."
     cluster_mode: "enabled"
     node_type: "cache.m7g.large"
     engine: "valkey"
@@ -264,10 +264,10 @@ elasticache:
     snapshot_window: "16:00-17:00"
     num_node_groups: 1
     replicas_per_node_group: 1
-    snapshot_name: automatic.alwayz-prod-redis-alwayz-core-2025-04-09-16-00
-  "alwayz-ads-valkey8":
-    name: "alwayz-prod-ads-valkey8"
-    description: "This is the cache cluster for the alwayz ads."
+    snapshot_name: automatic.demo-prod-redis-demo-core-2025-04-09-16-00
+  "demo-ads-valkey8":
+    name: "demo-prod-ads-valkey8"
+    description: "This is the cache cluster for the demo ads."
     cluster_mode: "enabled"
     node_type: "cache.m7g.large"
     engine: "valkey"
@@ -279,9 +279,9 @@ elasticache:
     snapshot_window: "16:00-17:00"
     num_node_groups: 1
     replicas_per_node_group: 1
-  "alwayz-product-valkey8":
-    name: "alwayz-prod-product-valkey8"
-    description: "This is the cache cluster for the alwayz product."
+  "demo-product-valkey8":
+    name: "demo-prod-product-valkey8"
+    description: "This is the cache cluster for the demo product."
     cluster_mode: "enabled"
     node_type: "cache.m7g.large"
     engine: "valkey"
@@ -295,8 +295,8 @@ elasticache:
     replicas_per_node_group: 1
 
 service_roles:
-  alwayz_services:
-    name: alwayz_services
+  demo_services:
+    name: demo_services
     policies:
       - name: secretsmanager
         file: base/secretsmanager-read.json
@@ -307,8 +307,8 @@ service_roles:
       - name: price-business
         file: services/price-business.json
 
-  alwayz_cronjobs:
-    name: alwayz_cronjobs
+  demo_cronjobs:
+    name: demo_cronjobs
     policies:
       - name: combined-permissions
         file: roles/cronjob-role.json
@@ -363,12 +363,12 @@ managed_policies:
         file: base/athena-glue-lakeformation-s3-full-access-policy.json
 
 pod_identity_associations:
-  alwayz_services:
-    namespace: alwayz-services
-    service_account: alwayz-services
-  alwayz_cronjobs:
-    namespace: alwayz-cronjobs
-    service_account: alwayz-cronjobs
+  demo_services:
+    namespace: demo-services
+    service_account: demo-services
+  demo_cronjobs:
+    namespace: demo-cronjobs
+    service_account: demo-cronjobs
   argocd:
     namespace: argocd
     service_account: argo-cd-argocd-repo-server
@@ -386,14 +386,14 @@ pod_identity_associations:
     service_account: monitoring
 
 s3:
-  - alwayz-product-images:
+  - demo-product-images:
       route53:
         public: true
         private: true
       cloudfront:
         enabled: true
       storage_class: "STANDARD"
-  - alwayz-alfarm-assets:
+  - demo-alfarm-assets:
       route53:
         public: true
         private: true
@@ -418,4 +418,4 @@ loki:
   enabled: true
 
 gitops:
-  workspace_repo_url: "https://github.com/wetripod/alwayz-gitops-manifest"
+  workspace_repo_url: "https://github.com/wetripod/demo-gitops-manifest"

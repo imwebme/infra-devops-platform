@@ -1,8 +1,8 @@
 owners:
   frontend:
     - project:
-        name: alwayz-admin
-        slug: alwayz-admin
+        name: demo-admin
+        slug: demo-admin
         teams:
           - example-org
         platform: javascript-react
@@ -23,7 +23,7 @@ owners:
           email: sangmin.lee@iexample-org.com
       alerts:
         - type: issue
-          name: alwayz-admin CriticalAlert
+          name: demo-admin CriticalAlert
           action_match: all
           filter_match: all
           frequency: 5
@@ -44,7 +44,7 @@ owners:
               channel_id: CXXXXXXXXX2
               tags: ''
         - type: issue
-          name: alwayz-admin FirstSeenEvent
+          name: demo-admin FirstSeenEvent
           action_match: all
           filter_match: all
           frequency: 5
@@ -59,8 +59,8 @@ owners:
               channel_id: CXXXXXXXXX6
               tags: ''
     - project:
-        name: alwayz-altto
-        slug: alwayz-altto
+        name: demo-altto
+        slug: demo-altto
         teams:
           - example-org
         platform: javascript-react
@@ -79,7 +79,7 @@ owners:
           email: song@iexample-org.com
       alerts:
         - type: issue
-          name: alwayz-altto Alert
+          name: demo-altto Alert
           action_match: all
           filter_match: all
           frequency: 5
@@ -100,8 +100,8 @@ owners:
               channel_id: CXXXXXXXXX2
               tags: ''
     - project:
-        name: alwayz-games-front
-        slug: alwayz-games-front
+        name: demo-games-front
+        slug: demo-games-front
         teams:
           - example-org
         platform: javascript-react
@@ -120,7 +120,7 @@ owners:
           email: yj@iexample-org.com
       alerts:
         - type: issue
-          name: alwayz-games-front Alert
+          name: demo-games-front Alert
           action_match: all
           filter_match: all
           frequency: 5
@@ -141,8 +141,8 @@ owners:
               channel_id: CXXXXXXXXX2
               tags: ''
     - project:
-        name: alwayz-webscreen
-        slug: alwayz-webscreen
+        name: demo-webscreen
+        slug: demo-webscreen
         teams:
           - example-org
         platform: javascript-react
@@ -161,7 +161,7 @@ owners:
           email: chris@iexample-org.com
       alerts:
         - type: issue
-          name: alwayz-webscreen Alert
+          name: demo-webscreen Alert
           action_match: all
           filter_match: all
           frequency: 5

@@ -1,4 +1,4 @@
-service: alwayz-search-back
+service: demo-search-back
 owner:
   - name: 이상민
     email: sangmin.lee@iexample-org.com
@@ -12,24 +12,24 @@ monitors:
     duration: 1000
   - monitor_type: alb_5xx
     threshold: 50
-    loadbalancer: alwayz-search-back-prod
+    loadbalancer: demo-search-back-prod
   - monitor_type: alb_target_5xx
     threshold: 50
-    loadbalancer: alwayz-search-back-prod
+    loadbalancer: demo-search-back-prod
   - monitor_type: alb_target_4xx
     threshold: 50
-    loadbalancer: alwayz-search-back-prod
+    loadbalancer: demo-search-back-prod
   - monitor_type: error_tracking_trace
     threshold: 50
 synthetics:
-  - name: alwayz-search-back이 다운되었습니다.
+  - name: demo-search-back이 다운되었습니다.
     type: api
     subtype: http
     status: "live"
     locations: ["pl:devops-private-location-dc242ec68f6544a123e787d5345b2e06"]
     request_definition:
       method: GET
-      url: https://alwayz-search-back.prod.iexample-org.com/health-check
+      url: https://demo-search-back.prod.iexample-org.com/health-check
     assertions:
       - type: statusCode
         operator: is

@@ -10,8 +10,8 @@ from tabulate import tabulate
 # AWS 및 Slack 클라이언트 설정
 athena_client = boto3.client('athena')
 s3_client = boto3.client('s3')
-s3_bucket = 'alwayz-services-alb-access-log'
-database = 'alwayz_services_alb_access_log'  # 사용할 Athena 데이터베이스
+s3_bucket = 'demo-services-alb-access-log'
+database = 'demo_services_alb_access_log'  # 사용할 Athena 데이터베이스
 slack_channel = 'C07BV72HKEG'  # Slack 채널 이
 
 # 현재 시간

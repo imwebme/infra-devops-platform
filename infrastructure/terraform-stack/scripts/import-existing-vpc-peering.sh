@@ -4,15 +4,15 @@ echo "=== VPC Peering Import 스크립트 ==="
 echo "이 스크립트는 기존 환경의 VPC peering을 Terraform state로 import합니다."
 
 # 환경 확인
-VALID_WORKSPACES="alwayz-aws-prod-infra|aws-data-prod-infra|security-aws-prod-infra|alwayz-aws-staging-infra|alwayz-aws-dev-infra|aws-data-dev-infra"
+VALID_WORKSPACES="demo-aws-prod-infra|aws-data-prod-infra|security-aws-prod-infra|demo-aws-staging-infra|demo-aws-dev-infra|aws-data-dev-infra"
 if [[ ! "$1" =~ ^($VALID_WORKSPACES)$ ]]; then
     echo "❌ 사용법: $0 [workspace]"
     echo "지원되는 workspace:"
-    echo "  - alwayz-aws-prod-infra"
+    echo "  - demo-aws-prod-infra"
     echo "  - aws-data-prod-infra" 
     echo "  - security-aws-prod-infra"
-    echo "  - alwayz-aws-staging-infra"
-    echo "  - alwayz-aws-dev-infra"
+    echo "  - demo-aws-staging-infra"
+    echo "  - demo-aws-dev-infra"
     echo "  - aws-data-dev-infra"
     exit 1
 fi

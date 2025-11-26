@@ -1,7 +1,7 @@
 #!/bin/bash
-# redis-cli -c -h alwayz-prod-alwayz-back-valkey8.quw73o.clustercfg.apn2.cache.amazonaws.com:6379 cluster slots > redis-slots.txt
+# redis-cli -c -h demo-prod-demo-back-valkey8.quw73o.clustercfg.apn2.cache.amazonaws.com:6379 cluster slots > redis-slots.txt
 # redis-cli --cluster call 10.2.195.185:6379 CLUSTER GETKEYSINSLOT 50 10 > redis-report-key.txt
-REDIS_HOST="alwayz-prod-alwayz-back-valkey8.quw73o.clustercfg.apn2.cache.amazonaws.com"
+REDIS_HOST="demo-prod-demo-back-valkey8.quw73o.clustercfg.apn2.cache.amazonaws.com"
 
 echo "Checking Redis keys without TTL and their memory usage..."
 echo "FORMAT: Key | Memory Size | Type"

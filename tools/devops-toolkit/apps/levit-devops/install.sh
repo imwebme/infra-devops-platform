@@ -9,7 +9,7 @@ echo "🚀 example-org-devops 설치를 시작합니다..."
 # 플랫폼 지원 확인
 if [[ "$OSTYPE" != "darwin"* ]]; then
     echo "❌ 현재 macOS만 지원됩니다. 다른 플랫폼은 수동 설치가 필요합니다."
-    echo "📝 수동 설치 가이드: https://github.com/alwayz/devops-monorepo/blob/main/apps/example-org-devops/README.md"
+    echo "📝 수동 설치 가이드: https://github.com/demo/devops-monorepo/blob/main/apps/example-org-devops/README.md"
     exit 1
 fi
 

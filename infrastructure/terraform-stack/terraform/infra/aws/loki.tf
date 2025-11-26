@@ -2,7 +2,7 @@
 # S3 Buckets with SSE-S3 encryption
 resource "aws_s3_bucket" "loki-store" {
   count  = local.loki.enabled ? 1 : 0
-  bucket = "alwayz-${local.env}-loki-store"
+  bucket = "demo-${local.env}-loki-store"
   tags = {
     Group = "loki"
     Team  = "devops"
@@ -18,7 +18,7 @@ resource "aws_s3_bucket" "loki-store" {
 
 resource "aws_s3_bucket" "loki-chunks" {
   count  = local.loki.enabled ? 1 : 0
-  bucket = "alwayz-${local.env}-loki-chunks"
+  bucket = "demo-${local.env}-loki-chunks"
   tags = {
     Group = "loki"
     Team  = "devops"
@@ -34,7 +34,7 @@ resource "aws_s3_bucket" "loki-chunks" {
 
 resource "aws_s3_bucket" "loki-ruler" {
   count  = local.loki.enabled ? 1 : 0
-  bucket = "alwayz-${local.env}-loki-ruler"
+  bucket = "demo-${local.env}-loki-ruler"
   tags = {
     Group = "loki"
     Team  = "devops"
@@ -50,7 +50,7 @@ resource "aws_s3_bucket" "loki-ruler" {
 
 resource "aws_s3_bucket" "loki-admin" {
   count  = local.loki.enabled ? 1 : 0
-  bucket = "alwayz-${local.env}-loki-admin"
+  bucket = "demo-${local.env}-loki-admin"
   tags = {
     Group = "loki"
     Team  = "devops"

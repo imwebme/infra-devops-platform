@@ -31,7 +31,7 @@ brew install kubectx
 
 # 사용법
 kubectx                    # 컨텍스트 목록
-kubectx alwayz-dev-eks     # 컨텍스트 전환
+kubectx demo-dev-eks     # 컨텍스트 전환
 kubens monitoring          # 네임스페이스 전환
 ```
 
@@ -66,7 +66,7 @@ brew install weaveworks/tap/eksctl
 
 # 사용법
 eksctl get cluster
-eksctl utils write-kubeconfig --cluster=alwayz-dev-eks
+eksctl utils write-kubeconfig --cluster=demo-dev-eks
 ```
 
 ### 3. GitOps 도구

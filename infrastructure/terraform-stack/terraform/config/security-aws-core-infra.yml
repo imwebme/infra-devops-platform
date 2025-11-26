@@ -10,4 +10,4 @@ cloudtrail:
   s3_bucket_name: "aws-cloudtrail-logs-123456789012-6667d3cb"
 
 gitops:
-  workspace_repo_url: "https://github.com/wetripod/alwayz-gitops-manifest"
+  workspace_repo_url: "https://github.com/wetripod/demo-gitops-manifest"

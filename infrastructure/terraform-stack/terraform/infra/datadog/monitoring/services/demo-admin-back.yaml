@@ -1,4 +1,4 @@
-service: alwayz-admin-back
+service: demo-admin-back
 owner:
   - name: 이상민
     email: sangmin.lee@iexample-org.com
@@ -14,24 +14,24 @@ monitors:
     duration: 1000
   - monitor_type: alb_5xx
     threshold: 50
-    loadbalancer: alwayz-admin-back-prod
+    loadbalancer: demo-admin-back-prod
   - monitor_type: alb_target_5xx
     threshold: 50
-    loadbalancer: alwayz-admin-back-prod
+    loadbalancer: demo-admin-back-prod
   - monitor_type: alb_target_4xx
     threshold: 50
-    loadbalancer: alwayz-admin-back-prod
+    loadbalancer: demo-admin-back-prod
   - monitor_type: error_tracking_trace
     threshold: 50
 synthetics:
-  - name: alwayz-admin-back이 다운되었습니다.
+  - name: demo-admin-back이 다운되었습니다.
     type: api
     subtype: http
     status: "live"
     locations: ["aws:ap-northeast-2"]
     request_definition:
       method: GET
-      url: https://alwayz-admin-back.prod.iexample-org.com/health-check
+      url: https://demo-admin-back.prod.iexample-org.com/health-check
     assertions:
       - type: statusCode
         operator: is

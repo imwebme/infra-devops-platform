@@ -1,4 +1,4 @@
-service: alwayz-config
+service: demo-config
 owner:
   - name: Developer 2
     email: yj@iexample-org.com
@@ -12,24 +12,24 @@ monitors:
     duration: 1000
   - monitor_type: alb_5xx
     threshold: 5
-    loadbalancer: alwayz-config-prod
+    loadbalancer: demo-config-prod
   - monitor_type: alb_target_5xx
     threshold: 5
-    loadbalancer: alwayz-config-prod
+    loadbalancer: demo-config-prod
   - monitor_type: alb_target_4xx
     threshold: 5
-    loadbalancer: alwayz-config-prod
+    loadbalancer: demo-config-prod
   - monitor_type: error_tracking_trace
     threshold: 5
 synthetics:
-  - name: alwayz-config-prod가 다운되었습니다.
+  - name: demo-config-prod가 다운되었습니다.
     type: api
     subtype: http
     status: "live"
     locations: ["aws:ap-northeast-2"]
     request_definition:
       method: GET
-      url: https://alwayz-config.prod.iexample-org.com/health-check
+      url: https://demo-config.prod.iexample-org.com/health-check
     assertions:
       - type: statusCode
         operator: is

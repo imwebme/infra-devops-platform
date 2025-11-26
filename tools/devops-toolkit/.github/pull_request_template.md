@@ -4,7 +4,7 @@ Brief description of the changes in this PR.
 
 ## 🔗 Related Ticket
 
-@https://alwayz.atlassian.net/browse/INFRA-{JIRA_NUMBER}
+@https://demo.atlassian.net/browse/INFRA-{JIRA_NUMBER}
 
 ## 🧪 Type of Change
 
