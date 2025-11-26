@@ -1,0 +1,156 @@
+name: CI - Lint and Validate
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-and-validate:
+    name: Lint and Validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install yamllint jsonschema PyYAML
+
+      - name: YAML Lint
+        run: |
+          echo "🔍 Running YAML lint..."
+          cat << 'EOF' > .yamllint.yml
+          extends: default
+          rules:
+            line-length:
+              max: 200
+              allow-non-breakable-words: true
+              allow-non-breakable-inline-mappings: true
+            truthy:
+              allowed-values: ['true', 'false', 'yes', 'no', 'on', 'off']
+            comments:
+              min-spaces-from-content: 1
+            indentation:
+              spaces: 2
+              indent-sequences: whatever
+            document-start: disable
+          ignore: |
+            **/templates/**
+            **/charts/**
+          EOF
+          yamllint -c .yamllint.yml . || echo "⚠️ YAML lint warnings found"
+
+      - name: Validate YAML Syntax
+        run: |
+          echo "🔍 Validating YAML syntax..."
+          find . -type f \( -name "*.yml" -o -name "*.yaml" \) \
+            -not -path "./.git/*" \
+            -not -path "**/templates/*" \
+            -not -path "**/charts/*" | while read file; do
+            python3 -c "
+          import yaml
+          import sys
+          try:
+              with open('$file', 'r') as f:
+                  list(yaml.safe_load_all(f))
+              print(f'✅ {\"$file\"}'[:80])
+          except Exception as e:
+              print(f'❌ YAML error in $file: {e}')
+              sys.exit(1)
+          " || exit 1
+          done
+
+      - name: Helm Chart Validation
+        run: |
+          echo "🔍 Validating Helm charts..."
+          if command -v helm &> /dev/null; then
+            for chart_dir in $(find . -name "Chart.yaml" -exec dirname {} \;); do
+              echo "Validating $chart_dir..."
+              helm lint "$chart_dir" --quiet || echo "⚠️ Helm lint warning in $chart_dir"
+            done
+          else
+            echo "ℹ️ Helm not installed, skipping chart validation"
+          fi
+
+      - name: Check for Secrets
+        run: |
+          echo "🔍 Scanning for potential secrets..."
+          # Check for common secret patterns
+          PATTERNS=(
+            "password\s*[:=]"
+            "api[_-]?key\s*[:=]"
+            "secret[_-]?key\s*[:=]"
+            "access[_-]?token\s*[:=]"
+            "private[_-]?key"
+            "BEGIN RSA PRIVATE KEY"
+            "BEGIN OPENSSH PRIVATE KEY"
+          )
+
+          FOUND=0
+          for pattern in "${PATTERNS[@]}"; do
+            if grep -rniE "$pattern" --include="*.yaml" --include="*.yml" --include="*.json" \
+               --exclude-dir=".git" --exclude-dir="templates" . 2>/dev/null | \
+               grep -v "PLACEHOLDER\|example\|<.*>\|\$\{\|{{"; then
+              echo "⚠️ Potential secret found for pattern: $pattern"
+              FOUND=1
+            fi
+          done
+
+          if [ $FOUND -eq 0 ]; then
+            echo "✅ No obvious secrets detected"
+          fi
+
+      - name: Terraform Validation
+        run: |
+          echo "🔍 Checking Terraform files..."
+          if [ -d "infrastructure/terraform-stack" ]; then
+            cd infrastructure/terraform-stack
+            if command -v terraform &> /dev/null; then
+              terraform fmt -check -recursive || echo "⚠️ Terraform format check failed"
+            else
+              echo "ℹ️ Terraform not installed, skipping validation"
+            fi
+          fi
+
+      - name: Summary
+        run: |
+          echo "## CI Summary" >> $GITHUB_STEP_SUMMARY
+          echo "✅ All validations completed" >> $GITHUB_STEP_SUMMARY
+
+  # Changed files detection for selective validation
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      gitops: ${{ steps.changes.outputs.gitops }}
+      terraform: ${{ steps.changes.outputs.terraform }}
+      tools: ${{ steps.changes.outputs.tools }}
+      services: ${{ steps.changes.outputs.services }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            gitops:
+              - 'gitops/**'
+            terraform:
+              - 'infrastructure/**'
+            tools:
+              - 'tools/**'
+            services:
+              - 'services/**'

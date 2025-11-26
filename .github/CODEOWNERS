@@ -1,0 +1,20 @@
+# CODEOWNERS - Code ownership for automatic review requests
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for everything
+* @Hulkong
+
+# GitOps manifests
+/gitops/ @Hulkong
+
+# Infrastructure / Terraform
+/infrastructure/ @Hulkong
+
+# Tools and utilities
+/tools/ @Hulkong
+
+# Services
+/services/ @Hulkong
+
+# GitHub workflows and configs
+/.github/ @Hulkong

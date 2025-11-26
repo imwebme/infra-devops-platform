@@ -1,0 +1,50 @@
+version: 2
+updates:
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "chore(deps):"
+
+  # Docker dependencies
+  - package-ecosystem: "docker"
+    directory: "/services/nodejs-cronjobs/.dockerfile"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "chore(deps):"
+
+  # Python dependencies (if any)
+  - package-ecosystem: "pip"
+    directory: "/tools/devops-toolkit"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "python"
+    commit-message:
+      prefix: "chore(deps):"
+
+  # Terraform modules
+  - package-ecosystem: "terraform"
+    directory: "/infrastructure/terraform-stack"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "terraform"
+    commit-message:
+      prefix: "chore(deps):"
