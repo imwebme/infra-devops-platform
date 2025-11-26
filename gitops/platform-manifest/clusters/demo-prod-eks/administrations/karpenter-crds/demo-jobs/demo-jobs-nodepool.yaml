@@ -35,6 +35,6 @@ spec:
           values: ["on-demand"]
       taints:
         - effect: NoSchedule
-          key: AlwayzJobsOnly
+          key: DemoJobsOnly
           value: "true"
   weight: 2

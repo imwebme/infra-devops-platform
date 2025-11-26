@@ -1,6 +1,6 @@
 tolerations:
   - effect: NoSchedule
-    key: AlwayzBackOnly
+    key: DemoBackOnly
     value: "true"
     operator: Equal
 

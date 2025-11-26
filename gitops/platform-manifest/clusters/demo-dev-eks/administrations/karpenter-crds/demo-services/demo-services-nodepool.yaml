@@ -31,6 +31,6 @@ spec:
           values: ["spot", "on-demand"]
       taints:
         - effect: NoSchedule
-          key: AlwayzServicesOnly
+          key: DemoServicesOnly
           value: "true"
   weight: 2

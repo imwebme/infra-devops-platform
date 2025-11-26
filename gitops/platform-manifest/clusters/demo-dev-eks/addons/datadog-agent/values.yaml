@@ -73,6 +73,6 @@ agents:
       value: "true"
       effect: NoSchedule
     - operator: Equal
-      key: AlwayzServicesOnly
+      key: DemoServicesOnly
       value: "true"
       effect: NoSchedule

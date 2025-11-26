@@ -55,6 +55,6 @@ spec:
           values: ["spot", "on-demand"]
       taints:
         - effect: NoSchedule
-          key: AlwayzPmfOnly
+          key: DemoPmfOnly
           value: "true"
   weight: 2

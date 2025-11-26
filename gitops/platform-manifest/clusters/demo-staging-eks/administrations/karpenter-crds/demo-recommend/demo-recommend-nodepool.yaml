@@ -56,6 +56,6 @@ spec:
           values: ["spot", "on-demand"]
       taints:
         - effect: NoSchedule
-          key: AlwayzRecoOnly
+          key: DemoRecoOnly
           value: "true"
   weight: 2
