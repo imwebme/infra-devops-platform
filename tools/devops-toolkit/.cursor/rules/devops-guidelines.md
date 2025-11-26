@@ -133,7 +133,7 @@ CMD ["npm", "start"]
 
 ### Pull Request Guidelines
 - Use the provided PR template
-- Include JIRA ticket link: `@https://alwayz.atlassian.net/browse/INFRA-{JIRA_NUMBER}`
+- Include JIRA ticket link: `@https://demo.atlassian.net/browse/INFRA-{JIRA_NUMBER}`
 - Ensure all tests pass
 - Get at least one approval before merging
 - Squash commits when merging

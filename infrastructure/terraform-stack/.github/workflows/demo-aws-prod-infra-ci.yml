@@ -5,20 +5,20 @@ on:
     branches:
       - main
     paths:
-      - "terraform/config/alwayz-aws-prod-infra.yml"
+      - "terraform/config/demo-aws-prod-infra.yml"
   pull_request:
     branches:
       - main
     paths:
       - "terraform/config/_defaults.yml"
-      - "terraform/config/alwayz-aws-prod-infra.yml"
+      - "terraform/config/demo-aws-prod-infra.yml"
       - "terraform/infra/aws/**"
   workflow_dispatch:
 
 env:
   TF_CLOUD_ORGANIZATION: "levit"
   TF_API_TOKEN: "${{ secrets.TF_API_TOKEN }}"
-  TF_WORKSPACE: "alwayz-aws-prod-infra"
+  TF_WORKSPACE: "demo-aws-prod-infra"
   CONFIG_DIRECTORY: "./"
 
 jobs:

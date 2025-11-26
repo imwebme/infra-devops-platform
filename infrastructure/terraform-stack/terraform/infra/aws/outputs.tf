@@ -431,14 +431,14 @@ output "cluster_name" {
 
 output "workspace_repo_url" {
   description = "GitOps workspace repository URL"
-  value       = try(local.config.gitops.workspace_repo_url, "https://github.com/wetripod/alwayz-gitops-manifest")
+  value       = try(local.config.gitops.workspace_repo_url, "https://github.com/wetripod/demo-gitops-manifest")
 }
 
 output "gitops_config" {
   description = "GitOps configuration for automation"
   value = {
     cluster_name       = module.eks.cluster_name
-    workspace_repo_url = try(local.config.gitops.workspace_repo_url, "https://github.com/wetripod/alwayz-gitops-manifest")
+    workspace_repo_url = try(local.config.gitops.workspace_repo_url, "https://github.com/wetripod/demo-gitops-manifest")
     environment        = local.env
     category           = local.category
     region             = var.region

@@ -1,4 +1,4 @@
-service: alwayz-alfarm-back
+service: demo-alfarm-back
 owner:
   - name: 홍종근
     email: jongkeun.hong@iexample-org.com
@@ -12,29 +12,29 @@ monitors:
     duration: 1000
   - monitor_type: alb_5xx
     threshold: 50
-    loadbalancer: alwayz-alfarm-back-prod
+    loadbalancer: demo-alfarm-back-prod
   - monitor_type: alb_target_5xx
     threshold: 50
-    loadbalancer: alwayz-alfarm-back-prod
+    loadbalancer: demo-alfarm-back-prod
   - monitor_type: alb_target_4xx
     threshold: 8000
-    loadbalancer: alwayz-alfarm-back-prod
+    loadbalancer: demo-alfarm-back-prod
   - monitor_type: error_tracking_trace
     threshold: 5
   - monitor_type: custom_alert
     name: 올팜 서비스 기프티콘 발급에 문제가 발생했습니다!
     type: trace-analytics alert
-    query: trace-analytics("resource_name:\"PUT /games/gifticon\" service:alwayz-alfarm* env:prod @http.status_code:500").rollup("count").by("service,resource_name").last("1m") > 10
+    query: trace-analytics("resource_name:\"PUT /games/gifticon\" service:demo-alfarm* env:prod @http.status_code:500").rollup("count").by("service,resource_name").last("1m") > 10
     message_template: alfarm-back/monitor_gifticon.tpl
 synthetics:
-  - name: alwayz-alfarm-back-prod가 다운되었습니다.
+  - name: demo-alfarm-back-prod가 다운되었습니다.
     type: api
     subtype: http
     status: "live"
     locations: ["pl:devops-private-location-dc242ec68f6544a123e787d5345b2e06"]
     request_definition:
       method: GET
-      url: https://alwayz-alfarm-back.prod.iexample-org.com/health-check
+      url: https://demo-alfarm-back.prod.iexample-org.com/health-check
     assertions:
       - type: statusCode
         operator: is

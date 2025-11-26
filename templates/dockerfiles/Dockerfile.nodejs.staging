@@ -7,7 +7,7 @@ ARG AWS_ACCESS_KEY_ID
 ARG AWS_SECRET_ACCESS_KEY
 ARG ENCRYPT_KEY
 
-WORKDIR /home/alwayz-back
+WORKDIR /home/demo-back
 
 COPY tsconfig.json ./ 
 COPY createEnv.js .
@@ -25,7 +25,7 @@ ENV DD_VERSION=${IMAGE_TAG}
 ENV DD_GIT_REPOSITORY_URL=${DD_GIT_REPOSITORY_URL} 
 ENV DD_GIT_COMMIT_SHA=${DD_GIT_COMMIT_SHA}
 
-RUN response=$(curl -s https://alwayz-config.staging.example.com/env/alwayz-back/staging) && \
+RUN response=$(curl -s https://demo-config.staging.example.com/env/demo-back/staging) && \
     data=$(echo $response | jq -r '.data') && \
     node createEnv.js "$data" "$ENCRYPT_KEY"
 

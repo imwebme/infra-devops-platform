@@ -20,10 +20,10 @@ jobs:
       - name: Check changes
         id: check-change
         run: |
-          if git diff --quiet --exit-code ${{ github.sha }}^ ${{ github.sha }}^2 -- terraform/config/alwayz-aws-prod-infra.yml; then
-            echo "No changes found in the 'terraform/config/alwayz-aws-prod-infra.yml' file. Approving the pull request."
+          if git diff --quiet --exit-code ${{ github.sha }}^ ${{ github.sha }}^2 -- terraform/config/demo-aws-prod-infra.yml; then
+            echo "No changes found in the 'terraform/config/demo-aws-prod-infra.yml' file. Approving the pull request."
           else
-            echo "Changes found in the 'terraform/config/alwayz-aws-prod-infra.yml' file. Proceed with standard approval process."
+            echo "Changes found in the 'terraform/config/demo-aws-prod-infra.yml' file. Proceed with standard approval process."
             echo "IS_PROD=yes" >> $GITHUB_ENV
           fi
       - name: Auto Approve

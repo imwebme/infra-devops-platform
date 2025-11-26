@@ -1,5 +1,5 @@
 ---
-org: "alwayz"
+org: "demo"
 env: "staging"
 vpc_cidr: "10.8.0.0/16"
 vpc_endpoints:
@@ -23,28 +23,28 @@ vpc_peering:
 ecr:
   - "shopin-api-legacy"
   - "shopin-partners-api-legacy"
-  - "alwayz-bff"
-  - "alwayz-agent-back"
+  - "demo-bff"
+  - "demo-agent-back"
 
 gitops:
-  workspace_repo_url: "https://github.com/wetripod/alwayz-gitops-manifest"
+  workspace_repo_url: "https://github.com/wetripod/demo-gitops-manifest"
 
 frontend:
-  - "alwayz-drama-front"
-  - "alwayz-admin-front"
-  - "alwayz-seller-front"
-  - "alwayz-shorts-front"
-  - "alwayz-games-front"
-  - "alwayz-allulu-front"
-  - "alwayz-webscreen"
-  - "alwayz-almart-front"
-  - "alwayzfarm"
+  - "demo-drama-front"
+  - "demo-admin-front"
+  - "demo-seller-front"
+  - "demo-shorts-front"
+  - "demo-games-front"
+  - "demo-allulu-front"
+  - "demo-webscreen"
+  - "demo-almart-front"
+  - "demofarm"
 
 eks:
   kms: true
   auth_config:
     # Users are now managed by GitOps
-    # See: alwayz-gitops-manifest/clusters/alwayz-staging-eks/administrations/aws-auth/
+    # See: demo-gitops-manifest/clusters/demo-staging-eks/administrations/aws-auth/
     users: []
     roles:
       - rolearn: "arn:aws:iam::123456789012:role/aws-reserved/sso.amazonaws.com/ap-northeast-2/AWSReservedSSO_example_devops_xxxxxxxxxxxx"
@@ -56,7 +56,7 @@ nat_gateway:
   per_az: false
 
 cloudfront:
-  origin_access_controls: "sign requests about alwayz-staging"
+  origin_access_controls: "sign requests about demo-staging"
 
 coredns:
   replica: 2
@@ -71,36 +71,36 @@ route53_zones:
     - "staging.iexample-org.com"
 
 secretmanagers:
-  alwayz-services: {}
-  alwayz-commerce-api: {}
-  alwayz-commerce-connect: {}
-  alwayz-commerce-worker: {}
-  alwayz-commerce-batch: {}
-  alwayz-commerce-shipping: {}
-  alwayz-commerce-admin: {}
-  alwayz-bff: {}
-  alwayz-core-api: {}
-  alwayz-core-connect: {}
-  alwayz-price-api: {}
-  alwayz-product-api: {}
-  alwayz-product-admin: {}
-  alwayz-product-batch: {}
-  alwayz-quality-batch: {}
-  alwayz-quality-api: {}
-  alwayz-ads-api: {}
-  alwayz-ads-admin: {}
-  alwayz-ads-partner: {}
-  alwayz-alfarm-admin: {}
-  alwayz-alfarm-api: {}
-  alwayz-review-api: {}
-  alwayz-SKELETON: {}
+  demo-services: {}
+  demo-commerce-api: {}
+  demo-commerce-connect: {}
+  demo-commerce-worker: {}
+  demo-commerce-batch: {}
+  demo-commerce-shipping: {}
+  demo-commerce-admin: {}
+  demo-bff: {}
+  demo-core-api: {}
+  demo-core-connect: {}
+  demo-price-api: {}
+  demo-product-api: {}
+  demo-product-admin: {}
+  demo-product-batch: {}
+  demo-quality-batch: {}
+  demo-quality-api: {}
+  demo-ads-api: {}
+  demo-ads-admin: {}
+  demo-ads-partner: {}
+  demo-alfarm-admin: {}
+  demo-alfarm-api: {}
+  demo-review-api: {}
+  demo-SKELETON: {}
   abwayz: {}
   devops: {}
-  alwayz-lowest-crawler-realtime: {}
+  demo-lowest-crawler-realtime: {}
 elasticache:
-  "alwayz-services-valkey8":
-    name: "alwayz-staging-alwayz-services-valkey8"
-    description: "This is the cache cluster for the alwayz services."
+  "demo-services-valkey8":
+    name: "demo-staging-demo-services-valkey8"
+    description: "This is the cache cluster for the demo services."
     cluster_mode: "enabled"
     node_type: "cache.t4g.small"
     engine: "valkey"
@@ -113,8 +113,8 @@ elasticache:
     num_cache_clusters: 3
 
 service_roles:
-  alwayz_services:
-    name: alwayz_services
+  demo_services:
+    name: demo_services
     policies:
       - name: secretsmanager
         file: base/secretsmanager-read.json
@@ -125,8 +125,8 @@ service_roles:
       - name: price-business
         file: services/price-business.json
 
-  alwayz_cronjobs:
-    name: alwayz_cronjobs
+  demo_cronjobs:
+    name: demo_cronjobs
     policies:
       - name: combined-permissions
         file: roles/cronjob-role.json
@@ -163,12 +163,12 @@ rds:
       skip_final_snapshot: false
 
 pod_identity_associations:
-  alwayz_services:
-    namespace: alwayz-services
-    service_account: alwayz-services
-  alwayz_cronjobs:
-    namespace: alwayz-cronjobs
-    service_account: alwayz-cronjobs
+  demo_services:
+    namespace: demo-services
+    service_account: demo-services
+  demo_cronjobs:
+    namespace: demo-cronjobs
+    service_account: demo-cronjobs
   argocd:
     namespace: argocd
     service_account: argo-cd-argocd-repo-server

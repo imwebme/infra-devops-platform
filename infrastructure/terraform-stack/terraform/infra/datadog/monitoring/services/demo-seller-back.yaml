@@ -1,4 +1,4 @@
-service: alwayz-seller-back
+service: demo-seller-back
 owner:
   - name: 이상민
     email: sangmin.lee@iexample-org.com
@@ -12,27 +12,27 @@ monitors:
     duration: 1000
   - monitor_type: alb_5xx
     threshold: 50
-    loadbalancer: alwayz-seller-back-prod
+    loadbalancer: demo-seller-back-prod
   - monitor_type: alb_target_5xx
     threshold: 50
-    loadbalancer: alwayz-seller-back-prod
+    loadbalancer: demo-seller-back-prod
   - monitor_type: custom_alert
-    name: alwayz-seller-back alb_target_4xx
+    name: demo-seller-back alb_target_4xx
     type: trace-analytics alert
-    query: trace-analytics("service:alwayz-seller-back* env:prod @http.status_code:4** -(@http.url:\"http://alwayz-seller-back.iexample-org.com/sellers/orders/status\" AND @http.method:GET)").rollup("count").by("@http.url,@http.method").last("1m") > 1000
+    query: trace-analytics("service:demo-seller-back* env:prod @http.status_code:4** -(@http.url:\"http://demo-seller-back.iexample-org.com/sellers/orders/status\" AND @http.method:GET)").rollup("count").by("@http.url,@http.method").last("1m") > 1000
     message_template: monitor_alb_target_4xx.tpl
-    loadbalancer: alwayz-seller-back-prod
+    loadbalancer: demo-seller-back-prod
   - monitor_type: error_tracking_trace
     threshold: 50
 synthetics:
-  - name: alwayz-seller-back이 다운되었습니다.
+  - name: demo-seller-back이 다운되었습니다.
     type: api
     subtype: http
     status: "live"
     locations: ["aws:ap-northeast-2"]
     request_definition:
       method: GET
-      url: https://alwayz-seller-back.prod.iexample-org.com/health-check
+      url: https://demo-seller-back.prod.iexample-org.com/health-check
     assertions:
       - type: statusCode
         operator: is

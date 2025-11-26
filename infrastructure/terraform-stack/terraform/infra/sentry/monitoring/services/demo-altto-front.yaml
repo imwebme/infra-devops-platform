@@ -1,6 +1,6 @@
 project:
-  name: alwayz-altto
-  slug: alwayz-altto
+  name: demo-altto
+  slug: demo-altto
   teams: ["example-org"]
   platform: javascript-react
   resolve_age: 720
@@ -15,7 +15,7 @@ owner:
     email: song@iexample-org.com
 alerts:
   - type: issue
-    name: "alwayz-altto Alert"
+    name: "demo-altto Alert"
     action_match: "all"
     filter_match: "all"
     frequency: 5

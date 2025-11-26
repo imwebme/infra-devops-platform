@@ -1,14 +1,14 @@
-resource "aws_kms_key" "alwayz-ecr-kms-key" {
+resource "aws_kms_key" "demo-ecr-kms-key" {
   description = "KMS key for ECR"
 }
 
-resource "aws_kms_alias" "alwayz-ecr-kms-alias" {
+resource "aws_kms_alias" "demo-ecr-kms-alias" {
   # name          = "alias/${local.env}/ecr-kms-key"
   name          = join("/", compact(["alias", local.category, local.env, "ecr-kms-key"]))
-  target_key_id = aws_kms_key.alwayz-ecr-kms-key.key_id
+  target_key_id = aws_kms_key.demo-ecr-kms-key.key_id
 }
 
-resource "aws_ecr_repository" "alwayz-repo" {
+resource "aws_ecr_repository" "demo-repo" {
   for_each             = toset(local.repository_names)
   name                 = format("%s-ecr_%s", local.prefix, each.key)
   image_tag_mutability = "MUTABLE"
@@ -20,13 +20,13 @@ resource "aws_ecr_repository" "alwayz-repo" {
 
   encryption_configuration {
     encryption_type = "KMS"
-    kms_key         = aws_kms_key.alwayz-ecr-kms-key.arn
+    kms_key         = aws_kms_key.demo-ecr-kms-key.arn
   }
 }
 
-resource "aws_ecr_lifecycle_policy" "alwayz-repo-lifecycle-policy" {
+resource "aws_ecr_lifecycle_policy" "demo-repo-lifecycle-policy" {
   for_each   = toset(local.repository_names)
-  repository = aws_ecr_repository.alwayz-repo[each.key].name
+  repository = aws_ecr_repository.demo-repo[each.key].name
 
   policy = <<EOF
 {

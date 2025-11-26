@@ -6,8 +6,8 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-WORKSPACE="alwayz-aws-prod-infra"
-TERRAFORM_DIR="/Users/example-org/workspace/infra/alwayz-infrastructure/terraform/infra/aws"
+WORKSPACE="demo-aws-prod-infra"
+TERRAFORM_DIR="/Users/example-org/workspace/infra/demo-infrastructure/terraform/infra/aws"
 
 echo -e "${GREEN}🚀 Updating privacy.iexample-org.com domain configuration${NC}"
 

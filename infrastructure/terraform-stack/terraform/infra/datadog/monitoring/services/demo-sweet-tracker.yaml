@@ -1,11 +1,11 @@
-service: alwayz-sweet-tracker
+service: demo-sweet-tracker
 owner:
   - name: 이정원
     email: j@iexample-org.com
 slack_channels:
   - 모니터링_스윗트래커
 synthetics:
-  - name: alwayz-sweet-tracker가 다운되었습니다.
+  - name: demo-sweet-tracker가 다운되었습니다.
     type: api
     subtype: http
     status: "live"

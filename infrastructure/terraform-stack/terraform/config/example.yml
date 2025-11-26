@@ -3,7 +3,7 @@
 # Copy and modify this configuration for your environment
 
 # Basic Configuration
-org: "alwayz"
+org: "demo"
 category: "aws"
 env: "example"
 secondary_level_domain: "iexample-org.com"
@@ -92,7 +92,7 @@ secretmanagers:
 # ElastiCache Configuration
 elasticache:
   "example-redis":
-    name: "alwayz-example-redis"
+    name: "demo-example-redis"
     description: "Example Redis cluster"
     cluster_mode: "enabled"
     node_type: "cache.t4g.small"

@@ -8,9 +8,9 @@ vpc_endpoints:
 datadog_private_link:
   enabled: true
   associated_vpc_ids:
-    - "vpc-018d6129677cf3d1e" # alwayz-dev-vpc
-    - "vpc-0a246f015bb980c94" # alwayz-prod-vpc
-    - "vpc-0efa9bd5259c1e33c" # alwayz-staging-vpc
+    - "vpc-018d6129677cf3d1e" # demo-dev-vpc
+    - "vpc-0a246f015bb980c94" # demo-prod-vpc
+    - "vpc-0efa9bd5259c1e33c" # demo-staging-vpc
     - "vpc-046b03efc179deedc" # data-dev-vpc
     - "vpc-0a678205bdfd676f4" # data-prod-vpc
     - "vpc-0d7c1405695dc666f" # data-dev-alt-vpc
@@ -18,15 +18,15 @@ datadog_private_link:
 vpc_peering:
   enabled: true
   connections:
-    - name: "to-alwayz-prod"
+    - name: "to-demo-prod"
       peer_vpc_id: "vpc-0a246f015bb980c94"
       peer_region: "ap-northeast-2"
       peer_cidr: "10.2.0.0/16"
-    - name: "to-alwayz-staging"
+    - name: "to-demo-staging"
       peer_vpc_id: "vpc-0efa9bd5259c1e33c"
       peer_region: "ap-northeast-2"
       peer_cidr: "10.8.0.0/16"
-    - name: "to-alwayz-dev"
+    - name: "to-demo-dev"
       peer_vpc_id: "vpc-018d6129677cf3d1e"
       peer_region: "ap-northeast-2"
       peer_cidr: "10.6.0.0/16"
@@ -46,7 +46,7 @@ vpc_peering:
 cloudfront:
   origin_access_controls: "sign requests about security"
 gitops:
-  workspace_repo_url: "https://github.com/wetripod/alwayz-gitops-manifest"
+  workspace_repo_url: "https://github.com/wetripod/demo-gitops-manifest"
 
 frontend: []
 ecr: []
@@ -55,7 +55,7 @@ eks:
   version: "1.33"
   auth_config:
     # Users are now managed by GitOps
-    # See: alwayz-gitops-manifest/clusters/security-prod-eks/administrations/aws-auth/
+    # See: demo-gitops-manifest/clusters/security-prod-eks/administrations/aws-auth/
     users: []
     roles:
       - rolearn: "arn:aws:iam::123456789012:role/aws-reserved/sso.amazonaws.com/ap-northeast-2/AWSReservedSSO_example_devops_xxxxxxxxxxxx"

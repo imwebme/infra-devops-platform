@@ -13,7 +13,7 @@
 
 ### 1. Config 파일 설정
 
-환경별 config 파일(예: `alwayz-aws-dev-infra.yml`)에 RDS 설정을 추가합니다:
+환경별 config 파일(예: `demo-aws-dev-infra.yml`)에 RDS 설정을 추가합니다:
 
 ```yaml
 rds:

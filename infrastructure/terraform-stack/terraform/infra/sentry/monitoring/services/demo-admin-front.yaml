@@ -1,6 +1,6 @@
 project:
-  name: alwayz-admin
-  slug: alwayz-admin
+  name: demo-admin
+  slug: demo-admin
   teams: ["example-org"]
   platform: javascript-react
   resolve_age: 720
@@ -17,7 +17,7 @@ owner:
     email: sangmin.lee@iexample-org.com
 alerts:
   - type: issue
-    name: "alwayz-admin CriticalAlert"
+    name: "demo-admin CriticalAlert"
     action_match: "all"
     filter_match: "all"
     frequency: 5
@@ -35,7 +35,7 @@ alerts:
         channel_id: "CXXXXXXXXX2"
         tags: ""
   - type: issue
-    name: "alwayz-admin FirstSeenEvent"
+    name: "demo-admin FirstSeenEvent"
     action_match: "all"
     filter_match: "all"
     frequency: 5

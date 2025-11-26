@@ -1,4 +1,4 @@
-service: alwayz-gateway
+service: demo-gateway
 owner:
   - name: 이상민
     email: sangmin.lee@iexample-org.com
@@ -14,19 +14,19 @@ monitors:
     duration: 1000
   - monitor_type: alb_5xx
     threshold: 50
-    loadbalancer: alwayz-gateway-prod
+    loadbalancer: demo-gateway-prod
   - monitor_type: alb_target_5xx
     threshold: 50
-    loadbalancer: alwayz-gateway-prod
+    loadbalancer: demo-gateway-prod
   - monitor_type: error_tracking_trace
     threshold: 50
   - monitor_type: custom_alert
-    name: alwayz-gateway alb_target_4xx
+    name: demo-gateway alb_target_4xx
     type: trace-analytics alert
-    query: trace-analytics("service:alwayz-gateway* env:prod @http.status_code:4**").rollup("count").by("@http.url,@http.method").last("1m") > 1000
+    query: trace-analytics("service:demo-gateway* env:prod @http.status_code:4**").rollup("count").by("@http.url,@http.method").last("1m") > 1000
     message_template: monitor_alb_target_4xx.tpl
 synthetics:
-  - name: alwayz-gateway가 다운되었습니다.
+  - name: demo-gateway가 다운되었습니다.
     type: api
     subtype: http
     status: "live"

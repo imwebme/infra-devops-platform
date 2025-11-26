@@ -1,4 +1,4 @@
-service: alwayz-reco-related
+service: demo-reco-related
 owner:
   - name: 조영훈
     email: younghun.jo@iexample-org.com
@@ -12,21 +12,21 @@ monitors:
     duration: 5000
   - monitor_type: alb_5xx
     threshold: 5
-    loadbalancer: alwayz-reco-related-prod
+    loadbalancer: demo-reco-related-prod
   - monitor_type: alb_target_5xx
     threshold: 5
-    loadbalancer: alwayz-reco-related-prod
+    loadbalancer: demo-reco-related-prod
   - monitor_type: error_tracking_trace
     threshold: 10
 synthetics:
-  - name: alwayz-reco-related-prod가 다운되었습니다.
+  - name: demo-reco-related-prod가 다운되었습니다.
     type: api
     subtype: http
     status: "live"
     locations: ["pl:devops-private-location-dc242ec68f6544a123e787d5345b2e06"]
     request_definition:
       method: GET
-      url: https://alwayz-reco-related.prod.iexample-org.com/health-check
+      url: https://demo-reco-related.prod.iexample-org.com/health-check
     assertions:
       - type: statusCode
         operator: is

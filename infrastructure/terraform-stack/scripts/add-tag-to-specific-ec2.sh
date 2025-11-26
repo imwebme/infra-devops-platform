@@ -10,7 +10,7 @@ for instance_id in $(aws ec2 describe-instances \
       --output json)
 
   # 새 태그 추가
-  NEW_TAGS=$(echo $EXISTING_TAGS | jq -c '. += [["Env", "alwayz-prod"], ["ManagedBy", "Lim Jong Eun"], ["Group", "mongodb"], ["Team", "devops"]]' | jq -c '[.[] | {"Key": .[0], "Value": .[1]}]')
+  NEW_TAGS=$(echo $EXISTING_TAGS | jq -c '. += [["Env", "demo-prod"], ["ManagedBy", "Lim Jong Eun"], ["Group", "mongodb"], ["Team", "devops"]]' | jq -c '[.[] | {"Key": .[0], "Value": .[1]}]')
 
   # 태그 업데이트
   aws ec2 create-tags \

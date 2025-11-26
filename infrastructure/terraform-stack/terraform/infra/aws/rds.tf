@@ -157,7 +157,7 @@ resource "aws_security_group" "rds" {
 
 # Get existing password from Secrets Manager
 data "aws_secretsmanager_secret_version" "db_admin" {
-  secret_id = "alwayz/${local.env}/db/admin"
+  secret_id = "demo/${local.env}/db/admin"
 }
 
 locals {

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # S3 버킷 이름
-BUCKET_NAME="alwayz-services-alb-connection-log"
+BUCKET_NAME="demo-services-alb-connection-log"
 
 # S3 버킷 비우기
 echo "Starting to empty bucket: $BUCKET_NAME"

@@ -1,4 +1,4 @@
-service: alwayz-almart-back
+service: demo-almart-back
 owner:
   - name: 안석민
     email: chris@iexample-org.com
@@ -12,24 +12,24 @@ monitors:
     duration: 300
   - monitor_type: alb_5xx
     threshold: 5
-    loadbalancer: alwayz-almart-back-prod
+    loadbalancer: demo-almart-back-prod
   - monitor_type: alb_target_5xx
     threshold: 5
-    loadbalancer: alwayz-almart-back-prod
+    loadbalancer: demo-almart-back-prod
   - monitor_type: alb_target_4xx
     threshold: 5
-    loadbalancer: alwayz-almart-back-prod
+    loadbalancer: demo-almart-back-prod
   - monitor_type: error_tracking_trace
     threshold: 5
 synthetics:
-  - name: alwayz-almart-back이 다운되었습니다.
+  - name: demo-almart-back이 다운되었습니다.
     type: api
     subtype: http
     status: "live"
     locations: ["aws:ap-northeast-2"]
     request_definition:
       method: GET
-      url: https://alwayz-almart-back.prod.iexample-org.com/health-check
+      url: https://demo-almart-back.prod.iexample-org.com/health-check
     assertions:
       - type: statusCode
         operator: is

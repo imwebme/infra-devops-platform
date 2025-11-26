@@ -1,4 +1,4 @@
-resource "aws_s3_bucket" "alwayz-frontend" {
+resource "aws_s3_bucket" "demo-frontend" {
   for_each = toset(local.frontend_service_names)
   bucket   = format("%s-%s", each.key, local.env)
 
@@ -11,11 +11,11 @@ resource "aws_s3_bucket" "alwayz-frontend" {
   }
 }
 
-resource "aws_s3_bucket_policy" "alwayz-frontend_policy" {
+resource "aws_s3_bucket_policy" "demo-frontend_policy" {
   for_each = toset(local.frontend_service_names)
-  bucket   = aws_s3_bucket.alwayz-frontend[each.key].id
+  bucket   = aws_s3_bucket.demo-frontend[each.key].id
 
-  depends_on = [aws_s3_bucket_website_configuration.alwayz-frontend-configuration]
+  depends_on = [aws_s3_bucket_website_configuration.demo-frontend-configuration]
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -27,7 +27,7 @@ resource "aws_s3_bucket_policy" "alwayz-frontend_policy" {
           Service = "cloudfront.amazonaws.com"
         }
         Action   = "s3:GetObject"
-        Resource = "${aws_s3_bucket.alwayz-frontend[each.key].arn}/*"
+        Resource = "${aws_s3_bucket.demo-frontend[each.key].arn}/*"
         Condition = {
           StringEquals = {
             "AWS:SourceArn" = aws_cloudfront_distribution.s3_distribution[each.key].arn
@@ -46,8 +46,8 @@ resource "aws_s3_bucket_policy" "alwayz-frontend_policy" {
           "s3:DeleteObject"
         ]
         Resource = [
-          aws_s3_bucket.alwayz-frontend[each.key].arn,
-          "${aws_s3_bucket.alwayz-frontend[each.key].arn}/*"
+          aws_s3_bucket.demo-frontend[each.key].arn,
+          "${aws_s3_bucket.demo-frontend[each.key].arn}/*"
         ]
       }
     ]
@@ -55,9 +55,9 @@ resource "aws_s3_bucket_policy" "alwayz-frontend_policy" {
   lifecycle { ignore_changes = [policy] }
 }
 
-resource "aws_s3_bucket_lifecycle_configuration" "alwayz-frontend-lifecycle" {
+resource "aws_s3_bucket_lifecycle_configuration" "demo-frontend-lifecycle" {
   for_each = toset(local.frontend_service_names)
-  bucket   = aws_s3_bucket.alwayz-frontend[each.key].id
+  bucket   = aws_s3_bucket.demo-frontend[each.key].id
 
   rule {
     id     = "delete-old-files"
@@ -74,9 +74,9 @@ resource "aws_s3_bucket_lifecycle_configuration" "alwayz-frontend-lifecycle" {
   }
 }
 
-resource "aws_s3_bucket_website_configuration" "alwayz-frontend-configuration" {
+resource "aws_s3_bucket_website_configuration" "demo-frontend-configuration" {
   for_each = toset(local.frontend_service_names)
-  bucket   = aws_s3_bucket.alwayz-frontend[each.key].id
+  bucket   = aws_s3_bucket.demo-frontend[each.key].id
 
   index_document {
     suffix = "index.html"
@@ -87,9 +87,9 @@ resource "aws_s3_bucket_website_configuration" "alwayz-frontend-configuration" {
   }
 }
 
-resource "aws_s3_bucket_versioning" "alwayz-frontend-versioning" {
+resource "aws_s3_bucket_versioning" "demo-frontend-versioning" {
   for_each = toset(local.frontend_service_names)
-  bucket   = aws_s3_bucket.alwayz-frontend[each.key].id
+  bucket   = aws_s3_bucket.demo-frontend[each.key].id
   versioning_configuration {
     status = "Enabled"
   }
@@ -97,7 +97,7 @@ resource "aws_s3_bucket_versioning" "alwayz-frontend-versioning" {
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "sse-kms" {
   for_each = toset(local.frontend_service_names)
-  bucket   = aws_s3_bucket.alwayz-frontend[each.key].id
+  bucket   = aws_s3_bucket.demo-frontend[each.key].id
 
   rule {
     apply_server_side_encryption_by_default {
@@ -115,7 +115,7 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
   for_each = toset(local.frontend_service_names)
 
   origin {
-    domain_name              = aws_s3_bucket.alwayz-frontend[each.key].bucket_regional_domain_name
+    domain_name              = aws_s3_bucket.demo-frontend[each.key].bucket_regional_domain_name
     origin_access_control_id = aws_cloudfront_origin_access_control.sign_request.id
     origin_id                = format("%s-%s", each.key, local.env)
   }

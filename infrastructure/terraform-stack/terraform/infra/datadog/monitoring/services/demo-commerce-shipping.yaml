@@ -1,4 +1,4 @@
-service: alwayz-commerce-shipping
+service: demo-commerce-shipping
 owner:
   - name: 이상민
     email: sangmin.lee@iexample-org.com
@@ -12,24 +12,24 @@ monitors:
     duration: 1000
   - monitor_type: alb_5xx
     threshold: 50
-    loadbalancer: alwayz-commerce-shipping-prod
+    loadbalancer: demo-commerce-shipping-prod
   - monitor_type: alb_target_5xx
     threshold: 50
-    loadbalancer: alwayz-commerce-shipping-prod
+    loadbalancer: demo-commerce-shipping-prod
   - monitor_type: alb_target_4xx
     threshold: 50
-    loadbalancer: alwayz-commerce-shipping-prod
+    loadbalancer: demo-commerce-shipping-prod
   - monitor_type: error_tracking_trace
     threshold: 50
 synthetics:
-  - name: alwayz-commerce-shipping이 다운되었습니다.
+  - name: demo-commerce-shipping이 다운되었습니다.
     type: api
     subtype: http
     status: "live"
     locations: ["pl:devops-private-location-dc242ec68f6544a123e787d5345b2e06"]
     request_definition:
       method: GET
-      url: https://alwayz-commerce-shipping.prod.iexample-org.com/actuator/health/readiness
+      url: https://demo-commerce-shipping.prod.iexample-org.com/actuator/health/readiness
     assertions:
       - type: statusCode
         operator: is

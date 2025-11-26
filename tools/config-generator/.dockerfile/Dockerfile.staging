@@ -14,11 +14,11 @@ ENV DD_VERSION=${IMAGE_TAG}
 ENV DD_GIT_REPOSITORY_URL=${DD_GIT_REPOSITORY_URL} 
 ENV DD_GIT_COMMIT_SHA=${DD_GIT_COMMIT_SHA}
 
-WORKDIR /home/alwayz-config
+WORKDIR /home/demo-config
 RUN git config --global credential.helper store
 RUN git config --global user.name "levit-dev" 
 ARG CACHEBUST=0
-RUN git clone https://levit-dev:${GIT_PERSONAL_ACCESS_TOKEN}@github.com/wetripod/alwayz-config.git .
+RUN git clone https://levit-dev:${GIT_PERSONAL_ACCESS_TOKEN}@github.com/wetripod/demo-config.git .
 RUN echo -e "ENCRYPT_KEY=${ENCRYPT_KEY}\nNODE_ENV=${NODE_ENV}" > .env
 RUN npm pkg delete scripts.prepare && npm ci --omit=dev
 

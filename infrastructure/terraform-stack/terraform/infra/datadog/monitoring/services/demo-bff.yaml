@@ -1,4 +1,4 @@
-service: alwayz-bff
+service: demo-bff
 owner:
   - name: 이상민
     email: sangmin.lee@iexample-org.com
@@ -16,24 +16,24 @@ monitors:
     duration: 1000
   - monitor_type: alb_5xx
     threshold: 50
-    loadbalancer: alwayz-bff
+    loadbalancer: demo-bff
   - monitor_type: alb_target_5xx
     threshold: 50
-    loadbalancer: alwayz-bff
+    loadbalancer: demo-bff
   - monitor_type: alb_target_4xx
     threshold: 2000
-    loadbalancer: alwayz-bff
+    loadbalancer: demo-bff
   - monitor_type: error_tracking_trace
     threshold: 50
 synthetics:
-  - name: alwayz-bff가 다운되었습니다.
+  - name: demo-bff가 다운되었습니다.
     type: api
     subtype: http
     status: "live"
     locations: ["aws:ap-northeast-2"]
     request_definition:
       method: GET
-      url: https://alwayz-bff.prod.iexample-org.com/health
+      url: https://demo-bff.prod.iexample-org.com/health
     assertions:
       - type: statusCode
         operator: is
