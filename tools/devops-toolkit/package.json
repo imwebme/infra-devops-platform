@@ -9,6 +9,6 @@
     "url": "https://github.com/wetripod/devops-monorepo"
   },
   "dependencies": {
-    "inquirer": "^8.2.6"
+    "inquirer": "^8.2.7"
   }
 }
