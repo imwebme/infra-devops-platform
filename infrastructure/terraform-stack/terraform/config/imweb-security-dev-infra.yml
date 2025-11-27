@@ -1,7 +1,7 @@
 ---
 category: "security"
 env: "dev"
-vpc_cidr: "172.21.0.0/16"
+vpc_cidr: "10.51.0.0/16"
 vpc_endpoints:
   enabled: true
 

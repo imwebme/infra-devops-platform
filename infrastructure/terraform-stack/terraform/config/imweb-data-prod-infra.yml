@@ -1,7 +1,7 @@
 ---
 category: "data"
 env: "prod"
-vpc_cidr: "172.22.0.0/16"
+vpc_cidr: "10.60.0.0/16"
 vpc_endpoints:
   enabled: true
 

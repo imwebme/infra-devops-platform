@@ -1,7 +1,7 @@
 ---
 category: "data"
 env: "dev"
-vpc_cidr: "172.23.0.0/16"
+vpc_cidr: "10.61.0.0/16"
 vpc_endpoints:
   enabled: true
 
