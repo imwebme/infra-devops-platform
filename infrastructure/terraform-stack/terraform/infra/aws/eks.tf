@@ -7,14 +7,14 @@ module "eks" {
 
 
   cluster_name                   = join("-", [local.prefix, "eks"])
-  cluster_version                = lookup(local.eks, "version", "1.28")
+  cluster_version                = lookup(local.eks, "version", "1.33")
   cluster_endpoint_public_access = true
 
 
   # EKS Addons
   cluster_addons = {
     aws-ebs-csi-driver = {
-      version           = lookup(local.aws_ebs_csi_driver, "version", "v1.48.0-eksbuild.2")
+      version           = lookup(local.aws_ebs_csi_driver, "version", "v1.39.0-eksbuild.1")
       resolve_conflicts = "OVERWRITE"
       preserve          = true
 
@@ -106,7 +106,7 @@ module "eks" {
     coredns = {
       resolve_conflicts = "OVERWRITE"
       preserve          = true
-      version           = lookup(local.coredns, "version", "v1.10.1-eksbuild.4")
+      version           = lookup(local.coredns, "version", "v1.11.3-eksbuild.2")
       configuration_values = jsonencode({
         replicaCount = local.coredns.replica
         tolerations = [
@@ -220,7 +220,7 @@ module "eks" {
     }
 
     kube-proxy = {
-      version           = lookup(local.kube_proxy, "version", "v1.28.15-eksbuild.4")
+      version           = lookup(local.kube_proxy, "version", "v1.33.0-eksbuild.1")
       resolve_conflicts = "OVERWRITE"
       preserve          = true
     }
@@ -306,7 +306,7 @@ module "eks" {
     try(local.eks.enable_bottlerocket_nodegroup, true) ? {
       bottlerocket = {
         name                     = join("-", [local.prefix, "eks", "nodegroup", "mgmt"])
-        cluster_version          = "1.28"
+        cluster_version          = lookup(local.eks, "version", "1.33")
         use_name_prefix          = false
         iam_role_name            = join("-", [local.prefix, "eks", "nodegroup", "mgmt"])
         iam_role_use_name_prefix = false
@@ -347,7 +347,7 @@ module "eks" {
     try(local.eks.enable_new_nodegroup, false) ? {
       eks_managed_node_groups_new = {
         name                     = join("-", [local.prefix, "eks", "nodegroup", "mgmt", "new"])
-        cluster_version          = "1.29"
+        cluster_version          = lookup(local.eks, "version", "1.33")
         use_name_prefix          = false
         iam_role_name            = join("-", [local.prefix, "eks", "nodegroup", "mgmt", "new"])
         iam_role_use_name_prefix = false
