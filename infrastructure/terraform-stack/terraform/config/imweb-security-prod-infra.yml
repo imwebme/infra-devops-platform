@@ -21,9 +21,10 @@ gitops:
 frontend: []
 ecr: []
 eks:
-  enabled: false  # Phase 2: Enable after VPC is created
+  enabled: true
   kms: false
-  version: "1.31"
+  version: "1.33"
+  enable_bottlerocket_nodegroup: true
   auth_config:
     users: []
     roles: []
