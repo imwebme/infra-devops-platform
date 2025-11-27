@@ -421,25 +421,27 @@ module "eks" {
   create_cloudwatch_log_group = false
 }
 
-# Attach EKS node roles to the managed policies
+# Attach EKS node roles to the managed policies (only when managed_policies are defined)
 resource "aws_iam_role_policy_attachment" "karpenter_ebs_role" {
+  count      = try(local.config.eks.enabled, false) && contains(keys(local.managed_policies), "eks_nodes_ebs-access") ? 1 : 0
   role       = module.eks_blueprints_addons.karpenter.node_iam_role_name
   policy_arn = aws_iam_policy.managed_policies["eks_nodes_ebs-access"].arn
 }
 
 resource "aws_iam_role_policy_attachment" "athena-glue-lakeformation-s3-full-access" {
+  count      = try(local.config.eks.enabled, false) && contains(keys(local.managed_policies), "karpenter_athena-glue-lakeformation-s3-full-access-policy") ? 1 : 0
   role       = module.eks_blueprints_addons.karpenter.node_iam_role_name
   policy_arn = aws_iam_policy.managed_policies["karpenter_athena-glue-lakeformation-s3-full-access-policy"].arn
 }
 
 resource "aws_iam_role_policy_attachment" "node_group_coreaddons_ebs_role" {
-  count      = try(local.eks.enable_bottlerocket_nodegroup, true) ? 1 : 0
+  count      = try(local.config.eks.enabled, false) && try(local.eks.enable_bottlerocket_nodegroup, true) && contains(keys(local.managed_policies), "eks_nodes_ebs-access") ? 1 : 0
   role       = module.eks.eks_managed_node_groups.bottlerocket.iam_role_name
   policy_arn = aws_iam_policy.managed_policies["eks_nodes_ebs-access"].arn
 }
 
 resource "aws_iam_role_policy_attachment" "node_group_coreaddons_new_ebs_role" {
-  count      = try(local.eks.enable_new_nodegroup, false) ? 1 : 0
+  count      = try(local.config.eks.enabled, false) && try(local.eks.enable_new_nodegroup, false) && contains(keys(local.managed_policies), "eks_nodes_ebs-access") ? 1 : 0
   role       = module.eks.eks_managed_node_groups.eks_managed_node_groups_new.iam_role_name
   policy_arn = aws_iam_policy.managed_policies["eks_nodes_ebs-access"].arn
 }

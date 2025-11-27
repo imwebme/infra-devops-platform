@@ -155,13 +155,14 @@ resource "aws_security_group" "rds" {
   })
 }
 
-# Get existing password from Secrets Manager
+# Get existing password from Secrets Manager (only for demo accounts with RDS)
 data "aws_secretsmanager_secret_version" "db_admin" {
+  count     = try(local.config.lookup_demo_resources, false) && length(try(local.config.rds.databases, [])) > 0 ? 1 : 0
   secret_id = "demo/${local.env}/db/admin"
 }
 
 locals {
-  db_admin_secrets  = jsondecode(data.aws_secretsmanager_secret_version.db_admin.secret_string)
+  db_admin_secrets  = length(data.aws_secretsmanager_secret_version.db_admin) > 0 ? jsondecode(data.aws_secretsmanager_secret_version.db_admin[0].secret_string) : {}
   db_admin_password = lookup(local.db_admin_secrets, "example-org_admin", "")
 }
 

@@ -1,36 +1,17 @@
 ---
 category: "security"
 env: "prod"
+secondary_level_domain: "imweb.me"
 vpc_cidr: "10.50.0.0/16"
 vpc_endpoints:
-  enabled: true
+  enabled: false  # Phase 1: Disable for initial deployment
 
 datadog_private_link:
-  enabled: true
-  associated_vpc_ids:
-    # TODO: Add imweb VPC IDs after peering setup
-    # - "vpc-xxxxxxxxx" # imweb-vpc (prod)
-    # - "vpc-xxxxxxxxx" # imweb-test-vpc
+  enabled: false  # Phase 2: Enable after VPC peering setup
 
 vpc_peering:
-  enabled: true
-  connections:
-    - name: "to-imweb-prod"
-      peer_vpc_id: "vpc-xxxxxxxxx"  # TODO: imweb-vpc (prod) ID
-      peer_region: "ap-northeast-2"
-      peer_cidr: "172.31.0.0/16"
-    - name: "to-imweb-vdi"
-      peer_vpc_id: "vpc-xxxxxxxxx"  # TODO: imweb-vdi-vpc ID
-      peer_region: "ap-northeast-2"
-      peer_cidr: "172.30.0.0/16"
-    - name: "to-imweb-security-dev"
-      peer_vpc_id: "vpc-xxxxxxxxx"  # TODO: Created after security-dev VPC
-      peer_region: "ap-northeast-2"
-      peer_cidr: "172.21.0.0/16"
-    - name: "to-imweb-data-prod"
-      peer_vpc_id: "vpc-xxxxxxxxx"  # TODO: Created after data-prod VPC
-      peer_region: "ap-northeast-2"
-      peer_cidr: "172.22.0.0/16"
+  enabled: false  # Phase 2: Enable after all VPCs are created
+  connections: []
 
 cloudfront:
   origin_access_controls: "sign requests about security"
@@ -40,36 +21,24 @@ gitops:
 frontend: []
 ecr: []
 eks:
+  enabled: false  # Phase 2: Enable after VPC is created
   kms: false
-  version: "1.33"
+  version: "1.31"
   auth_config:
-    # Users are managed by GitOps
-    # See: imweb-gitops-manifest/clusters/imweb-security-prod-eks/administrations/aws-auth/
     users: []
-    roles:
-      - rolearn: "arn:aws:iam::XXXXXXXXXXXX:role/aws-reserved/sso.amazonaws.com/ap-northeast-2/AWSReservedSSO_imweb_devops_xxxxxxxxxxxx"
-        username: "{{SessionName}}"
-        groups: ["system:masters"]
+    roles: []
 nat_gateway:
   enabled: true
   per_az: true
 coredns:
   replica: 4
+# Route53 zones - Phase 1: minimal setup (domain TBD)
+# Note: Datadog private zones are controlled by datadog_private_link.enabled
 route53_zones:
   private:
-    - "security.prod.imweb.me"
-    - "agent-http-intake.logs.datadoghq.com"
-    - "http-intake.logs.datadoghq.com"
-    - "api.datadoghq.com"
-    - "metrics.agent.datadoghq.com"
-    - "orchestrator.datadoghq.com"
-    - "process.datadoghq.com"
-    - "intake.profile.datadoghq.com"
-    - "trace.agent.datadoghq.com"
-    - "dbm-metrics-intake.datadoghq.com"
-    - "config.datadoghq.com"
+    - "security.prod.imweb.me"  # TODO: Update to new domain when purchased
   public:
-    - "security.prod.imweb.me"
+    - "security.prod.imweb.me"  # TODO: Update to new domain when purchased
 
 secretmanagers:
   tailscale-operator: {} # Tailscale OAuth credentials
@@ -78,58 +47,11 @@ secretmanagers:
   trivy-operator: {} # Trivy Operator configuration secrets (manual setup)
   security-cronjobs: {} # Security CronJobs credentials
 
-service_roles:
-  argocd:
-    name: argocd
-    policies:
-      - name: secretsmanager
-        file: base/secretsmanager-read.json
-  trivy-operator:
-    name: trivy-operator
-    policies:
-      - name: secretsmanager
-        file: base/secretsmanager-read.json
-  security-cronjobs:
-    name: security-cronjobs
-    policies:
-      - name: secretsmanager
-        file: base/secretsmanager-read.json
-      - name: ecr-read
-        file: base/ecr-read.json
+service_roles: {}  # Phase 2: Enable after EKS is ready
 
-managed_policies:
-  eks_nodes:
-    name: eks_nodes
-    policies:
-      - name: ebs-access
-        file: services/ebs.json
-  karpenter:
-    name: karpenter
-    policies:
-      - name: athena-glue-lakeformation-s3-full-access-policy
-        file: base/athena-glue-lakeformation-s3-full-access-policy.json
+managed_policies: {}  # Phase 2: Enable after EKS is ready
 
-pod_identity_associations:
-  argocd:
-    namespace: argocd
-    service_account: argo-cd-argocd-repo-server
-  trivy-operator:
-    namespace: trivy-system
-    service_account: trivy-operator
-  security-cronjobs:
-    namespace: security-cronjobs
-    service_account: code-scanner
+pod_identity_associations: {}  # Phase 2: Enable after EKS is ready
 
 rds:
-  databases:
-    - identifier: "sonarqube"
-      engine: "postgres"
-      engine_version: "15"
-      instance_class: "db.t3.micro"
-      allocated_storage: 20
-      max_allocated_storage: 100
-      database_name: "sonarqube"
-      port: 5432
-      backup_retention_period: 7
-      deletion_protection: false
-      skip_final_snapshot: true
+  databases: []  # Phase 2: Enable after EKS is ready

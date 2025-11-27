@@ -25,7 +25,7 @@ resource "aws_vpc_endpoint" "datadog_virginia" {
   provider = aws.virginia
   for_each = try(local.config.datadog_private_link.enabled, false) && local.category == "security" && local.env == "prod" ? lookup(local.vpc_endpoints, "us-east-1", {}) : {}
 
-  vpc_id              = data.aws_vpc.virginia.id
+  vpc_id              = try(data.aws_vpc.virginia[0].id, "")
   service_name        = each.value.service_name
   vpc_endpoint_type   = each.value.type
   private_dns_enabled = each.value.private_dns_enabled

@@ -9,12 +9,14 @@ module "public_zones" {
   }
 }
 
+# Create NS record in parent zone to delegate subdomain (only when parent zone exists)
 resource "aws_route53_record" "public_nameserver" {
+  count           = try(local.config.lookup_existing_route53_zone, false) ? 1 : 0
   allow_overwrite = false
   name            = module.public_zones.route53_zone_name["${local.domain}"]
   ttl             = 300
   type            = "NS"
-  zone_id         = data.aws_route53_zone.secondary_level_domain.id
+  zone_id         = data.aws_route53_zone.secondary_level_domain[0].id
 
   records = module.public_zones.route53_zone_name_servers["${local.domain}"]
 

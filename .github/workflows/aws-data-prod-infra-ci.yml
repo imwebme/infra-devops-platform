@@ -1,0 +1,429 @@
+name: "CI process(data-prod)"
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "terraform/config/aws-data-prod-infra.yml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "terraform/config/_defaults.yml"
+      - "terraform/config/aws-data-prod-infra.yml"
+      - "terraform/infra/aws/**"
+  workflow_dispatch:
+
+env:
+  TF_CLOUD_ORGANIZATION: "levit"
+  TF_API_TOKEN: "${{ secrets.TF_API_TOKEN }}"
+  TF_WORKSPACE: "aws-data-prod-infra"
+  CONFIG_DIRECTORY: "./"
+
+jobs:
+  terraform-plan:
+    if: github.event_name == 'pull_request' && github.event.action != 'closed'
+    name: "Terraform Plan"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Upload Configuration
+        uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.0.0
+        id: plan-upload
+        with:
+          workspace: ${{ env.TF_WORKSPACE }}
+          directory: ${{ env.CONFIG_DIRECTORY }}
+          speculative: true
+
+      - name: Create Plan Run
+        uses: hashicorp/tfc-workflows-github/actions/create-run@v1.0.0
+        id: plan-run
+        with:
+          workspace: ${{ env.TF_WORKSPACE }}
+          configuration_version: ${{ steps.plan-upload.outputs.configuration_version_id }}
+          plan_only: true
+
+      - name: Get Plan Output
+        uses: hashicorp/tfc-workflows-github/actions/plan-output@v1.0.0
+        id: plan-output
+        with:
+          plan: ${{ fromJSON(steps.plan-run.outputs.payload).data.relationships.plan.data.id }}
+
+      - name: Update PR
+        uses: actions/github-script@v6
+        id: plan-comment
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            // 1. Retrieve existing bot comments for the PR
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const botComment = comments.find(comment => {
+              return comment.user.type === 'Bot' && comment.body.includes('Terraform Cloud Plan Output(data-prod)')
+            });
+            const output = `#### Terraform Cloud Plan Output(data-prod)
+               \`\`\`
+               Plan: ${{ steps.plan-output.outputs.add }} to add, ${{ steps.plan-output.outputs.change }} to change, ${{ steps.plan-output.outputs.destroy }} to destroy.
+               \`\`\`
+               [Terraform Cloud Plan](${{ steps.plan-run.outputs.run_link }})
+               `;
+            // 3. Delete previous comment so PR timeline makes sense
+            if (botComment) {
+              github.rest.issues.deleteComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+              });
+            }
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            });
+
+  terraform-apply:
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
+    name: "Terraform Apply"
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Upload Configuration
+        uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.0.0
+        id: apply-upload
+        with:
+          workspace: ${{ env.TF_WORKSPACE }}
+          directory: ${{ env.CONFIG_DIRECTORY }}
+
+      - name: Create Apply Run
+        uses: hashicorp/tfc-workflows-github/actions/create-run@v1.0.0
+        id: apply-run
+        with:
+          workspace: ${{ env.TF_WORKSPACE }}
+          configuration_version: ${{ steps.apply-upload.outputs.configuration_version_id }}
+
+      - name: Apply
+        uses: hashicorp/tfc-workflows-github/actions/apply-run@v1.0.0
+        if: fromJSON(steps.apply-run.outputs.payload).data.attributes.actions.IsConfirmable
+        id: apply
+        with:
+          run: ${{ steps.apply-run.outputs.run_id }}
+
+          comment: "Apply Run from GitHub Actions CI ${{ github.sha }}"
+
+      - name: Get Terraform Outputs from Run
+        if: steps.apply.outcome == 'success'
+        id: terraform-outputs
+        run: |
+          # Wait a moment for state to be updated
+          sleep 10
+          
+          # Get workspace current state version directly
+          WORKSPACE_DETAILS=$(curl -s \
+            --header "Authorization: Bearer ${{ secrets.TF_API_TOKEN }}" \
+            --header "Content-Type: application/vnd.api+json" \
+            "https://app.terraform.io/api/v2/organizations/${{ env.TF_CLOUD_ORGANIZATION }}/workspaces/${{ env.TF_WORKSPACE }}?include=current-state-version")
+          
+          # Extract current state version ID
+          STATE_VERSION_ID=$(echo "$WORKSPACE_DETAILS" | jq -r '.included[]? | select(.type == "state-versions") | .id')
+          
+          if [[ "$STATE_VERSION_ID" != "" && "$STATE_VERSION_ID" != "null" ]]; then
+            echo "Found current state version: $STATE_VERSION_ID"
+            
+            # Get outputs from current state version
+            OUTPUTS=$(curl -s \
+              --header "Authorization: Bearer ${{ secrets.TF_API_TOKEN }}" \
+              --header "Content-Type: application/vnd.api+json" \
+              "https://app.terraform.io/api/v2/state-versions/$STATE_VERSION_ID/outputs")
+            
+            echo "outputs=$OUTPUTS" >> $GITHUB_OUTPUT
+            echo "Successfully retrieved outputs"
+          else
+            echo "No current state version found for workspace: ${{ env.TF_WORKSPACE }}"
+          fi
+
+      - name: Setup GitOps Bootstrap
+        if: steps.apply.outcome == 'success' && steps.terraform-outputs.outcome == 'success'
+        run: |
+          # Extract GitOps configuration from Terraform outputs
+          GITOPS_CONFIG_OUTPUT=$(echo '${{ steps.terraform-outputs.outputs.outputs }}' | jq -r '.data[]? | select(.attributes.name == "gitops_config") | .attributes.value')
+          
+          if [[ "$GITOPS_CONFIG_OUTPUT" != "null" && "$GITOPS_CONFIG_OUTPUT" != "" ]]; then
+            echo "GitOps Configuration Found:"
+            echo "Cluster Name: $(echo $GITOPS_CONFIG_OUTPUT | jq -r '.cluster_name')"
+            echo "Workspace Repo URL: $(echo $GITOPS_CONFIG_OUTPUT | jq -r '.workspace_repo_url')"
+            echo "Environment: $(echo $GITOPS_CONFIG_OUTPUT | jq -r '.environment')"
+            echo "Category: $(echo $GITOPS_CONFIG_OUTPUT | jq -r '.category')"
+            echo "Region: $(echo $GITOPS_CONFIG_OUTPUT | jq -r '.region')"
+            
+            # Set environment variables for GitOps automation
+            echo "CLUSTER_NAME=$(echo $GITOPS_CONFIG_OUTPUT | jq -r '.cluster_name')" >> $GITHUB_ENV
+            echo "WORKSPACE_REPO_URL=$(echo $GITOPS_CONFIG_OUTPUT | jq -r '.workspace_repo_url')" >> $GITHUB_ENV
+            echo "GITOPS_ENVIRONMENT=$(echo $GITOPS_CONFIG_OUTPUT | jq -r '.environment')" >> $GITHUB_ENV
+            echo "GITOPS_CATEGORY=$(echo $GITOPS_CONFIG_OUTPUT | jq -r '.category')" >> $GITHUB_ENV
+            echo "AWS_REGION=$(echo $GITOPS_CONFIG_OUTPUT | jq -r '.region')" >> $GITHUB_ENV
+          else
+            echo "No GitOps configuration found in outputs"
+            echo "Debug - Available outputs:"
+            echo '${{ steps.terraform-outputs.outputs.outputs }}' | jq -r '.data[]?.attributes.name' 2>/dev/null || echo "No outputs data"
+          fi
+
+      - name: Configure AWS CLI
+        if: env.CLUSTER_NAME != ''
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Configure kubectl and Install ArgoCD
+        if: env.CLUSTER_NAME != ''
+        run: |
+          # Install kubectl if not present
+          if ! command -v kubectl &> /dev/null; then
+            KUBECTL_VERSION=$(curl -L -s https://dl.k8s.io/release/stable.txt)
+            curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
+            curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl.sha256"
+            echo "$(cat kubectl.sha256) kubectl" | sha256sum -c
+            
+            # Download and verify GPG signature
+            curl -fsSLo /tmp/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+            curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl.sig"
+            gpg --import /tmp/kubernetes-archive-keyring.gpg
+            gpg --verify kubectl.sig kubectl
+            
+            chmod +x kubectl
+            sudo mv kubectl /usr/local/bin/
+          fi
+          
+          # Install Helm if not present
+          if ! command -v helm &> /dev/null; then
+            curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+            echo '93439a5e5e6992d5a3f7548a2eaa0c534bc76e7ee9a25e5b3b10fa51fae03e1c get_helm.sh' | sha256sum -c
+            chmod +x get_helm.sh
+            ./get_helm.sh
+            rm get_helm.sh
+          fi
+          
+          # Configure kubectl for EKS
+          aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name ${{ env.CLUSTER_NAME }}
+          
+          # Test AWS credentials
+          echo "Testing AWS credentials..."
+          aws sts get-caller-identity
+          
+          # Test EKS cluster access
+          echo "Testing EKS cluster access..."
+          aws eks describe-cluster --region ${{ env.AWS_REGION }} --name ${{ env.CLUSTER_NAME }} --query 'cluster.status'
+          
+          # Verify cluster connection with retries
+          echo "Verifying cluster connection..."
+          for i in {1..5}; do
+            if kubectl cluster-info --request-timeout=30s; then
+              echo "✅ Successfully connected to cluster"
+              break
+            else
+              echo "⚠️  Attempt $i failed, retrying in 10 seconds..."
+              sleep 10
+            fi
+            if [ $i -eq 5 ]; then
+              echo "❌ Failed to connect to cluster after 5 attempts"
+              exit 1
+            fi
+          done
+          
+          # Check if ArgoCD is already installed
+          if kubectl get namespace argocd &>/dev/null && kubectl get deployment argo-cd-argocd-server -n argocd &>/dev/null; then
+            echo "ℹ️  ArgoCD already installed, skipping installation..."
+            kubectl get pods -n argocd
+          else
+            echo "🚀 Installing ArgoCD with Helm..."
+            
+            # Ensure any previous ArgoCD resources are fully terminated
+            echo "Cleaning up any existing ArgoCD resources..."
+            kubectl delete deployment argo-cd-argocd-server -n argocd --ignore-not-found=true
+            kubectl wait --for=delete deployment/argo-cd-argocd-server -n argocd --timeout=300s || true
+            
+            # Add ArgoCD Helm repository
+            helm repo add argo https://argoproj.github.io/argo-helm
+            helm repo update
+            
+            # Get ArgoCD admin password from Terraform outputs
+            ARGOCD_PASSWORD_OUTPUT=$(echo '${{ steps.terraform-outputs.outputs.outputs }}' | jq -r '.data[]? | select(.attributes.name == "argocd_admin_password_bcrypt") | .attributes.value')
+            if [ -z "$ARGOCD_PASSWORD_OUTPUT" ]; then echo "Error: Could not retrieve ArgoCD admin password from Terraform outputs" && exit 1; fi
+            GITHUB_CLIENT_ID="${{ secrets.ARGOCD_GITHUB_CLIENT_ID_DATA_PROD }}"
+            GITHUB_CLIENT_SECRET="${{ secrets.ARGOCD_GITHUB_CLIENT_SECRET_DATA_PROD }}"
+            ARGOCD_SLACK_TOKEN="${{ secrets.ARGOCD_SLACK_TOKEN }}"
+            
+            # Get GitHub webhook secret
+            GITHUB_SECRET="${{ secrets.ARGOCD_GITHUB_WEBHOOK_SECRET }}"
+            
+            # Download ArgoCD values file from private repository
+            echo "Downloading ArgoCD values file..."
+            curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github.v3.raw" \
+              -o argocd-values.yaml \
+              "https://api.github.com/repos/wetripod/devops-gitops-manifest/contents/environments/base/addons/argo-cd/values.yaml"
+            
+            # Install ArgoCD with downloaded values file and secret overrides
+            helm upgrade --install argo-cd argo/argo-cd \
+              --version 7.7.6 \
+              --namespace argocd \
+              --create-namespace \
+              --values argocd-values.yaml \
+              --set configs.secret.argocdServerAdminPassword="$ARGOCD_PASSWORD_OUTPUT" \
+              --set configs.secret.extra.GITHUB_CLIENT_ID="$GITHUB_CLIENT_ID" \
+              --set configs.secret.extra.GITHUB_CLIENT_SECRET="$GITHUB_CLIENT_SECRET" \
+              --set configs.secret.githubSecret="$GITHUB_SECRET" \
+              --set notifications.secret.items.slack-token="$ARGOCD_SLACK_TOKEN"
+            
+            echo "✅ ArgoCD installation completed"
+          fi
+          
+          # Wait for ArgoCD to be ready
+          echo "Waiting for ArgoCD to be ready..."
+          kubectl wait --for=condition=available --timeout=300s deployment/argo-cd-argocd-server -n argocd || {
+            echo "ArgoCD server not ready, checking pods..."
+            kubectl get pods -n argocd
+            kubectl describe deployment argo-cd-argocd-server -n argocd
+            exit 1
+          }
+          
+          echo "✅ ArgoCD is ready"
+          kubectl get pods -n argocd -l app.kubernetes.io/name=argocd-server
+
+      - name: Create ArgoCD Projects
+        if: env.CLUSTER_NAME != ''
+        run: |
+          # Check if both projects exist
+          if kubectl get appproject devops-core -n argocd &>/dev/null && kubectl get appproject levit-app-workspaces -n argocd &>/dev/null; then
+            echo "ℹ️  Both ArgoCD projects already exist, skipping creation"
+          else
+            echo "🚀 Creating missing ArgoCD projects"
+            
+            cat <<EOF | kubectl apply -f -
+          apiVersion: argoproj.io/v1alpha1
+          kind: AppProject
+          metadata:
+            name: devops-core
+            namespace: argocd
+          spec:
+            description: "Project to manage add-on, k8s admin resources, argocd project for devops-core"
+            sourceRepos:
+            - '*'
+            destinations:
+            - namespace: '*'
+              server: '*'
+              name: '*'
+            clusterResourceWhitelist:
+            - group: '*'
+              kind: '*'
+            orphanedResources:
+              warn: true
+            sourceNamespaces:
+            - '*'
+          ---
+          apiVersion: argoproj.io/v1alpha1
+          kind: AppProject
+          metadata:
+            name: levit-app-workspaces
+            namespace: argocd
+          spec:
+            description: "Project to manage workspaces"
+            sourceRepos:
+            - '*'
+            destinations:
+            - namespace: '*'
+              server: '*'
+              name: '*'
+            clusterResourceWhitelist:
+            - group: '*'
+              kind: '*'
+            orphanedResources:
+              warn: true
+            sourceNamespaces:
+            - '*'
+          EOF
+            
+            echo "✅ ArgoCD projects created successfully"
+          fi
+      - name: Deploy Bootstrap Applications
+        if: env.CLUSTER_NAME != ''
+        run: |
+          # Validate WORKSPACE_REPO_URL
+          if [ -z "${{ env.WORKSPACE_REPO_URL }}" ]; then
+            echo "Error: WORKSPACE_REPO_URL not set"
+            exit 1
+          fi
+          
+          # Check if both applications exist
+          if kubectl get application devops-bootstrap-core -n argocd &>/dev/null && kubectl get application devops-bootstrap-workspace -n argocd &>/dev/null; then
+            echo "ℹ️  Both bootstrap applications already exist, skipping creation"
+          else
+            echo "🚀 Creating missing bootstrap applications"
+            
+            cat <<EOF | kubectl apply -f -
+          apiVersion: argoproj.io/v1alpha1
+          kind: Application
+          metadata:
+            name: devops-bootstrap-core
+            namespace: argocd
+            finalizers:
+              - resources-finalizer.argocd.argoproj.io
+          spec:
+            project: devops-core
+            source:
+              repoURL: https://github.com/wetripod/devops-gitops-manifest
+              targetRevision: HEAD
+              path: bootstraps/workloads
+            destination:
+              server: https://kubernetes.default.svc
+              namespace: argocd
+            syncPolicy:
+              automated:
+                prune: true
+                selfHeal: true
+              syncOptions:
+                - CreateNamespace=true
+          ---
+          apiVersion: argoproj.io/v1alpha1
+          kind: Application
+          metadata:
+            name: devops-bootstrap-workspace
+            namespace: argocd
+            finalizers:
+              - resources-finalizer.argocd.argoproj.io
+          spec:
+            project: devops-core
+            source:
+              repoURL: ${{ env.WORKSPACE_REPO_URL }}
+              targetRevision: HEAD
+              path: bootstraps/workloads
+            destination:
+              server: https://kubernetes.default.svc
+              namespace: argocd
+            syncPolicy:
+              automated:
+                prune: true
+                selfHeal: true
+              syncOptions:
+                - CreateNamespace=true
+          EOF
+            
+            echo "✅ Bootstrap applications deployed successfully"
+          fi

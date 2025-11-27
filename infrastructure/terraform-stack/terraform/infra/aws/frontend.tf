@@ -101,7 +101,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "sse-kms" {
 
   rule {
     apply_server_side_encryption_by_default {
-      kms_master_key_id = data.aws_kms_key.s3-cloudfront-kms.arn
+      kms_master_key_id = try(data.aws_kms_key.s3-cloudfront-kms[0].arn, "")
       sse_algorithm     = "aws:kms"
     }
 
@@ -162,7 +162,7 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
   }
 
   viewer_certificate {
-    acm_certificate_arn      = aws_acm_certificate.domain_us_east_1.arn
+    acm_certificate_arn      = try(aws_acm_certificate.domain_us_east_1[0].arn, "")
     ssl_support_method       = "sni-only"
     minimum_protocol_version = "TLSv1.2_2021"
   }
