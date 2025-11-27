@@ -60,7 +60,7 @@ resource "aws_cloudfront_distribution" "s3" {
   price_class = "PriceClass_200"
 
   viewer_certificate {
-    acm_certificate_arn      = data.aws_acm_certificate.iexample-org_wildcard.arn
+    acm_certificate_arn      = try(data.aws_acm_certificate.iexample-org_wildcard[0].arn, "")
     ssl_support_method       = "sni-only"
     minimum_protocol_version = "TLSv1.2_2021"
   }

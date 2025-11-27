@@ -71,7 +71,7 @@ resource "aws_route" "from_virginia" {
   } : {}
 
   provider                  = aws.virginia
-  route_table_id            = data.aws_vpc.virginia.main_route_table_id
+  route_table_id            = try(data.aws_vpc.virginia[0].main_route_table_id, "")
   destination_cidr_block    = module.vpc.vpc_cidr_block
   vpc_peering_connection_id = aws_vpc_peering_connection.this[each.key].id
 }
