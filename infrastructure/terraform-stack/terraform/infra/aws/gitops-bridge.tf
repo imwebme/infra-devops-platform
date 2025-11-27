@@ -40,10 +40,10 @@ module "eks_blueprints_addons" {
     iam_role_use_name_prefix = false
   }
 
-  external_dns_route53_zone_arns = [
+  external_dns_route53_zone_arns = try(local.config.eks.enabled, false) ? [
     module.public_zones.route53_zone_zone_arn["${local.domain}"],
     module.private_zones.route53_zone_zone_arn["${local.domain}"]
-  ]
+  ] : []
 
   tags = local.tags
 }

@@ -1,6 +1,7 @@
 ---
 category: "security"
 env: "prod"
+secondary_level_domain: "imweb.me"
 vpc_cidr: "10.50.0.0/16"
 vpc_endpoints:
   enabled: false  # Phase 1: Disable for initial deployment
@@ -31,21 +32,13 @@ nat_gateway:
   per_az: true
 coredns:
   replica: 4
+# Route53 zones - Phase 1: minimal setup (domain TBD)
+# Note: Datadog private zones are controlled by datadog_private_link.enabled
 route53_zones:
   private:
-    - "security.prod.imweb.me"
-    - "agent-http-intake.logs.datadoghq.com"
-    - "http-intake.logs.datadoghq.com"
-    - "api.datadoghq.com"
-    - "metrics.agent.datadoghq.com"
-    - "orchestrator.datadoghq.com"
-    - "process.datadoghq.com"
-    - "intake.profile.datadoghq.com"
-    - "trace.agent.datadoghq.com"
-    - "dbm-metrics-intake.datadoghq.com"
-    - "config.datadoghq.com"
+    - "security.prod.imweb.me"  # TODO: Update to new domain when purchased
   public:
-    - "security.prod.imweb.me"
+    - "security.prod.imweb.me"  # TODO: Update to new domain when purchased
 
 secretmanagers:
   tailscale-operator: {} # Tailscale OAuth credentials

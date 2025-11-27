@@ -7,8 +7,10 @@ data "aws_availability_zones" "available" {
 # Find the user currently in use by AWS
 data "aws_caller_identity" "current" {}
 
+# Only lookup if we have external DNS zone to reference (not for new accounts)
 data "aws_route53_zone" "secondary_level_domain" {
-  name = local.secondary_level_domain
+  count = try(local.config.lookup_existing_route53_zone, false) ? 1 : 0
+  name  = local.secondary_level_domain
 }
 
 data "aws_eks_cluster_auth" "kubernetes" {
@@ -105,38 +107,47 @@ data "aws_subnets" "private_data" {
   depends_on = [module.vpc.private_subnets]
 }
 
+# Only lookup KMS key for accounts that have it (demo environments)
 data "aws_kms_key" "s3-cloudfront-kms" {
-  key_id = "d82113e7-037a-4e1d-84eb-5ce8244d1e3e"
+  count  = try(local.config.lookup_existing_kms_key, false) ? 1 : 0
+  key_id = try(local.config.kms_key_id, "d82113e7-037a-4e1d-84eb-5ce8244d1e3e")
 }
 
 data "aws_cloudfront_cache_policy" "cache-optimized" {
   name = "Managed-CachingOptimized"
 }
 
+# Only lookup demo ACM certificate for demo accounts
 data "aws_acm_certificate" "iexample-org_wildcard" {
+  count       = try(local.config.lookup_demo_resources, false) ? 1 : 0
   provider    = aws.virginia
   domain      = "*.iexample-org.com"
   statuses    = ["ISSUED"]
   most_recent = true
 }
 
+# Only lookup demo Route53 zones for demo accounts
 data "aws_route53_zone" "public_iexample-org_com" {
+  count        = try(local.config.lookup_demo_resources, false) ? 1 : 0
   name         = "iexample-org.com"
   private_zone = false
 }
 
 data "aws_route53_zone" "private_iexample-org_com" {
+  count        = try(local.config.lookup_demo_resources, false) ? 1 : 0
   name         = "iexample-org.com"
   private_zone = true
 }
 
-# 기존 VPC 데이터
+# 기존 VPC 데이터 (only if default VPC exists)
 data "aws_vpc" "default" {
+  count   = try(local.config.lookup_default_vpc, false) ? 1 : 0
   default = true
 }
 
-# Datadog VPC (us-east-1)
+# Datadog VPC (us-east-1) - only for demo accounts with Datadog private link
 data "aws_vpc" "virginia" {
+  count    = try(local.config.lookup_demo_resources, false) ? 1 : 0
   provider = aws.virginia
-  id       = "vpc-b52882c8"
+  id       = try(local.config.virginia_vpc_id, "vpc-b52882c8")
 }
