@@ -95,7 +95,7 @@ resource "aws_s3_bucket_policy" "this" {
 resource "aws_route53_record" "s3_public" {
   for_each = { for k, v in local.s3_configs_map : k => v if try(v.cloudfront.enabled, false) && try(v.route53.public, true) }
 
-  zone_id = data.aws_route53_zone.public_iexample-org_com.zone_id
+  zone_id = try(data.aws_route53_zone.public_iexample-org_com[0].zone_id, "")
   name    = "${each.key}.iexample-org.com"
   type    = "A"
 
@@ -109,7 +109,7 @@ resource "aws_route53_record" "s3_public" {
 resource "aws_route53_record" "s3_private" {
   for_each = { for k, v in local.s3_configs_map : k => v if try(v.cloudfront.enabled, false) && try(v.route53.private, true) }
 
-  zone_id = data.aws_route53_zone.private_iexample-org_com.zone_id
+  zone_id = try(data.aws_route53_zone.private_iexample-org_com[0].zone_id, "")
   name    = "${each.key}.iexample-org.com"
   type    = "A"
 
