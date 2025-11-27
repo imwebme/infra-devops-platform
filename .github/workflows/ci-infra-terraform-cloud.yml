@@ -1,0 +1,186 @@
+name: "CI process(TFC)"
+
+on:
+  workflow_dispatch:
+    inputs:
+      workspace_name:
+        description: 'Terraform Cloud workspace name'
+        required: true
+      working_directory:
+        description: 'Terraform working directory path'
+        required: true
+      project_name:
+        description: 'Terraform Cloud project name'
+        required: true
+        default: 'Demo'
+
+env:
+  TF_CLOUD_ORGANIZATION: "levit"
+  TF_API_TOKEN: "${{ secrets.TF_API_TOKEN }}"
+  CONFIG_DIRECTORY: "./"
+  TF_CLOUD_API: "https://app.terraform.io/api/v2"
+
+jobs:
+  update-config:
+    name: "Update Configuration"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      has_changes: ${{ steps.job-output.outputs.has_changes }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Check if project exists
+        id: check-project
+        run: |
+          response=$(curl -s \
+            --header "Authorization: Bearer ${{ env.TF_API_TOKEN }}" \
+            --header "Content-Type: application/vnd.api+json" \
+            "${TF_CLOUD_API}/organizations/${{ env.TF_CLOUD_ORGANIZATION }}/projects")
+          
+          project_id=$(echo "$response" | jq -r '.data[] | select(.attributes.name == "${{ github.event.inputs.project_name }}") | .id')
+          
+          if [ -z "$project_id" ]; then
+            echo "exists=false" >> $GITHUB_OUTPUT
+          else
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "project_id=$project_id" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send Slack notification for missing project
+        if: steps.check-project.outputs.exists == 'false'
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": "❌ 워크스페이스 생성 실패: 프로젝트가 존재하지 않습니다.\n*프로젝트명:* ${{ github.event.inputs.project_name }}\n*워크스페이스:* ${{ github.event.inputs.workspace_name }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Exit if project doesn't exist
+        if: steps.check-project.outputs.exists == 'false'
+        run: exit 1
+
+      - name: Check if workspace exists
+        id: check-workspace
+        if: steps.check-project.outputs.exists == 'true'
+        run: |
+          response=$(curl -s \
+            --header "Authorization: Bearer ${{ env.TF_API_TOKEN }}" \
+            --header "Content-Type: application/vnd.api+json" \
+            "${TF_CLOUD_API}/organizations/${{ env.TF_CLOUD_ORGANIZATION }}/workspaces/${{ github.event.inputs.workspace_name }}")
+          
+          if echo "$response" | grep -q "not found"; then
+            echo "exists=false" >> $GITHUB_OUTPUT
+          else
+            echo "exists=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Terraform Cloud workspace
+        if: steps.check-project.outputs.exists == 'true'
+        id: create-workspace
+        run: |
+          # Attempt to create workspace
+          workspace_response=$(curl -s \
+            --header "Authorization: Bearer ${{ env.TF_API_TOKEN }}" \
+            --header "Content-Type: application/vnd.api+json" \
+            --request POST \
+            --data '{
+              "data": {
+                "attributes": {
+                  "name": "${{ github.event.inputs.workspace_name }}",
+                  "working-directory": "${{ github.event.inputs.working_directory }}",
+                  "global-remote-state": true,
+                  "terraform-version": "~>1.9.0"
+                },
+                "type": "workspaces",
+                "relationships": {
+                  "project": {
+                    "data": {
+                      "type": "projects",
+                      "id": "${{ steps.check-project.outputs.project_id }}"
+                    }
+                  }
+                }
+              }
+            }' \
+            "${TF_CLOUD_API}/organizations/${{ env.TF_CLOUD_ORGANIZATION }}/workspaces")
+
+          # Check response
+          if echo "$workspace_response" | jq -e '.errors' >/dev/null; then
+            error_detail=$(echo "$workspace_response" | jq -r '.errors[0].detail')
+            # If workspace already exists, get its ID
+            if [[ "$error_detail" == *"Name has already been taken"* ]]; then
+              workspace_id=$(curl -s \
+                --header "Authorization: Bearer ${{ env.TF_API_TOKEN }}" \
+                --header "Content-Type: application/vnd.api+json" \
+                "${TF_CLOUD_API}/organizations/${{ env.TF_CLOUD_ORGANIZATION }}/workspaces/${{ github.event.inputs.workspace_name }}" \
+                | jq -r '.data.id')
+              echo "workspace_id=$workspace_id" >> $GITHUB_OUTPUT
+              echo "Workspace already exists, proceeding with existing workspace"
+              exit 0
+            else
+              echo "error_message=워크스페이스 생성 실패: ${error_detail}" >> $GITHUB_OUTPUT
+              exit 1
+            fi
+          fi
+
+          # Get workspace ID for new workspace
+          workspace_id=$(echo "$workspace_response" | jq -r '.data.id')
+          echo "workspace_id=$workspace_id" >> $GITHUB_OUTPUT
+
+      - name: Configure workspace notification
+        if: steps.create-workspace.outputs.workspace_id != ''
+        id: configure-notification
+        run: |
+          notification_response=$(curl -s \
+            --header "Authorization: Bearer ${{ env.TF_API_TOKEN }}" \
+            --header "Content-Type: application/vnd.api+json" \
+            --request POST \
+            --data '{
+              "data": {
+                "type": "notification-configurations",
+                "attributes": {
+                  "destination-type": "slack",
+                  "enabled": true,
+                  "name": "${{ github.event.inputs.workspace_name }}-slack",
+                  "url": "${{ secrets.WORKSPACE_SLACK_WEBHOOK_URL }}",
+                  "triggers": ["run:created", "run:planning", "run:needs_attention", "run:applying", "run:completed", "run:errored"]
+                }
+              }
+            }' \
+            "${TF_CLOUD_API}/workspaces/${{ steps.create-workspace.outputs.workspace_id }}/notification-configurations")
+
+          echo "Response: $notification_response"  # 디버깅을 위한 응답 출력
+
+          if echo "$notification_response" | jq -e '.errors' >/dev/null; then
+            error_detail=$(echo "$notification_response" | jq -r '.errors[0].detail')
+            echo "error_message=알림 설정 실패: ${error_detail}" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: Send Slack notification
+        if: steps.check-workspace.outputs.exists == 'false'
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": "새로운 Terraform Cloud 워크스페이스가 생성되었습니다.\n*워크스페이스:* ${{ github.event.inputs.workspace_name }}\n*작업 디렉토리:* ${{ github.event.inputs.working_directory }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Send Slack notification for existing workspace
+        if: steps.check-workspace.outputs.exists == 'true'
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": "워크스페이스가 이미 존재합니다.\n*워크스페이스:* ${{ github.event.inputs.workspace_name }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
